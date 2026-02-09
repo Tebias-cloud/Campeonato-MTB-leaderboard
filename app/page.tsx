@@ -1,65 +1,245 @@
-import Image from "next/image";
+import { supabase } from '@/lib/supabase';
+import { Teko, Montserrat } from "next/font/google";
+import Link from 'next/link';
+import { Event } from '@/lib/definitions';
 
-export default function Home() {
+// --- FUENTES ---
+const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
+const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat' });
+
+// --- CONFIGURACIÓN ---
+export const dynamic = 'force-dynamic';
+
+// --- CLUBES ORGANIZADORES ---
+const clubsLogos = [
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/Logo%20PNG-04.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png'
+];
+
+// --- TIPOS ---
+interface HomeRider {
+  rider_id: string;
+  full_name: string;
+  current_category: string;
+  club: string | null;
+  club_logo: string | null;
+  instagram: string | null;
+  total_points: number;
+}
+
+export default async function Home() {
+  const today = new Date().toISOString().split('T')[0];
+
+  const [top3Response, nextEventResponse] = await Promise.all([
+    supabase
+      .from('ranking_global')
+      .select('*')
+      .order('total_points', { ascending: false })
+      .limit(3)
+      .returns<HomeRider[]>(),
+
+    supabase
+      .from('events')
+      .select('*')
+      .eq('status', 'pending')
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+  ]);
+
+  const riders = top3Response.data || [];
+  const nextEvent = nextEventResponse.data as Event | null;
+
+  const first = riders[0];
+  const second = riders[1];
+  const third = riders[2];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className={`min-h-screen bg-[#1A1816] text-[#EFE6D5] ${montserrat.variable} ${teko.variable} font-sans overflow-x-hidden selection:bg-[#C64928] selection:text-white`}>
+      
+      {/* ================= HERO SECTION ================= */}
+      <header className="relative min-h-[550px] md:min-h-[650px] flex flex-col items-center justify-center text-center px-4 pb-20 rounded-b-[60px] overflow-hidden border-b-[8px] border-[#C64928]">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547234935-80c7142ee969?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1816] via-[#1A1816]/60 to-black/40"></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
+
+        <div className="relative z-10 animate-fade-in-up pt-10 flex flex-col items-center w-full max-w-5xl">
+          
+          {/* Badge Temporada */}
+          <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-5 py-2 rounded-full mb-6 hover:bg-white/10 transition-colors cursor-default">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            <span className="text-white font-bold uppercase text-[10px] md:text-xs tracking-[0.2em]">Temporada 2026</span>
+          </div>
+          
+          {/* TÍTULO PRINCIPAL */}
+          <h1 className="font-heading text-6xl md:text-9xl uppercase italic leading-none drop-shadow-2xl tracking-tight mb-2 py-2">
+            <span className="text-white">CAMPEONATO </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#C64928] to-[#8B3A1E] pr-4">MTB</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          
+          <p className="font-heading text-2xl md:text-4xl text-gray-400 uppercase tracking-[0.2em] mb-10 font-light">
+            REGIÓN DE TARAPACÁ
           </p>
+
+          {/* BARRA DE CLUBES - LOGOS GRANDES A COLOR */}
+          <div className="w-full max-w-6xl mb-12">
+              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12 opacity-90 hover:opacity-100 transition-opacity">
+                  {clubsLogos.map((logo, index) => (
+                      /* Se eliminó la clase 'grayscale' */
+                      <div key={index} className="h-14 md:h-20 w-auto transition-all duration-500 hover:scale-110">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                              src={logo} 
+                              alt={`Club ${index + 1}`} 
+                              className="h-full w-full object-contain drop-shadow-lg" 
+                          />
+                      </div>
+                  ))}
+              </div>
+          </div>
+
+          <Link href="/ranking" className="group relative inline-flex items-center gap-3 bg-[#C64928] text-white px-10 py-4 rounded-sm font-heading text-3xl uppercase tracking-widest overflow-hidden transform hover:scale-105 transition-all shadow-[0_0_20px_rgba(198,73,40,0.5)]">
+             <span className="relative z-10">Ver Ranking Oficial</span>
+             <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
+          </Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* ================= PODIO GENERAL ================= */}
+      <section className="relative z-20 -mt-24 max-w-5xl mx-auto px-4">
+        <div className="flex justify-center items-end gap-3 md:gap-8 pb-10">
+          
+          {/* --- 2DO LUGAR --- */}
+          <div className={`w-1/3 flex flex-col items-center group transition-all duration-500 ${second ? 'opacity-100' : 'opacity-50'}`}>
+             <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-gray-400 bg-[#1A1816] flex items-center justify-center shadow-[0_0_15px_rgba(192,192,192,0.3)] overflow-hidden">
+                    {second?.club_logo ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={second.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
+                    ) : (
+                        <span className="font-heading text-5xl md:text-6xl text-gray-400 drop-shadow-md">{second?.full_name[0] || '2'}</span>
+                    )}
+                </div>
+             </div>
+             <div className="w-full bg-gradient-to-b from-gray-400 to-gray-600 h-32 md:h-48 rounded-t-xl shadow-2xl flex items-center justify-center relative overflow-hidden border-t border-white/20">
+                 <span className="font-heading text-7xl text-black/20 absolute bottom-0">2</span>
+             </div>
+             <div className="bg-[#252220] w-full py-4 text-center rounded-b-xl border-b-4 border-gray-400 shadow-lg">
+                <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{second?.full_name.split(' ')[0] || 'Vacante'}</p>
+                <p className="text-[10px] text-gray-400 font-bold">{second?.total_points || 0} PTS</p>
+             </div>
+          </div>
+
+          {/* --- 1ER LUGAR --- */}
+          <div className={`w-1/3 flex flex-col items-center -mb-6 md:-mb-8 z-30 group transition-all duration-500 ${first ? 'opacity-100' : 'opacity-50'}`}>
+             <div className="mb-3 z-20 animate-pulse">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 md:h-12 md:w-12 text-[#FFD700] drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 6l2 12h16l2-12-5 4-5-6-5 6z"></path>
+                 </svg>
+             </div>
+             <div className="mb-[-25px] z-20 relative transition-transform group-hover:-translate-y-3">
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-[4px] border-[#FFD700] bg-[#1A1816] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/10 to-transparent"></div>
+                    {first?.club_logo ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={first.club_logo} alt="Club" className="w-full h-full object-contain p-2 relative z-10" />
+                    ) : (
+                        <span className="font-heading text-7xl md:text-8xl text-[#FFD700] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] relative z-10">
+                            {first?.full_name[0] || '1'}
+                        </span>
+                    )}
+                </div>
+             </div>
+             <div className="w-full bg-gradient-to-b from-[#FFD700] to-[#DAA520] h-48 md:h-64 rounded-t-xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex items-center justify-center relative overflow-hidden border-t border-white/40">
+                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')] opacity-10"></div>
+                 <span className="font-heading text-9xl text-black/10 absolute bottom-0">1</span>
+             </div>
+             <div className="bg-[#252220] w-[110%] py-5 text-center rounded-b-xl border-b-4 border-[#FFD700] relative shadow-2xl">
+                <p className="font-black text-sm md:text-lg text-white truncate px-2 uppercase">{first?.full_name || 'Líder'}</p>
+                <div className="flex justify-center items-center gap-2 mt-1">
+                    <span className="bg-[#C64928] text-white text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">{first?.current_category || '---'}</span>
+                </div>
+                <p className="text-sm font-bold mt-1 text-[#FFD700]">{first?.total_points || 0} PTS</p>
+             </div>
+          </div>
+
+          {/* --- 3ER LUGAR --- */}
+          <div className={`w-1/3 flex flex-col items-center group transition-all duration-500 ${third ? 'opacity-100' : 'opacity-50'}`}>
+             <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-[#CD7F32] bg-[#1A1816] flex items-center justify-center shadow-[0_0_15px_rgba(205,127,50,0.2)] overflow-hidden">
+                    {third?.club_logo ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={third.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
+                    ) : (
+                        <span className="font-heading text-5xl md:text-6xl text-[#CD7F32] drop-shadow-md">{third?.full_name[0] || '3'}</span>
+                    )}
+                </div>
+             </div>
+             <div className="w-full bg-gradient-to-b from-[#E89C5D] to-[#8B4513] h-24 md:h-40 rounded-t-xl shadow-2xl flex items-center justify-center relative overflow-hidden border-t border-white/20">
+                 <span className="font-heading text-7xl text-black/20 absolute bottom-0">3</span>
+             </div>
+             <div className="bg-[#252220] w-full py-4 text-center rounded-b-xl border-b-4 border-[#CD7F32] shadow-lg">
+                <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{third?.full_name.split(' ')[0] || 'Vacante'}</p>
+                <p className="text-[10px] text-gray-400 font-bold">{third?.total_points || 0} PTS</p>
+             </div>
+          </div>
+
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ================= PRÓXIMA CARRERA ================= */}
+      <section className="py-20 px-4">
+        <div className="max-w-xl mx-auto">
+            {nextEvent ? (
+                <Link 
+                  href={`/ranking?eventId=${nextEvent.id}`}
+                  className="bg-[#252220] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group hover:border-[#C64928]/50 transition-colors block"
+                >
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <p className="text-[#C64928] text-xs font-black uppercase tracking-[0.2em] mb-2">Próxima Carrera</p>
+                    <h3 className="font-heading text-5xl uppercase leading-[0.9] mb-4 text-white group-hover:text-[#C64928] transition-colors">
+                        {nextEvent.name}
+                    </h3>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📅</div>
+                            <p className="text-sm text-gray-300 font-bold uppercase">
+                                {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📍</div>
+                            <p className="text-sm text-gray-300 font-bold uppercase">Tarapacá</p>
+                        </div>
+                    </div>
+                    <div className="absolute bottom-8 right-8 w-10 h-10 bg-[#C64928] rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                        ➔
+                    </div>
+                </Link>
+            ) : (
+                <div className="bg-[#252220] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden text-center">
+                      <h3 className="font-heading text-4xl uppercase text-gray-600">Temporada Finalizada</h3>
+                      <p className="text-sm text-gray-500 mt-2">Pronto más información.</p>
+                </div>
+            )}
+        </div>
+      </section>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="py-10 text-center opacity-40">
+          <p className="font-heading text-2xl uppercase text-white tracking-widest">Chaski Riders 2026</p>
+      </footer>
+    </main>
   );
 }
