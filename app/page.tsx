@@ -17,7 +17,7 @@ const clubsLogos = [
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png',
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png',
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png',
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png', // Ojo: Chaski repetido (¿intencional?)
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png'
 ];
 
@@ -90,20 +90,18 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES - CORREGIDA PARA MOVIL */}
-          <div className="w-full max-w-6xl mb-12">
-              {/* CAMBIOS REALIZADOS AQUÍ:
-                  1. 'grid grid-cols-3 gap-4': En móvil usa grilla de 3 columnas.
-                  2. 'md:flex md:flex-wrap': En PC usa flexbox normal.
-              */}
-              <div className="grid grid-cols-3 gap-6 md:flex md:flex-wrap md:gap-12 justify-center items-center opacity-90 hover:opacity-100 transition-opacity px-2">
+          {/* BARRA DE CLUBES - ARREGLADA CON CAJAS FIJAS */}
+          <div className="w-full max-w-5xl mb-12 px-2">
+              <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 opacity-90">
                   {clubsLogos.map((logo, index) => (
-                      <div key={index} className="h-12 md:h-20 w-auto flex justify-center items-center transition-all duration-500 hover:scale-110">
+                      /* CAJA CUADRADA FIJA: 80px en móvil (w-20) / 112px en PC (md:w-28) */
+                      <div key={index} className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center transition-all duration-500 hover:scale-110">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
                               src={logo} 
                               alt={`Club ${index + 1}`} 
-                              className="max-h-full max-w-full object-contain drop-shadow-lg" 
+                              /* object-contain ajusta el logo dentro de la caja sin deformarlo */
+                              className="max-w-full max-h-full object-contain drop-shadow-lg" 
                           />
                       </div>
                   ))}
