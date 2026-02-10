@@ -103,7 +103,21 @@ export default async function RiderProfile({ params }: { params: Promise<{ id: s
                     {rider.full_name}
                 </h1>
 
-                <div className="flex flex-wrap justify-center items-center gap-4 mt-6">
+                <div className="flex flex-wrap justify-center items-center gap-3 mt-6">
+                    
+                    {/* AQUI ESTA EL CAMBIO: CIUDAD */}
+                    {rider.ciudad && (
+                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span className="text-[10px] md:text-xs font-bold text-gray-300 uppercase tracking-widest">
+                                {rider.ciudad}
+                            </span>
+                        </div>
+                    )}
+
                     {rider.club && (
                         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
                             {rider.club_logo && (
