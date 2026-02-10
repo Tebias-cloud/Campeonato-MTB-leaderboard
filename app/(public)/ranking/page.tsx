@@ -28,6 +28,7 @@ interface ResultWithRider {
   riders: {
     full_name: string;
     club: string | null;
+    ciudad: string | null; // <--- AGREGADO CIUDAD
     club_logo: string | null;
     instagram: string | null;
     sponsor_1: string | null;
@@ -41,6 +42,7 @@ interface GlobalRankingRow {
   full_name: string;
   current_category: string;
   club: string | null;
+  ciudad: string | null; // <--- AGREGADO CIUDAD (Requiere actualizar la Vista SQL)
   club_logo: string | null;
   instagram: string | null;
   sponsor_1: string | null;
@@ -55,6 +57,7 @@ interface RankingDisplayData {
   full_name: string;
   category_shown: string;
   club: string | null;
+  city: string | null; // <--- Mapeamos a 'city'
   club_logo: string | null;
   instagram: string | null;
   sponsors: string[];
@@ -105,6 +108,7 @@ export default async function RankingFull(props: Props) {
       full_name: item.full_name,
       category_shown: item.current_category,
       club: item.club,
+      city: item.ciudad, // <--- Leemos la ciudad del View
       club_logo: item.club_logo,
       instagram: item.instagram,
       sponsors: [item.sponsor_1, item.sponsor_2, item.sponsor_3].filter(s => s && s.length > 5) as string[],
@@ -134,8 +138,8 @@ export default async function RankingFull(props: Props) {
         category_played,
         race_time,
         avg_speed,
-        riders ( full_name, club, club_logo, instagram, sponsor_1, sponsor_2, sponsor_3 )
-      `)
+        riders ( full_name, club, ciudad, club_logo, instagram, sponsor_1, sponsor_2, sponsor_3 ) 
+      `) // <--- AGREGADO 'ciudad' AQUÍ ARRIBA
       .eq('event_id', eventIdFilter)
       .order('points', { ascending: false });
 
@@ -151,6 +155,7 @@ export default async function RankingFull(props: Props) {
       full_name: item.riders?.full_name || 'Desconocido',
       category_shown: item.category_played,
       club: item.riders?.club || null,
+      city: item.riders?.ciudad || null, // <--- Leemos la ciudad
       club_logo: item.riders?.club_logo || null,
       instagram: item.riders?.instagram || null,
       sponsors: [item.riders?.sponsor_1, item.riders?.sponsor_2, item.riders?.sponsor_3].filter(s => s && s.length > 5) as string[],
@@ -316,7 +321,6 @@ export default async function RankingFull(props: Props) {
             {rankingData.map((rider, index) => {
             const rank = index + 1;
             
-            // LÓGICA DE PODIOS (Restaurada para bordes y texto)
             const isGold = rank === 1;
             const isSilver = rank === 2;
             const isBronze = rank === 3;
@@ -328,19 +332,17 @@ export default async function RankingFull(props: Props) {
                 : null;
 
             return (
-            // CAMBIO AQUÍ: Se mantiene el bg-white para todos, pero se restauran los colores del borde.
             <div key={rider.rider_id + index} className={`group relative p-2.5 mb-2 rounded-xl border-l-[6px] bg-white transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden ${
-                isGold ? 'border-[#FFD700]' : // Borde Dorado
-                isSilver ? 'border-[#C0C0C0]' : // Borde Plata
-                isBronze ? 'border-[#CD7F32]' : // Borde Bronce
-                isPodiumExtended ? 'border-[#C64928]' : // Borde Naranja (4º y 5º)
-                isTop10 ? 'border-gray-600' : // Borde Gris Oscuro (Top 10)
-                'border-gray-200' // Borde Gris Claro (Resto)
+                isGold ? 'border-[#FFD700]' : 
+                isSilver ? 'border-[#C0C0C0]' : 
+                isBronze ? 'border-[#CD7F32]' : 
+                isPodiumExtended ? 'border-[#C64928]' : 
+                isTop10 ? 'border-gray-600' : 
+                'border-gray-200' 
             }`}>
                 
                 <Link href={`/profile/${rider.rider_id}`} className="absolute inset-0 z-10" />
 
-                {/* Número del Ranking (Colores restaurados) */}
                 <div className={`font-heading text-4xl w-10 text-center shrink-0 ${
                     isGold ? 'text-[#FFD700] drop-shadow-sm' : 
                     isSilver ? 'text-gray-400' : 
@@ -378,9 +380,24 @@ export default async function RankingFull(props: Props) {
                                 </a>
                             )}
                         </div>
+                        
+                        {/* AQUI ESTA EL CAMBIO: Mostramos CIUDAD y CLUB juntos, visibles siempre */}
                         <div className="flex flex-wrap items-center gap-1.5 text-[9px] text-gray-500 font-bold uppercase mt-0.5">
                             <span className="bg-[#EFE6D5] text-[#1A1816] px-1.5 py-0.5 rounded-sm leading-none">{rider.category_shown}</span>
-                            {rider.club && <span className="truncate max-w-[120px] hidden md:inline leading-none tracking-wide text-gray-400">• {rider.club}</span>}
+                            
+                            {/* Ciudad (Visible siempre) */}
+                            {rider.city && (
+                                <span className="text-gray-600 truncate max-w-[80px]">
+                                    • {rider.city}
+                                </span>
+                            )}
+                            
+                            {/* Club (Visible siempre si cabe, sino se corta) */}
+                            {rider.club && (
+                                <span className="truncate max-w-[80px] text-gray-400">
+                                    • {rider.club}
+                                </span>
+                            )}
                         </div>
                     </div>
 
