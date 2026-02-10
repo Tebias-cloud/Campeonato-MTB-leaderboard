@@ -316,42 +316,24 @@ export default async function RankingFull(props: Props) {
             {rankingData.map((rider, index) => {
             const rank = index + 1;
             
-            // LÓGICA DE PODIOS MEJORADA (COLORES SÓLIDOS Y CLAROS)
-            const isGold = rank === 1;
-            const isSilver = rank === 2;
-            const isBronze = rank === 3;
-            const isPodiumExtended = rank === 4 || rank === 5; 
-            const isTop10 = rank >= 6 && rank <= 10;
-
+            // Lógica URL Instagram
             const instaLink = rider.instagram 
                 ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` 
                 : null;
 
             return (
-            <div key={rider.rider_id + index} className={`group relative p-2.5 mb-2 rounded-xl border-l-[6px] transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden ${
-                // AQUI ESTA EL CAMBIO: Usamos colores SÓLIDOS claros o blanco puro
-                isGold ? 'border-[#FFD700] bg-[#FFFBEB]' : // Amarillo muy pálido sólido (no transparente)
-                isSilver ? 'border-[#C0C0C0] bg-white' : 
-                isBronze ? 'border-[#CD7F32] bg-white' : 
-                isPodiumExtended ? 'border-[#C64928] bg-[#FFF7ED]' : // Naranja muy pálido sólido (no transparente)
-                isTop10 ? 'border-gray-600 bg-white' : 
-                'border-gray-200 bg-white'
-            }`}>
+            // CAMBIO AQUÍ: Eliminada la lógica condicional de colores. 
+            // Todos tienen ahora: bg-white y border-gray-200.
+            <div key={rider.rider_id + index} className="group relative p-2.5 mb-2 rounded-xl border-l-[6px] border-gray-200 bg-white transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden">
                 
                 <Link href={`/profile/${rider.rider_id}`} className="absolute inset-0 z-10" />
 
-                <div className={`font-heading text-4xl w-10 text-center shrink-0 ${
-                    isGold ? 'text-[#FFD700] drop-shadow-sm' : 
-                    isSilver ? 'text-gray-400' : 
-                    isBronze ? 'text-[#CD7F32]' : 
-                    isPodiumExtended ? 'text-[#C64928]' :
-                    isTop10 ? 'text-gray-600' :
-                    'text-gray-300'
-                }`}>
+                {/* Número del Ranking (Unificado en color Gris) */}
+                <div className="font-heading text-4xl w-10 text-center shrink-0 text-gray-300">
                     #{rank}
                 </div>
                 
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-heading text-2xl font-bold shrink-0 overflow-hidden shadow-inner bg-gray-50 border border-gray-100 group-hover:border-[#C64928]/20 transition-colors`}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center font-heading text-2xl font-bold shrink-0 overflow-hidden shadow-inner bg-gray-50 border border-gray-100 group-hover:border-[#C64928]/20 transition-colors">
                     {rider.club_logo ? (
                         <img src={rider.club_logo} alt="Club" className="w-full h-full object-contain p-1.5" />
                     ) : (
@@ -362,9 +344,7 @@ export default async function RankingFull(props: Props) {
                 <div className="flex-1 min-w-0 flex items-center justify-between pr-2 md:pr-6">
                     <div className="flex flex-col justify-center min-w-0 mr-4">
                         <div className="flex items-center gap-2">
-                            <h3 className={`font-black text-xs md:text-base uppercase truncate transition-colors leading-tight ${
-                                isGold ? 'text-[#1A1816]' : 'text-[#2A221B] group-hover:text-[#C64928]'
-                            }`}>
+                            <h3 className="font-black text-xs md:text-base uppercase truncate transition-colors leading-tight text-[#2A221B] group-hover:text-[#C64928]">
                                 {rider.full_name}
                             </h3>
                             {instaLink && (
@@ -407,7 +387,7 @@ export default async function RankingFull(props: Props) {
                 </div>
 
                 <div className="text-right pl-4 shrink-0 self-center">
-                    <span className={`block font-heading text-4xl leading-none transition-transform group-hover:scale-110 ${isGold ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
+                    <span className="block font-heading text-4xl leading-none transition-transform group-hover:scale-110 text-[#1A1816]">
                         {rider.points_display}
                     </span>
                     <span className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em] block text-right pr-1">PTS</span>
