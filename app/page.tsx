@@ -17,7 +17,7 @@ const clubsLogos = [
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png',
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png',
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebike.png', // Ojo: Chaski repetido (¿intencional?)
+  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebikepng.png', // Ojo: Chaski repetido (¿intencional?)
   'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png'
 ];
 

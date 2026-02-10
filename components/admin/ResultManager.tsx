@@ -4,20 +4,18 @@ import { useState, useMemo, useEffect } from 'react';
 import { createResult, deleteResult } from '@/actions/results';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 
-interface ExtendedRider extends Rider {
-  created_at?: string; 
-}
+// CORRECCIÓN: Eliminamos la interfaz vacía 'ExtendedRider'.
+// Usaremos 'Rider' directamente en las Props.
 
 interface Props {
   events: Event[];
-  riders: ExtendedRider[];
+  riders: Rider[]; // <--- AQUI CAMBIAMOS ExtendedRider POR Rider
   existingResults: RawResult[];
 }
 
 export default function ResultManager({ events, riders, existingResults }: Props) {
   // --- ESTADOS DE CONFIGURACIÓN ---
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
-  // Iniciamos con una categoría común para que no salga vacío
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Open');
 
   // --- ESTADOS DEL FORMULARIO ---
@@ -33,23 +31,22 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. FILTRADO INTELIGENTE ---
+  // --- 1. FILTRADO INTELIGENTE (NOMBRE O RUT) ---
   const filteredRiders = useMemo(() => {
-    // Solo mostramos corredores que pertenezcan a la categoría seleccionada
+    // 1. Filtramos por categoría seleccionada
     let list = riders.filter(r => r.category === selectedCategory);
 
     if (searchTerm) {
-        // MODO BÚSQUEDA: Alfabético (A-Z)
+        // MODO BÚSQUEDA: Busca por Nombre O por RUT
         const term = searchTerm.toLowerCase();
-        list = list.filter(r => r.full_name.toLowerCase().includes(term));
+        list = list.filter(r => 
+            r.full_name.toLowerCase().includes(term) || 
+            (r.rut && r.rut.toLowerCase().includes(term))
+        );
         return list.sort((a, b) => a.full_name.localeCompare(b.full_name));
     } else {
-        // MODO LISTA: Nuevos Primero (Fecha creación descendente)
-        return list.sort((a, b) => {
-            const dateA = new Date(a.created_at || 0).getTime();
-            const dateB = new Date(b.created_at || 0).getTime();
-            return dateB - dateA; 
-        });
+        // MODO LISTA: Orden alfabético por defecto
+        return list.sort((a, b) => a.full_name.localeCompare(b.full_name));
     }
   }, [riders, selectedCategory, searchTerm]);
 
@@ -212,10 +209,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         <option value="Elite Open">Elite Open</option>
                     </optgroup>
                     
-                    {/* AQUÍ ESTÁ LA MAGIA PARA QUE LAS DAMAS SALGAN EN SU RANKING */}
                     <optgroup label="Damas" className="bg-white text-black">
                         <option value="Novicias Open">Novicias Open</option>
-                        {/* Fíjate en el 'value', dice Damas Pre Master para diferenciarse de los hombres */}
                         <option value="Damas Pre Master">Damas Pre Master (16-29)</option>
                         <option value="Damas Master A">Damas Master A (30-39)</option>
                         <option value="Damas Master B">Damas Master B (40-49)</option>
@@ -263,7 +258,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         Corredor <span className="text-gray-400 font-normal ml-1">({filteredRiders.length})</span>
                     </label>
                     
-                    {/* Buscador */}
+                    {/* Buscador de RUT o Nombre */}
                     <div className="relative">
                         <input 
                             type="text"
@@ -272,12 +267,12 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 setSearchTerm(e.target.value);
                                 setSelectedRiderId(''); 
                             }}
-                            placeholder="🔍 Buscar nombre..."
+                            placeholder="🔍 Buscar nombre o RUT..."
                             className="w-full p-2 text-sm border border-gray-300 rounded-t-lg bg-gray-50 focus:bg-white focus:outline-none focus:border-[#C64928]"
                         />
                     </div>
 
-                    {/* Selector */}
+                    {/* Selector Mejorado */}
                     <select 
                         value={selectedRiderId} 
                         onChange={(e) => setSelectedRiderId(e.target.value)}
@@ -290,7 +285,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         </option>
                         {filteredRiders.map(r => (
                             <option key={r.id} value={r.id} className="py-1">
-                                {r.full_name} {isEditing && r.id === selectedRiderId ? '📝' : ''}
+                                {r.full_name} {r.rut ? `(${r.rut})` : ''} - {r.club || 'Libre'}
+                                {isEditing && r.id === selectedRiderId ? ' 📝' : ''}
                             </option>
                         ))}
                     </select>
@@ -391,7 +387,10 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {currentViewResults.map((res) => {
-                            const riderName = riders.find(r => r.id === res.rider_id)?.full_name || 'Desconocido';
+                            const rider = riders.find(r => r.id === res.rider_id);
+                            const riderName = rider?.full_name || 'Desconocido';
+                            const riderClub = rider?.club || 'Libre';
+                            const riderRut = rider?.rut || '';
                             const isBeingEdited = res.rider_id === selectedRiderId;
 
                             return (
@@ -411,6 +410,11 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                             {riderName} 
                                             {isBeingEdited && <span className="text-[10px] text-amber-600 ml-2 bg-amber-100 px-1 rounded">EDITANDO</span>}
                                         </div>
+                                        {/* INFO EXTRA: Club y RUT */}
+                                        <div className="text-[10px] text-gray-400 mt-0.5 uppercase">
+                                             {riderClub} {riderRut && <span className="text-gray-300 ml-1">• {riderRut}</span>}
+                                        </div>
+
                                         {(res.race_time || res.avg_speed) && (
                                             <div className="flex gap-3 mt-1 text-[10px] text-gray-400 font-mono">
                                                 {res.race_time && <span className="flex items-center gap-1">⏱ {res.race_time}</span>}

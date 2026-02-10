@@ -14,7 +14,7 @@ const organizersByDate = [
   { name: 'Club TMT', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png' },
   { name: 'Club Cobra', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png' },
   { name: 'Los Cóndores', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png' },
-  { name: 'Iquique Bike', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebike.png' },
+  { name: 'Iquique Bike', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebikepng.png' },
   { name: 'Club Camanchaca', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png' }
 ];
 

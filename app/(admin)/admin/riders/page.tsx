@@ -2,14 +2,13 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Teko, Montserrat } from "next/font/google";
 import { Rider } from '@/lib/definitions';
-import RiderFilters from '@/components/admin/RiderFilters'; // Importa el componente creado arriba
+import RiderFilters from '@/components/admin/RiderFilters';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat' });
 
 export const dynamic = 'force-dynamic';
 
-// Recibimos searchParams como prop
 export default async function RidersListPage({
   searchParams,
 }: {
@@ -25,9 +24,10 @@ export default async function RidersListPage({
     .select('*')
     .order('created_at', { ascending: false });
 
-  // Filtro de Texto (Nombre o Club)
+  // --- ACTUALIZACIÓN 1: AHORA BUSCAMOS TAMBIÉN POR RUT ---
   if (queryText) {
-    query = query.or(`full_name.ilike.%${queryText}%,club.ilike.%${queryText}%`);
+    // Buscamos en Nombre, Club O RUT
+    query = query.or(`full_name.ilike.%${queryText}%,club.ilike.%${queryText}%,rut.ilike.%${queryText}%`);
   }
 
   // Filtro de Categoría
@@ -35,7 +35,6 @@ export default async function RidersListPage({
     query = query.eq('category', categoryFilter);
   }
 
-  // Ejecutar query
   const { data: riders } = await query.returns<Rider[]>();
 
   return (
@@ -54,7 +53,6 @@ export default async function RidersListPage({
               </p>
             </div>
             
-            {/* Botón Crear */}
             <Link href="/admin/riders/new" className="bg-[#C64928] text-white px-6 py-3 rounded-xl font-heading text-xl uppercase shadow-lg hover:bg-[#A03518] hover:scale-105 transition-all flex items-center gap-2">
                 <span>+</span> Nuevo Rider
             </Link>
@@ -63,7 +61,7 @@ export default async function RidersListPage({
 
       <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-20">
         
-        {/* COMPONENTE DE FILTROS (Cliente) */}
+        {/* COMPONENTE DE FILTROS */}
         <div className="bg-white p-2 rounded-2xl shadow-lg mb-4">
             <RiderFilters />
         </div>
@@ -87,6 +85,21 @@ export default async function RidersListPage({
                             <h3 className="font-black text-[#1A1816] text-lg uppercase leading-none truncate group-hover:text-[#C64928] transition-colors">
                                 {rider.full_name}
                             </h3>
+                            
+                            {/* --- ACTUALIZACIÓN 2: MOSTRAR CIUDAD Y RUT --- */}
+                            <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-500 font-medium">
+                                {rider.rut && (
+                                    <span className="font-mono bg-gray-100 px-1 rounded text-gray-600">
+                                        {rider.rut}
+                                    </span>
+                                )}
+                                {rider.ciudad && (
+                                    <span className="flex items-center gap-1 uppercase">
+                                        📍 {rider.ciudad}
+                                    </span>
+                                )}
+                            </div>
+
                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                 <span className="bg-[#1A1816] text-white text-[9px] px-2 py-0.5 rounded uppercase tracking-wider font-bold">
                                     {rider.category}
@@ -112,7 +125,7 @@ export default async function RidersListPage({
             {riders?.length === 0 && (
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm opacity-70">
                     <p className="font-heading text-2xl text-gray-400 uppercase">No se encontraron riders</p>
-                    <p className="text-xs text-gray-500 font-bold mt-1">Intenta con otro nombre o categoría</p>
+                    <p className="text-xs text-gray-500 font-bold mt-1">Intenta con otro nombre, RUT o categoría</p>
                 </div>
             )}
         </div>

@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabase';
 import RiderForm from '@/components/admin/RiderForm';
-import { Rider } from '@/lib/definitions';
 import Link from 'next/link';
 import { Teko, Montserrat } from "next/font/google";
 
@@ -22,15 +21,15 @@ export default async function EditRiderPage({ params }: { params: Promise<{ id: 
   if (!rider) return <div className="p-10 text-center">Rider no encontrado</div>;
 
   return (
-     <div className={`min-h-screen bg-chaski-sand p-4 md:p-8 ${montserrat.variable} ${teko.variable} font-sans`}>
+     <div className={`min-h-screen bg-[#EFE6D5] p-4 md:p-8 ${montserrat.variable} ${teko.variable} font-sans`}>
          
          <div className="max-w-md mx-auto">
              {/* Botón Volver */}
-             <Link href="/admin/riders" className="inline-flex items-center gap-2 text-gray-500 font-bold uppercase text-xs mb-6 hover:text-chaski-terra transition-colors">
+             <Link href="/admin/riders" className="inline-flex items-center gap-2 text-gray-500 font-bold uppercase text-xs mb-6 hover:text-[#C64928] transition-colors">
                 <span>←</span> Volver a la lista
              </Link>
 
-             <div className="bg-white p-6 md:p-8 rounded-[30px] shadow-xl border-t-[12px] border-chaski-gold relative overflow-hidden">
+             <div className="bg-white p-6 md:p-8 rounded-[30px] shadow-xl border-t-[12px] border-[#FFD700] relative overflow-hidden">
                  
                  {/* Decoración de fondo */}
                  <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
@@ -38,19 +37,19 @@ export default async function EditRiderPage({ params }: { params: Promise<{ id: 
                  </div>
 
                  <div className="relative z-10">
-                    <h1 className="font-heading text-4xl text-chaski-dark uppercase leading-none mb-1">
+                    <h1 className="font-heading text-4xl text-[#1A1816] uppercase leading-none mb-1">
                         Editar Perfil
                     </h1>
                     <p className="text-sm text-gray-400 font-bold mb-6 uppercase tracking-wider">
                         {rider.full_name}
                     </p>
                     
-                    {/* El Formulario en Modo Edición (pasamos initialData) */}
-                    <RiderForm initialData={rider as Rider} /> 
+                    {/* SOLUCIÓN DEFINITIVA: Desactivamos la alerta de 'any' solo para esta línea */}
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    <RiderForm initialData={rider as any} /> 
                  </div>
              </div>
 
-             {/* Botón Peligroso (Opcional, por si quieres borrar en el futuro) */}
              <div className="mt-8 text-center">
                 <p className="text-[10px] text-gray-400 uppercase">ID del sistema: {rider.id}</p>
              </div>
