@@ -244,7 +244,7 @@ export default async function RankingFull(props: Props) {
                     <>
                         {hasLogo && (
                             <div className="animate-fade-in-up mx-auto z-10">
-                                {/* CAMBIO CLAVE: Caja del logo ahora es clara (#EFE6D5) para que los logos negros resalten */}
+                                {/* CAMBIO: Caja clara #EFE6D5 para que los logos se vean bien */}
                                 <div className="h-24 w-24 md:h-40 md:w-40 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] border-2 border-[#1A1816]/10 bg-[#EFE6D5] flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)] relative overflow-hidden">
                                     <img src={currentOrganizer!.logo} alt={currentOrganizer!.name} className="h-full w-full object-contain drop-shadow-sm" />
                                 </div>
@@ -269,7 +269,7 @@ export default async function RankingFull(props: Props) {
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL - DOCK */}
+      {/* CONTENIDO PRINCIPAL */}
       <div className={`max-w-7xl mx-auto px-2 md:px-4 relative z-30 space-y-5 transition-all duration-300 -mt-14 md:-mt-12`}>
         
         {/* BARRA DE FECHAS */}
@@ -319,16 +319,12 @@ export default async function RankingFull(props: Props) {
         <div className="max-w-4xl mx-auto px-2 md:px-4 pb-20 relative z-10 pt-2">
             {rankingData.map((rider, index) => {
             const rank = index + 1;
-            
             const isGold = rank === 1;
             const isSilver = rank === 2;
             const isBronze = rank === 3;
             const isPodiumExtended = rank === 4 || rank === 5; 
             const isTop10 = rank >= 6 && rank <= 10;
-
-            const instaLink = rider.instagram 
-                ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` 
-                : null;
+            const instaLink = rider.instagram ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` : null;
 
             return (
             <div key={rider.rider_id + index} className={`group relative p-2.5 mb-2 rounded-xl border-l-[6px] bg-white transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden ${

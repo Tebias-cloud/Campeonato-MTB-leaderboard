@@ -288,8 +288,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
 
                     {/* LISTA DESPLEGABLE CORREGIDA */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden"> 
-                            {/* NOTA: overflow-hidden y sin padding en este div contenedor */}
+                        /* CORRECCIÓN: 'mt-1' para reducir el espacio y que quede pegadito */
+                        <div className="absolute top-full left-0 w-full mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden"> 
                             
                             {filteredRiders.length > 0 ? (
                                 <div>
@@ -301,18 +301,18 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                                 r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
                                             }`}
                                         >
-                                            <div>
-                                                <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
+                                            <div className="flex flex-col">
+                                                <span className={`font-bold text-sm ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
                                                     {r.full_name}
-                                                </div>
-                                                <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-bold uppercase mt-1 inline-block">
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 uppercase font-bold mt-0.5">
                                                     {r.club || 'Sin Club'}
                                                 </span>
                                             </div>
                                             
-                                            {/* RUT MÁS VISIBLE */}
+                                            {/* RUT MÁS VISIBLE Y DESTACADO */}
                                             {r.rut && (
-                                                <span className="font-mono text-xs text-gray-500 font-bold ml-2 whitespace-nowrap">
+                                                <span className="font-mono text-xs font-black text-gray-700 bg-gray-100 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-200">
                                                     {r.rut}
                                                 </span>
                                             )}

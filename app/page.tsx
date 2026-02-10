@@ -60,14 +60,12 @@ export default async function Home() {
   const second = riders[1];
   const third = riders[2];
 
-  // CAMBIO COLOR: Fondo principal aclarado a #292725
   return (
     <main className={`min-h-screen bg-[#292725] text-[#EFE6D5] ${montserrat.variable} ${teko.variable} font-sans overflow-x-hidden selection:bg-[#C64928] selection:text-white`}>
       
       {/* ================= HERO SECTION ================= */}
       <header className="relative min-h-[550px] md:min-h-[650px] flex flex-col items-center justify-center text-center px-4 pb-20 rounded-b-[60px] overflow-hidden border-b-[8px] border-[#C64928]">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547234935-80c7142ee969?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
-        {/* CAMBIO COLOR: Degradado ajustado a #292725 */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#292725] via-[#292725]/60 to-black/40"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
 
@@ -92,16 +90,17 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES */}
+          {/* BARRA DE CLUBES - MEJORADA */}
           <div className="w-full max-w-5xl mb-12 px-2">
-              <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 opacity-90">
+              <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 opacity-90">
                   {clubsLogos.map((logo, index) => (
-                      <div key={index} className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center transition-all duration-500 hover:scale-110">
+                      /* CAMBIO: Tarjeta color arena (#EFE6D5) para que resalten todos los logos */
+                      <div key={index} className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center transition-all duration-500 hover:scale-110 p-2 rounded-2xl bg-[#EFE6D5] border-2 border-[#C64928]/20 shadow-lg group">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
                               src={logo} 
                               alt={`Club ${index + 1}`} 
-                              className="max-w-full max-h-full object-contain drop-shadow-lg" 
+                              className="max-w-full max-h-full object-contain drop-shadow-sm group-hover:scale-105 transition-transform" 
                           />
                       </div>
                   ))}
@@ -122,8 +121,7 @@ export default async function Home() {
           {/* --- 2DO LUGAR --- */}
           <div className={`w-1/3 flex flex-col items-center group transition-all duration-500 ${second ? 'opacity-100' : 'opacity-50'}`}>
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
-                {/* CAMBIO COLOR: Caja logo #292725 */}
-                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-gray-400 bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(192,192,192,0.3)] overflow-hidden">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-gray-400 bg-[#EFE6D5] flex items-center justify-center shadow-[0_0_15px_rgba(192,192,192,0.3)] overflow-hidden">
                     {second?.club_logo ? (
                         <img src={second.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
                     ) : (
@@ -134,7 +132,6 @@ export default async function Home() {
              <div className="w-full bg-gradient-to-b from-gray-400 to-gray-600 h-32 md:h-48 rounded-t-xl shadow-2xl flex items-center justify-center relative overflow-hidden border-t border-white/20">
                  <span className="font-heading text-7xl text-black/20 absolute bottom-0">2</span>
              </div>
-             {/* CAMBIO COLOR: Base podio aclarada a #34312F */}
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-gray-400 shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{second?.full_name.split(' ')[0] || 'Vacante'}</p>
                 <p className="text-[10px] text-gray-400 font-bold">{second?.total_points || 0} PTS</p>
@@ -149,8 +146,7 @@ export default async function Home() {
                  </svg>
              </div>
              <div className="mb-[-25px] z-20 relative transition-transform group-hover:-translate-y-3">
-                {/* CAMBIO COLOR: Caja logo #292725 */}
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-[4px] border-[#FFD700] bg-[#292725] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden relative">
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-[4px] border-[#FFD700] bg-[#EFE6D5] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/10 to-transparent"></div>
                     {first?.club_logo ? (
                         <img src={first.club_logo} alt="Club" className="w-full h-full object-contain p-2 relative z-10" />
@@ -165,7 +161,6 @@ export default async function Home() {
                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')] opacity-10"></div>
                  <span className="font-heading text-9xl text-black/10 absolute bottom-0">1</span>
              </div>
-             {/* CAMBIO COLOR: Base podio #34312F */}
              <div className="bg-[#34312F] w-[110%] py-5 text-center rounded-b-xl border-b-4 border-[#FFD700] relative shadow-2xl">
                 <p className="font-black text-sm md:text-lg text-white truncate px-2 uppercase">{first?.full_name || 'Líder'}</p>
                 <div className="flex justify-center items-center gap-2 mt-1">
@@ -178,8 +173,7 @@ export default async function Home() {
           {/* --- 3ER LUGAR --- */}
           <div className={`w-1/3 flex flex-col items-center group transition-all duration-500 ${third ? 'opacity-100' : 'opacity-50'}`}>
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
-                {/* CAMBIO COLOR: Caja logo #292725 */}
-                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-[#CD7F32] bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(205,127,50,0.2)] overflow-hidden">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-[#CD7F32] bg-[#EFE6D5] flex items-center justify-center shadow-[0_0_15px_rgba(205,127,50,0.2)] overflow-hidden">
                     {third?.club_logo ? (
                         <img src={third.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
                     ) : (
@@ -190,7 +184,6 @@ export default async function Home() {
              <div className="w-full bg-gradient-to-b from-[#E89C5D] to-[#8B4513] h-24 md:h-40 rounded-t-xl shadow-2xl flex items-center justify-center relative overflow-hidden border-t border-white/20">
                  <span className="font-heading text-7xl text-black/20 absolute bottom-0">3</span>
              </div>
-             {/* CAMBIO COLOR: Base podio #34312F */}
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-[#CD7F32] shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{third?.full_name.split(' ')[0] || 'Vacante'}</p>
                 <p className="text-[10px] text-gray-400 font-bold">{third?.total_points || 0} PTS</p>
@@ -206,7 +199,6 @@ export default async function Home() {
             {nextEvent ? (
                 <Link 
                   href={`/ranking?eventId=${nextEvent.id}`}
-                  /* CAMBIO COLOR: Tarjeta aclarada a #34312F */
                   className="bg-[#34312F] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group hover:border-[#C64928]/50 transition-colors block"
                 >
                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
