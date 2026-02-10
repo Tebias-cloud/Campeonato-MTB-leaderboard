@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { createResult, deleteResult } from '@/actions/results';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 
@@ -21,6 +21,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
   // Estados para el Buscador Visual
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null); // Referencia para detectar clics fuera
   
   const [position, setPosition] = useState<string>('');
   const [points, setPoints] = useState<string>('');
@@ -32,13 +33,17 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. FILTRADO PARA EL BUSCADOR (EN TIEMPO REAL) ---
+  // --- 1. FILTRADO PARA EL BUSCADOR ---
   const filteredRiders = useMemo(() => {
-    // CORRECCIÓN: Usamos 'const' en lugar de 'let'
+    // 1. Base: Solo los de la categoría seleccionada
     const candidates = riders.filter(r => r.category === selectedCategory);
 
-    if (!searchTerm) return candidates; 
+    // 2. Si NO hay búsqueda, devolvemos TODOS los candidatos (ordenados alfabéticamente)
+    if (!searchTerm) {
+        return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
+    }
 
+    // 3. Si HAY búsqueda, filtramos esa lista
     const term = searchTerm.toLowerCase();
     return candidates.filter(r => 
         r.full_name.toLowerCase().includes(term) || 
@@ -82,7 +87,18 @@ export default function ResultManager({ events, riders, existingResults }: Props
         resetForm(true); 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRiderId, selectedEventId, existingResults]); // Quitamos riders del array para evitar loops
+  }, [selectedRiderId, selectedEventId, existingResults]);
+
+  // Cierra el menú si haces clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearching(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const resetForm = (keepRider: boolean) => {
       setIsEditing(false);
@@ -248,38 +264,43 @@ export default function ResultManager({ events, riders, existingResults }: Props
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* --- BUSCADOR INTELIGENTE VISUAL --- */}
-                <div className="md:col-span-1 relative z-50">
-                    <label className={labelClass}>Buscar Corredor</label>
+                {/* --- SELECCIONADOR HÍBRIDO (BUSCADOR + LISTA) --- */}
+                <div className="md:col-span-1 relative z-50" ref={searchContainerRef}>
+                    <label className={labelClass}>
+                        Seleccionar Corredor <span className="text-gray-400 font-normal">({filteredRiders.length})</span>
+                    </label>
                     
-                    {/* Input Buscador */}
+                    {/* Input que actúa como Buscador y Activador de Lista */}
                     <div className="relative">
                         <input 
                             type="text"
                             value={searchTerm}
-                            onClick={() => setIsSearching(true)}
+                            onClick={() => setIsSearching(true)} // Al hacer click, abre la lista completa
+                            onFocus={() => setIsSearching(true)} // Al enfocar, también
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setIsSearching(true);
                                 if(e.target.value === '') setSelectedRiderId('');
                             }}
-                            placeholder="Escribe nombre, club o RUT..."
-                            className={`w-full p-3 pl-10 bg-white border ${selectedRiderId ? 'border-green-500 bg-green-50' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all`}
+                            placeholder="Seleccionar o buscar..."
+                            className={`w-full p-3 pl-10 bg-white border cursor-pointer ${selectedRiderId ? 'border-green-500 bg-green-50 font-bold' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all`}
                         />
                         <div className="absolute left-3 top-3.5 text-gray-400">
-                             {selectedRiderId ? '✅' : '🔍'}
+                             {selectedRiderId ? '✅' : '🔻'}
                         </div>
                     </div>
 
-                    {/* Lista Desplegable de Resultados */}
-                    {isSearching && searchTerm.length > 0 && (
+                    {/* Lista Desplegable (Siempre muestra datos si está abierto) */}
+                    {isSearching && (
                         <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto">
                             {filteredRiders.length > 0 ? (
                                 filteredRiders.map(r => (
                                     <div 
                                         key={r.id}
                                         onClick={() => handleSelectRider(r)}
-                                        className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-50 transition-colors group"
+                                        className={`p-3 cursor-pointer border-b border-gray-50 transition-colors group ${
+                                            r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
+                                        }`}
                                     >
                                         <div className="font-bold text-[#1A1816] group-hover:text-[#C64928]">
                                             {r.full_name}
@@ -292,15 +313,10 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 ))
                             ) : (
                                 <div className="p-4 text-center text-gray-400 text-sm italic">
-                                    No hay corredores con ese nombre en esta categoría.
+                                    No hay corredores en esta categoría con ese nombre.
                                 </div>
                             )}
                         </div>
-                    )}
-                    
-                    {/* Overlay invisible para cerrar el menú si haces clic afuera */}
-                    {isSearching && (
-                        <div className="fixed inset-0 z-[-1]" onClick={() => setIsSearching(false)}></div>
                     )}
                 </div>
 
