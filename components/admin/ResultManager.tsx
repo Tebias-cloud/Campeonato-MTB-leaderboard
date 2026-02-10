@@ -4,12 +4,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { createResult, deleteResult } from '@/actions/results';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 
-// CORRECCIÓN: Eliminamos la interfaz vacía 'ExtendedRider'.
-// Usaremos 'Rider' directamente en las Props.
-
 interface Props {
   events: Event[];
-  riders: Rider[]; // <--- AQUI CAMBIAMOS ExtendedRider POR Rider
+  riders: Rider[]; 
   existingResults: RawResult[];
 }
 
@@ -19,8 +16,12 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Open');
 
   // --- ESTADOS DEL FORMULARIO ---
-  const [searchTerm, setSearchTerm] = useState<string>(''); // Buscador
   const [selectedRiderId, setSelectedRiderId] = useState<string>('');
+  
+  // Estados para el Buscador Visual
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  
   const [position, setPosition] = useState<string>('');
   const [points, setPoints] = useState<string>('');
   
@@ -31,30 +32,28 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. FILTRADO INTELIGENTE (NOMBRE O RUT) ---
+  // --- 1. FILTRADO PARA EL BUSCADOR (EN TIEMPO REAL) ---
   const filteredRiders = useMemo(() => {
-    // 1. Filtramos por categoría seleccionada
-    let list = riders.filter(r => r.category === selectedCategory);
+    // CORRECCIÓN: Usamos 'const' en lugar de 'let'
+    const candidates = riders.filter(r => r.category === selectedCategory);
 
-    if (searchTerm) {
-        // MODO BÚSQUEDA: Busca por Nombre O por RUT
-        const term = searchTerm.toLowerCase();
-        list = list.filter(r => 
-            r.full_name.toLowerCase().includes(term) || 
-            (r.rut && r.rut.toLowerCase().includes(term))
-        );
-        return list.sort((a, b) => a.full_name.localeCompare(b.full_name));
-    } else {
-        // MODO LISTA: Orden alfabético por defecto
-        return list.sort((a, b) => a.full_name.localeCompare(b.full_name));
-    }
+    if (!searchTerm) return candidates; 
+
+    const term = searchTerm.toLowerCase();
+    return candidates.filter(r => 
+        r.full_name.toLowerCase().includes(term) || 
+        (r.rut && r.rut.toLowerCase().includes(term)) ||
+        (r.club && r.club.toLowerCase().includes(term))
+    ).sort((a, b) => a.full_name.localeCompare(b.full_name));
   }, [riders, selectedCategory, searchTerm]);
 
-  // --- 2. LISTA DE RESULTADOS YA CARGADOS ---
+
+  // --- 2. LISTA DE RESULTADOS YA CARGADOS (TABLA INFERIOR) ---
   const currentViewResults = existingResults.filter(r => 
     r.event_id === selectedEventId && 
     r.category_played === selectedCategory
   ).sort((a, b) => a.position - b.position);
+
 
   // --- 3. AUTO-DETECCIÓN DE EDICIÓN ---
   useEffect(() => {
@@ -74,10 +73,16 @@ export default function ResultManager({ events, riders, existingResults }: Props
         setPoints(existing.points.toString());
         setRaceTime(existing.race_time || '');
         setAvgSpeed(existing.avg_speed?.toString() || '');
+        
+        // Llenamos el buscador con el nombre para que se vea bonito
+        const currentRider = riders.find(r => r.id === selectedRiderId);
+        if (currentRider) setSearchTerm(currentRider.full_name);
+
     } else {
         resetForm(true); 
     }
-  }, [selectedRiderId, selectedEventId, existingResults]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRiderId, selectedEventId, existingResults]); // Quitamos riders del array para evitar loops
 
   const resetForm = (keepRider: boolean) => {
       setIsEditing(false);
@@ -87,10 +92,18 @@ export default function ResultManager({ events, riders, existingResults }: Props
       setAvgSpeed('');
       if (!keepRider) {
           setSelectedRiderId('');
+          setSearchTerm(''); 
       }
   };
 
-  // --- 4. CALCULADORA DE PUNTOS SEMI-AUTOMÁTICA ---
+  // --- 4. SELECCIONAR UN RIDER DESDE LA LISTA ---
+  const handleSelectRider = (rider: Rider) => {
+      setSelectedRiderId(rider.id);
+      setSearchTerm(rider.full_name); 
+      setIsSearching(false); 
+  };
+
+  // --- 5. CALCULADORA DE PUNTOS ---
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setPosition(val);
@@ -98,31 +111,23 @@ export default function ResultManager({ events, riders, existingResults }: Props
       const pos = parseInt(val);
       if (!isNaN(pos) && pos > 0) {
           let calcPoints = 0;
-          if (pos <= 10) {
-              // 1º = 100, 2º = 90 ... 10º = 10
-              calcPoints = 110 - (pos * 10);
-          } else if (pos < 20) {
-              // 11º = 9 ... 19º = 1
-              calcPoints = 20 - pos;
-          } else {
-              // 20º en adelante = 1 punto
-              calcPoints = 1;
-          }
+          if (pos <= 10) calcPoints = 110 - (pos * 10);
+          else if (pos < 20) calcPoints = 20 - pos;
+          else calcPoints = 1;
+          
           setPoints(calcPoints.toString());
       } else {
           setPoints('');
       }
   };
 
-  // --- 5. FORMATO AUTOMÁTICO DE TIEMPO ---
+  // --- 6. FORMATO TIEMPO ---
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
     if (raw.length > 6) return; 
-
     let formatted = raw;
     if (raw.length > 2) formatted = `${raw.slice(0, 2)}:${raw.slice(2)}`;
     if (raw.length > 4) formatted = `${raw.slice(0, 2)}:${raw.slice(2, 4)}:${raw.slice(4)}`;
-
     setRaceTime(formatted);
   };
 
@@ -144,7 +149,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
       });
       
       resetForm(false); 
-      setSearchTerm(''); 
+      alert(isEditing ? "¡Actualizado!" : "¡Registrado!");
 
     } catch (error) {
         console.error(error);
@@ -199,7 +204,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     }}
                     className="w-full p-3 rounded-xl border border-[#C64928] bg-[#C64928] text-white font-bold shadow-lg focus:outline-none focus:ring-4 ring-[#C64928]/30"
                 >
-                    <optgroup label="Varones" className="bg-white text-black">
+                     <optgroup label="Varones" className="bg-white text-black">
                         <option value="Novicios Open">Novicios Open</option>
                         <option value="Pre Master">Pre Master (16-29)</option>
                         <option value="Master A">Master A (30-39)</option>
@@ -208,7 +213,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         <option value="Master D">Master D (60+)</option>
                         <option value="Elite Open">Elite Open</option>
                     </optgroup>
-                    
                     <optgroup label="Damas" className="bg-white text-black">
                         <option value="Novicias Open">Novicias Open</option>
                         <option value="Damas Pre Master">Damas Pre Master (16-29)</option>
@@ -216,7 +220,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         <option value="Damas Master B">Damas Master B (40-49)</option>
                         <option value="Damas Master D">Damas Master D (50+)</option>
                     </optgroup>
-                    
                     <optgroup label="Mixtas" className="bg-white text-black">
                         <option value="Enduro Open Mixto">Enduro Open Mixto</option>
                         <option value="E-Bike Open Mixto">E-Bike Open Mixto</option>
@@ -227,69 +230,78 @@ export default function ResultManager({ events, riders, existingResults }: Props
       </div>
 
       {/* 2. FORMULARIO */}
-      <div className={`p-6 md:p-8 rounded-3xl shadow-lg border relative overflow-hidden transition-colors duration-500 ${
+      <div className={`p-6 md:p-8 rounded-3xl shadow-lg border relative overflow-visible transition-colors duration-500 ${
           isEditing ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-200'
       }`}>
-        <div className={`absolute top-0 left-0 w-2 h-full ${isEditing ? 'bg-amber-400' : 'bg-gray-200'}`}></div>
-        
-        <div className="flex justify-between items-center mb-6 pl-4">
-            <h2 className="font-heading text-2xl text-[#1A1816] uppercase">
-                {isEditing ? (
-                    <span className="text-amber-600 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        Editando
-                    </span>
-                ) : (
-                    <span>2. Ingresar Datos</span>
-                )}
-            </h2>
-            {isEditing && (
-                <span className="text-[10px] font-bold uppercase bg-amber-200 text-amber-800 px-2 py-1 rounded border border-amber-300">Modo Edición</span>
-            )}
+        {/* Indicador visual de modo edición */}
+        {isEditing && (
+             <div className="absolute top-0 right-0 bg-amber-200 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-amber-300 uppercase">
+                 Editando Registro Existente
+             </div>
+        )}
+
+        <div className="flex justify-between items-center mb-6 pl-2">
+            <h2 className="font-heading text-2xl text-[#1A1816] uppercase">2. Ingresar Resultados</h2>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6 pl-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* COLUMNA 1: SELECCIÓN DE CORREDOR */}
-                <div className="md:col-span-1 space-y-2">
-                    <label className={labelClass}>
-                        Corredor <span className="text-gray-400 font-normal ml-1">({filteredRiders.length})</span>
-                    </label>
+                {/* --- BUSCADOR INTELIGENTE VISUAL --- */}
+                <div className="md:col-span-1 relative z-50">
+                    <label className={labelClass}>Buscar Corredor</label>
                     
-                    {/* Buscador de RUT o Nombre */}
+                    {/* Input Buscador */}
                     <div className="relative">
                         <input 
                             type="text"
                             value={searchTerm}
+                            onClick={() => setIsSearching(true)}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
-                                setSelectedRiderId(''); 
+                                setIsSearching(true);
+                                if(e.target.value === '') setSelectedRiderId('');
                             }}
-                            placeholder="🔍 Buscar nombre o RUT..."
-                            className="w-full p-2 text-sm border border-gray-300 rounded-t-lg bg-gray-50 focus:bg-white focus:outline-none focus:border-[#C64928]"
+                            placeholder="Escribe nombre, club o RUT..."
+                            className={`w-full p-3 pl-10 bg-white border ${selectedRiderId ? 'border-green-500 bg-green-50' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all`}
                         />
+                        <div className="absolute left-3 top-3.5 text-gray-400">
+                             {selectedRiderId ? '✅' : '🔍'}
+                        </div>
                     </div>
 
-                    {/* Selector Mejorado */}
-                    <select 
-                        value={selectedRiderId} 
-                        onChange={(e) => setSelectedRiderId(e.target.value)}
-                        className={`${inputClass} rounded-t-none border-t-0 mt-0`} 
-                        required
-                        size={filteredRiders.length > 5 ? 5 : 0} 
-                    >
-                        <option value="" className="text-gray-400">
-                            {searchTerm && filteredRiders.length === 0 ? '(No encontrado)' : '-- Seleccionar --'}
-                        </option>
-                        {filteredRiders.map(r => (
-                            <option key={r.id} value={r.id} className="py-1">
-                                {r.full_name} {r.rut ? `(${r.rut})` : ''} - {r.club || 'Libre'}
-                                {isEditing && r.id === selectedRiderId ? ' 📝' : ''}
-                            </option>
-                        ))}
-                    </select>
+                    {/* Lista Desplegable de Resultados */}
+                    {isSearching && searchTerm.length > 0 && (
+                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto">
+                            {filteredRiders.length > 0 ? (
+                                filteredRiders.map(r => (
+                                    <div 
+                                        key={r.id}
+                                        onClick={() => handleSelectRider(r)}
+                                        className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-50 transition-colors group"
+                                    >
+                                        <div className="font-bold text-[#1A1816] group-hover:text-[#C64928]">
+                                            {r.full_name}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 flex flex-wrap gap-2">
+                                            <span className="font-bold text-gray-500">{r.club || 'Sin Club'}</span>
+                                            {r.rut && <span>• {r.rut}</span>}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-4 text-center text-gray-400 text-sm italic">
+                                    No hay corredores con ese nombre en esta categoría.
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* Overlay invisible para cerrar el menú si haces clic afuera */}
+                    {isSearching && (
+                        <div className="fixed inset-0 z-[-1]" onClick={() => setIsSearching(false)}></div>
+                    )}
                 </div>
 
                 {/* COLUMNA 2: POSICIÓN Y PUNTOS */}
@@ -318,36 +330,28 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         />
                     </div>
                     
-                    {/* DATOS TÉCNICOS OPCIONALES */}
+                    {/* DATOS TÉCNICOS */}
                     <div>
-                        <label className={labelClass}>
-                            Tiempo (Auto) <span className="text-gray-400 font-normal lowercase tracking-normal ml-1">(opcional)</span>
-                        </label>
+                        <label className={labelClass}>Tiempo (Opcional)</label>
                         <input 
                             type="text" 
                             value={raceTime} 
                             onChange={handleTimeChange} 
                             className={`${inputClass} font-mono tracking-wider`}
-                            placeholder="Ej: 01:30:15" 
+                            placeholder="00:00:00" 
                             maxLength={8}
                         />
-                        <span className="text-[9px] text-gray-400">Escribe: 013015</span>
                     </div>
                     <div>
-                        <label className={labelClass}>
-                            Velocidad <span className="text-gray-400 font-normal lowercase tracking-normal ml-1">(opcional)</span>
-                        </label>
-                        <div className="relative">
-                            <input 
-                                type="number" 
-                                step="0.1"
-                                value={avgSpeed} 
-                                onChange={(e) => setAvgSpeed(e.target.value)}
-                                className={`${inputClass} pr-8`}
-                                placeholder="24.5" 
-                            />
-                            <span className="absolute right-3 top-3 text-gray-400 text-xs font-bold">km/h</span>
-                        </div>
+                        <label className={labelClass}>Velocidad (Opcional)</label>
+                        <input 
+                            type="number" 
+                            step="0.1"
+                            value={avgSpeed} 
+                            onChange={(e) => setAvgSpeed(e.target.value)}
+                            className={inputClass}
+                            placeholder="km/h" 
+                        />
                     </div>
                 </div>
             </div>
@@ -368,9 +372,9 @@ export default function ResultManager({ events, riders, existingResults }: Props
       {/* 3. TABLA DE RESULTADOS */}
       <div className="pt-4">
         <div className="flex items-center justify-between mb-4 px-2">
-            <h2 className="font-heading text-2xl text-[#1A1816] uppercase">Resultados en {selectedCategory}</h2>
-            <span className="bg-[#EFE6D5] text-[#1A1816] px-3 py-1 rounded-full text-xs font-bold border border-[#1A1816]/10">
-                {currentViewResults.length} Registros
+            <h2 className="font-heading text-2xl text-[#1A1816] uppercase">Resultados Guardados</h2>
+            <span className="bg-[#EFE6D5] text-[#1A1816] px-3 py-1 rounded-full text-xs font-bold">
+                {currentViewResults.length}
             </span>
         </div>
         
@@ -379,72 +383,47 @@ export default function ResultManager({ events, riders, existingResults }: Props
                 <table className="w-full text-left">
                     <thead className="bg-gray-100 text-gray-600 border-b border-gray-200">
                         <tr>
-                            <th className="p-4 text-xs font-bold uppercase tracking-wider w-16 text-center">Pos</th>
-                            <th className="p-4 text-xs font-bold uppercase tracking-wider">Corredor</th>
-                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-right">Puntos</th>
-                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-center w-20"></th>
+                            <th className="p-4 text-xs font-bold uppercase w-16 text-center">Pos</th>
+                            <th className="p-4 text-xs font-bold uppercase">Corredor</th>
+                            <th className="p-4 text-xs font-bold uppercase text-right">Puntos</th>
+                            <th className="p-4 text-xs font-bold uppercase text-center w-20"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {currentViewResults.map((res) => {
                             const rider = riders.find(r => r.id === res.rider_id);
-                            const riderName = rider?.full_name || 'Desconocido';
-                            const riderClub = rider?.club || 'Libre';
-                            const riderRut = rider?.rut || '';
-                            const isBeingEdited = res.rider_id === selectedRiderId;
-
                             return (
                                 <tr 
                                     key={res.id} 
-                                    className={`transition-colors group cursor-pointer ${
-                                        isBeingEdited ? 'bg-amber-50 border-l-4 border-amber-500' : 'hover:bg-gray-50'
-                                    }`}
+                                    className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedRiderId === res.rider_id ? 'bg-amber-50' : ''}`}
                                     onClick={() => {
                                         setSelectedRiderId(res.rider_id);
+                                        setSearchTerm(rider?.full_name || ''); // Llenar el buscador al editar
                                     }}
-                                    title="Click para editar"
                                 >
                                     <td className="p-4 font-heading text-2xl text-[#1A1816] text-center">{res.position}º</td>
                                     <td className="p-4">
                                         <div className="font-bold text-gray-800 uppercase text-sm">
-                                            {riderName} 
-                                            {isBeingEdited && <span className="text-[10px] text-amber-600 ml-2 bg-amber-100 px-1 rounded">EDITANDO</span>}
+                                            {rider?.full_name || 'Desconocido'}
                                         </div>
-                                        {/* INFO EXTRA: Club y RUT */}
-                                        <div className="text-[10px] text-gray-400 mt-0.5 uppercase">
-                                             {riderClub} {riderRut && <span className="text-gray-300 ml-1">• {riderRut}</span>}
+                                        <div className="text-[10px] text-gray-400 mt-0.5">
+                                             {rider?.club || 'Libre'}
                                         </div>
-
-                                        {(res.race_time || res.avg_speed) && (
-                                            <div className="flex gap-3 mt-1 text-[10px] text-gray-400 font-mono">
-                                                {res.race_time && <span className="flex items-center gap-1">⏱ {res.race_time}</span>}
-                                                {res.avg_speed && <span className="flex items-center gap-1">⚡ {res.avg_speed}</span>}
-                                            </div>
-                                        )}
                                     </td>
                                     <td className="p-4 text-right font-heading text-xl text-[#C64928]">{res.points}</td>
                                     <td className="p-4 text-center">
                                         <button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(res.id);
-                                            }}
-                                            className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                                            title="Eliminar registro"
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(res.id); }}
+                                            className="text-gray-300 hover:text-red-500 p-2"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            🗑️
                                         </button>
                                     </td>
                                 </tr>
                             );
                         })}
-                        
                         {currentViewResults.length === 0 && (
-                            <tr>
-                                <td colSpan={4} className="p-12 text-center text-gray-400">
-                                    <p className="font-heading text-xl opacity-50 uppercase">No hay resultados cargados</p>
-                                </td>
-                            </tr>
+                            <tr><td colSpan={4} className="p-12 text-center text-gray-400 italic">Sin resultados</td></tr>
                         )}
                     </tbody>
                 </table>

@@ -13,60 +13,66 @@ export type RiderState = {
 export async function saveRider(prevState: RiderState, formData: FormData): Promise<RiderState> {
   const id = formData.get('id') as string;
   
-  // 1. OBTENER Y PROCESAR EL CLUB
+  // --- 1. LÓGICA INTELIGENTE DE CLUBES ---
   const clubMode = formData.get('club_mode') as string;
   let finalClub: string | null = null;
 
-  try {
-      if (clubMode === 'existing') {
-          // Si eligió de la lista
-          finalClub = formData.get('selected_club') as string;
-      } 
-      else if (clubMode === 'new') {
-          // Si escribió uno nuevo
-          const newName = (formData.get('new_club_name') as string)?.trim();
-          if (newName) {
-              // A. Guardarlo en la tabla 'clubs' primero para el futuro
-              // Usamos .select() para confirmar que funcionó, ignoramos si ya existe (error 23505 lo manejaría postgres si configuramos ON CONFLICT, pero aquí un simple insert está bien)
-              const { error: clubError } = await supabase.from('clubs').insert({ name: newName }).select();
-              
-              // Si falla porque ya existe, no importa, lo usamos igual. Si es otro error, lo logueamos.
-              if (clubError && clubError.code !== '23505') {
-                  console.error('Error creando club:', clubError);
-              }
-              finalClub = newName;
-          }
-      }
-      // Si clubMode es 'none', finalClub se queda en null
-  } catch (error) {
-      console.error('Error procesando club', error);
-      return { message: 'Error procesando el club', success: false, timestamp: Date.now() };
-  }
+  // Debug para ver qué llega
+  // console.log("Modo Club:", clubMode); 
 
-  // 2. PREPARAR DATOS FINALES
+  if (clubMode === 'existing') {
+      // Si eligió de la lista desplegable
+      finalClub = formData.get('selected_club') as string;
+      if (!finalClub || finalClub === "") finalClub = null;
+  } 
+  else if (clubMode === 'new') {
+      // Si escribió un nombre nuevo
+      const rawName = (formData.get('new_club_name') as string)?.trim();
+      
+      if (rawName) {
+          // Intentamos guardar el club en la base de datos maestra 'clubs'
+          // Usamos .select() para confirmar la operación
+          const { error: clubError } = await supabase
+            .from('clubs')
+            .insert({ name: rawName })
+            .select();
+
+          // Si falla, verificamos por qué. 
+          // Si es error 23505 (duplicado), no importa, usamos el nombre igual.
+          if (clubError && clubError.code !== '23505') {
+              console.error('Error guardando club nuevo:', clubError);
+          }
+          
+          finalClub = rawName;
+      }
+  }
+  // Si clubMode es 'none', finalClub se queda en null
+
+  // --- 2. PREPARAR DATOS DEL RIDER ---
   const dataToSave = {
     full_name: formData.get('full_name') as string,
     rut: formData.get('rut') as string, // Guardamos el RUT
     category: formData.get('category') as string,
     club: finalClub, // Usamos el club procesado arriba
     instagram: formData.get('instagram') as string || null,
-    birth_date: (formData.get('birth_date') as string) || '2000-01-01',
+    birth_date: (formData.get('birth_date') as string) || null,
     ciudad: formData.get('ciudad') as string 
   };
 
   // Validaciones básicas
-  if (!dataToSave.ciudad) return { message: 'La ciudad es obligatoria.', success: false, timestamp: Date.now() };
+  if (!dataToSave.full_name) return { message: 'El nombre es obligatorio.', success: false, timestamp: Date.now() };
   if (!dataToSave.rut) return { message: 'El RUT es obligatorio.', success: false, timestamp: Date.now() };
+  if (!dataToSave.ciudad) return { message: 'La ciudad es obligatoria.', success: false, timestamp: Date.now() };
 
   let error;
 
   try {
     if (id) {
-      // UPDATE
+      // MODO EDICIÓN (UPDATE)
       const response = await supabase.from('riders').update(dataToSave).eq('id', id);
       error = response.error;
     } else {
-      // INSERT
+      // MODO CREACIÓN (INSERT)
       const response = await supabase.from('riders').insert(dataToSave);
       error = response.error;
     }
@@ -74,13 +80,12 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
     if (error) {
       console.error('Error DB:', error);
       
-      // Capturamos el error de RUT DUPLICADO (Código Postgres 23505)
+      // Manejo de errores específicos
       if (error.code === '23505') {
-        // Verificamos si el error viene del campo RUT
+        // Error de duplicado (Unique Constraint)
         if (error.message?.includes('rut') || error.details?.includes('rut')) {
              return { message: 'Error: Ya existe un corredor con ese RUT.', success: false, timestamp: Date.now() };
         }
-        // Si no es el RUT, asumimos que puede ser el nombre u otro campo único
         return { message: 'Error: Datos duplicados (posiblemente RUT o Nombre).', success: false, timestamp: Date.now() };
       }
 
@@ -99,12 +104,13 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
     };
   }
 
-  revalidatePath('/admin');
+  // Revalidar caché para que se actualicen las listas
+  revalidatePath('/admin/riders');
   revalidatePath('/ranking');
-  revalidatePath('/'); // Actualizar home por si salen los riders destacados
+  revalidatePath('/'); 
   
-  // Si todo sale bien, redirigimos
-  redirect('/admin');
+  // Redirigir a la lista
+  redirect('/admin/riders');
 }
 
 export async function deleteRider(id: string): Promise<RiderState> {
@@ -116,7 +122,7 @@ export async function deleteRider(id: string): Promise<RiderState> {
     if (error) {
       if (error.code === '23503') {
         return {
-          message: 'No se puede eliminar: Este corredor tiene historial. Borra sus resultados primero.',
+          message: 'No se puede eliminar: Este corredor tiene resultados asociados. Borra sus resultados primero.',
           success: false,
           timestamp: Date.now()
         };
@@ -127,7 +133,6 @@ export async function deleteRider(id: string): Promise<RiderState> {
     return { message: 'Error inesperado.', success: false, timestamp: Date.now() };
   }
 
-  revalidatePath('/admin');
-  revalidatePath('/ranking');
-  redirect('/admin');
+  revalidatePath('/admin/riders');
+  redirect('/admin/riders');
 }
