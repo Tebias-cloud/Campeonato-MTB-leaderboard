@@ -11,17 +11,19 @@ interface Props {
 }
 
 export default function ResultManager({ events, riders, existingResults }: Props) {
-  // --- ESTADOS ---
+  // --- ESTADOS DE CONFIGURACIÓN ---
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Open');
+
+  // --- ESTADOS DEL FORMULARIO ---
   const [selectedRiderId, setSelectedRiderId] = useState<string>('');
   
-  // Buscador Visual
+  // Estados para el Buscador
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
-  // Datos
+  // Datos Técnicos
   const [position, setPosition] = useState<string>('');
   const [points, setPoints] = useState<string>('');
   const [raceTime, setRaceTime] = useState<string>('');
@@ -32,9 +34,15 @@ export default function ResultManager({ events, riders, existingResults }: Props
 
   // --- 1. FILTRADO INTELIGENTE ---
   const filteredRiders = useMemo(() => {
+    // 1. Filtramos por categoría primero
     const candidates = riders.filter(r => r.category === selectedCategory);
-    if (!searchTerm) return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
 
+    // 2. Si no hay texto de búsqueda, mostramos todos (ordenados A-Z)
+    if (!searchTerm) {
+        return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
+    }
+
+    // 3. Si hay texto, buscamos por Nombre, RUT o Club
     const term = searchTerm.toLowerCase();
     return candidates.filter(r => 
         r.full_name.toLowerCase().includes(term) || 
@@ -48,13 +56,18 @@ export default function ResultManager({ events, riders, existingResults }: Props
     r.category_played === selectedCategory
   ).sort((a, b) => a.position - b.position);
 
-  // --- 2. AUTO-EDICIÓN ---
+  // --- 2. AUTO-DETECCIÓN DE EDICIÓN ---
   useEffect(() => {
     if (!selectedRiderId || !selectedEventId) {
-        resetForm(false);
+        // Si no hay rider seleccionado, limpiamos el formulario (pero NO el buscador si el usuario está escribiendo)
+        if (!selectedRiderId) resetDataFields();
         return;
     }
-    const existing = existingResults.find(r => r.event_id === selectedEventId && r.rider_id === selectedRiderId);
+
+    const existing = existingResults.find(r => 
+        r.event_id === selectedEventId && 
+        r.rider_id === selectedRiderId
+    );
 
     if (existing) {
         setIsEditing(true);
@@ -62,16 +75,15 @@ export default function ResultManager({ events, riders, existingResults }: Props
         setPoints(existing.points.toString());
         setRaceTime(existing.race_time || '');
         setAvgSpeed(existing.avg_speed?.toString() || '');
-        
-        const currentRider = riders.find(r => r.id === selectedRiderId);
-        if (currentRider) setSearchTerm(currentRider.full_name);
     } else {
-        resetForm(true); 
+        // Es un rider nuevo para este evento
+        setIsEditing(false);
+        resetDataFields();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRiderId, selectedEventId, existingResults]);
 
-  // Click Outside
+  // Cierra el menú si haces clic fuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -82,25 +94,37 @@ export default function ResultManager({ events, riders, existingResults }: Props
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const resetForm = (keepRider: boolean) => {
-      setIsEditing(false);
+  // Limpia solo los campos de datos (Posición, Puntos, Tiempo)
+  const resetDataFields = () => {
       setPosition('');
       setPoints('');
       setRaceTime('');
       setAvgSpeed('');
-      if (!keepRider) {
-          setSelectedRiderId('');
-          setSearchTerm(''); 
-      }
   };
 
+  // Limpia TODO (incluido el buscador)
+  const resetFormFull = () => {
+      setIsEditing(false);
+      resetDataFields();
+      setSelectedRiderId('');
+      setSearchTerm('');
+  };
+
+  // --- ACCIONES DEL BUSCADOR ---
   const handleSelectRider = (rider: Rider) => {
       setSelectedRiderId(rider.id);
       setSearchTerm(rider.full_name); 
       setIsSearching(false); 
   };
 
-  // Calculadora Puntos
+  const handleClearSearch = () => {
+      setSearchTerm('');
+      setSelectedRiderId('');
+      setIsSearching(true); // Mantiene el foco para seguir buscando
+      resetDataFields();
+  };
+
+  // --- CALCULADORAS ---
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setPosition(val);
@@ -116,7 +140,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
       }
   };
 
-  // Formato Tiempo
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
     if (raw.length > 6) return; 
@@ -129,6 +152,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId || !selectedRiderId || !position || !points) return;
+
     setLoading(true);
     try {
       await createResult({
@@ -140,8 +164,10 @@ export default function ResultManager({ events, riders, existingResults }: Props
         race_time: raceTime || null,
         avg_speed: avgSpeed ? parseFloat(avgSpeed) : null
       });
-      resetForm(false); 
+      
+      resetFormFull(); 
       alert(isEditing ? "¡Actualizado!" : "¡Registrado!");
+
     } catch (error) {
         console.error(error);
         alert("Ocurrió un error al guardar.");
@@ -153,7 +179,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const handleDelete = async (resultId: string) => {
     if (!confirm('¿Borrar este resultado permanentemente?')) return;
     await deleteResult(resultId);
-    if (isEditing) resetForm(false);
+    if (isEditing) resetFormFull();
   };
 
   const inputClass = "w-full p-3 bg-white text-gray-900 rounded-xl border border-gray-300 outline-none focus:border-[#C64928] font-medium transition-all placeholder:text-gray-400";
@@ -190,8 +216,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     value={selectedCategory} 
                     onChange={(e) => {
                         setSelectedCategory(e.target.value);
-                        setSelectedRiderId('');
-                        setSearchTerm('');
+                        resetFormFull(); // Si cambia categoría, limpiamos todo
                     }}
                     className="w-full p-3 rounded-xl border border-[#C64928] bg-[#C64928] text-white font-bold shadow-lg focus:outline-none focus:ring-4 ring-[#C64928]/30"
                 >
@@ -221,13 +246,13 @@ export default function ResultManager({ events, riders, existingResults }: Props
       </div>
 
       {/* 2. FORMULARIO */}
-      {/* OJO: 'overflow-visible' es clave para que el menú salga de la caja */}
       <div className={`p-6 md:p-8 rounded-3xl shadow-lg border relative overflow-visible transition-colors duration-500 ${
           isEditing ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-200'
       }`}>
+        {/* Indicador visual de modo edición */}
         {isEditing && (
              <div className="absolute top-0 right-0 bg-amber-200 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-amber-300 uppercase">
-                 Editando
+                 Editando Registro Existente
              </div>
         )}
 
@@ -239,8 +264,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* --- SELECCIONADOR MEJORADO --- */}
-                <div className="md:col-span-1 relative z-[100]" ref={searchContainerRef}>
+                {/* --- SELECCIONADOR TIPO COMBOBOX (ARREGLADO) --- */}
+                <div className="md:col-span-1 relative z-50" ref={searchContainerRef}>
                     <label className={labelClass}>
                         Seleccionar Corredor <span className="text-gray-400 font-normal">({filteredRiders.length})</span>
                     </label>
@@ -249,47 +274,45 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         <input 
                             type="text"
                             value={searchTerm}
-                            onClick={() => setIsSearching(true)}
+                            onClick={() => setIsSearching(true)} 
                             onFocus={() => setIsSearching(true)}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setIsSearching(true);
-                                if(e.target.value === '') setSelectedRiderId('');
+                                // ARREGLO IMPORTANTE: Si escribe, reseteamos la selección interna para que no se bloquee
+                                setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
-                            className={`w-full p-3 pl-10 bg-white border cursor-pointer rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
-                                selectedRiderId ? 'border-green-500 text-green-700 font-bold bg-green-50' : 'border-gray-300'
+                            className={`w-full p-3 pl-4 pr-10 bg-white border rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
+                                selectedRiderId ? 'border-[#C64928] text-[#1A1816] font-bold' : 'border-gray-300'
                             }`}
                         />
-                        <div className="absolute left-3 top-3.5 text-gray-400 pointer-events-none">
-                             {selectedRiderId ? (
-                                 /* Icono Check Verde SVG */
-                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                             ) : (
-                                 /* Icono Lupa SVG */
-                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                             )}
-                        </div>
                         
-                        {/* Icono Flecha Abajo Derecha */}
-                        <div className="absolute right-3 top-3.5 pointer-events-none text-gray-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        {/* Botón de limpiar / Flecha */}
+                        <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer">
+                             {searchTerm ? (
+                                 /* Botón X para limpiar rápido */
+                                 <svg onClick={handleClearSearch} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                             ) : (
+                                 /* Flecha abajo */
+                                 <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 pointer-events-none transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                             )}
                         </div>
                     </div>
 
-                    {/* MENU DESPLEGABLE */}
+                    {/* LISTA DESPLEGABLE */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto z-[100] animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
                             {filteredRiders.length > 0 ? (
                                 filteredRiders.map(r => (
                                     <div 
                                         key={r.id}
                                         onClick={() => handleSelectRider(r)}
                                         className={`p-3 cursor-pointer border-b border-gray-50 transition-colors group ${
-                                            r.id === selectedRiderId ? 'bg-green-50' : 'hover:bg-gray-50'
+                                            r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
                                         }`}
                                     >
-                                        <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-green-700' : 'text-[#1A1816]'}`}>
+                                        <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
                                             {r.full_name}
                                         </div>
                                         <div className="text-[10px] text-gray-400 flex flex-wrap gap-2">
@@ -395,19 +418,23 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     <tbody className="divide-y divide-gray-100">
                         {currentViewResults.map((res) => {
                             const rider = riders.find(r => r.id === res.rider_id);
+                            const isBeingEdited = selectedRiderId === res.rider_id;
+                            
                             return (
                                 <tr 
                                     key={res.id} 
-                                    className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedRiderId === res.rider_id ? 'bg-amber-50' : ''}`}
+                                    className={`cursor-pointer transition-colors ${isBeingEdited ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
                                     onClick={() => {
                                         setSelectedRiderId(res.rider_id);
-                                        setSearchTerm(rider?.full_name || '');
+                                        setSearchTerm(rider?.full_name || ''); // Llenar el buscador al editar
+                                        setIsSearching(false);
                                     }}
                                 >
                                     <td className="p-4 font-heading text-2xl text-[#1A1816] text-center">{res.position}º</td>
                                     <td className="p-4">
                                         <div className="font-bold text-gray-800 uppercase text-sm">
                                             {rider?.full_name || 'Desconocido'}
+                                            {isBeingEdited && <span className="ml-2 text-[9px] text-amber-600 bg-amber-100 px-1 rounded uppercase font-bold">Editando</span>}
                                         </div>
                                         <div className="text-[10px] text-gray-400 mt-0.5">
                                              {rider?.club || 'Libre'}
