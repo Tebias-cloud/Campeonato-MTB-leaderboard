@@ -90,17 +90,20 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES - LOGOS GRANDES A COLOR */}
+          {/* BARRA DE CLUBES - CORREGIDA PARA MOVIL */}
           <div className="w-full max-w-6xl mb-12">
-              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12 opacity-90 hover:opacity-100 transition-opacity">
+              {/* CAMBIOS REALIZADOS AQUÍ:
+                  1. 'grid grid-cols-3 gap-4': En móvil usa grilla de 3 columnas.
+                  2. 'md:flex md:flex-wrap': En PC usa flexbox normal.
+              */}
+              <div className="grid grid-cols-3 gap-6 md:flex md:flex-wrap md:gap-12 justify-center items-center opacity-90 hover:opacity-100 transition-opacity px-2">
                   {clubsLogos.map((logo, index) => (
-                      /* Se eliminó la clase 'grayscale' */
-                      <div key={index} className="h-14 md:h-20 w-auto transition-all duration-500 hover:scale-110">
+                      <div key={index} className="h-12 md:h-20 w-auto flex justify-center items-center transition-all duration-500 hover:scale-110">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
                               src={logo} 
                               alt={`Club ${index + 1}`} 
-                              className="h-full w-full object-contain drop-shadow-lg" 
+                              className="max-h-full max-w-full object-contain drop-shadow-lg" 
                           />
                       </div>
                   ))}
