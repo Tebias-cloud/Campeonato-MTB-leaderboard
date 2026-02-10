@@ -248,9 +248,9 @@ export default async function RankingFull(props: Props) {
                                     <img 
                                         src={currentOrganizer!.logo} 
                                         alt={currentOrganizer!.name} 
-                                        /* CAMBIO: Resplandor BLANCO puro y fuerte */
+                                        /* CAMBIO: Glow sutil blanco */
                                         className="h-full w-full object-contain" 
-                                        style={{ filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.7))' }}
+                                        style={{ filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.3))' }}
                                     />
                                 </div>
                             </div>
