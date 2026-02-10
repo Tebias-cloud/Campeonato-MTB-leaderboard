@@ -34,15 +34,12 @@ export default function ResultManager({ events, riders, existingResults }: Props
 
   // --- 1. FILTRADO INTELIGENTE ---
   const filteredRiders = useMemo(() => {
-    // 1. Filtramos por categoría primero
     const candidates = riders.filter(r => r.category === selectedCategory);
 
-    // 2. Si no hay texto de búsqueda, mostramos todos (ordenados A-Z)
     if (!searchTerm) {
         return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
     }
 
-    // 3. Si hay texto, buscamos por Nombre, RUT o Club
     const term = searchTerm.toLowerCase();
     return candidates.filter(r => 
         r.full_name.toLowerCase().includes(term) || 
@@ -59,7 +56,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
   // --- 2. AUTO-DETECCIÓN DE EDICIÓN ---
   useEffect(() => {
     if (!selectedRiderId || !selectedEventId) {
-        // Si no hay rider seleccionado, limpiamos el formulario (pero NO el buscador si el usuario está escribiendo)
         if (!selectedRiderId) resetDataFields();
         return;
     }
@@ -76,7 +72,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
         setRaceTime(existing.race_time || '');
         setAvgSpeed(existing.avg_speed?.toString() || '');
     } else {
-        // Es un rider nuevo para este evento
         setIsEditing(false);
         resetDataFields();
     }
@@ -94,7 +89,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Limpia solo los campos de datos (Posición, Puntos, Tiempo)
   const resetDataFields = () => {
       setPosition('');
       setPoints('');
@@ -102,7 +96,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
       setAvgSpeed('');
   };
 
-  // Limpia TODO (incluido el buscador)
   const resetFormFull = () => {
       setIsEditing(false);
       resetDataFields();
@@ -110,7 +103,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
       setSearchTerm('');
   };
 
-  // --- ACCIONES DEL BUSCADOR ---
   const handleSelectRider = (rider: Rider) => {
       setSelectedRiderId(rider.id);
       setSearchTerm(rider.full_name); 
@@ -120,11 +112,10 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const handleClearSearch = () => {
       setSearchTerm('');
       setSelectedRiderId('');
-      setIsSearching(true); // Mantiene el foco para seguir buscando
+      setIsSearching(true);
       resetDataFields();
   };
 
-  // --- CALCULADORAS ---
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setPosition(val);
@@ -216,7 +207,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     value={selectedCategory} 
                     onChange={(e) => {
                         setSelectedCategory(e.target.value);
-                        resetFormFull(); // Si cambia categoría, limpiamos todo
+                        resetFormFull();
                     }}
                     className="w-full p-3 rounded-xl border border-[#C64928] bg-[#C64928] text-white font-bold shadow-lg focus:outline-none focus:ring-4 ring-[#C64928]/30"
                 >
@@ -249,7 +240,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
       <div className={`p-6 md:p-8 rounded-3xl shadow-lg border relative overflow-visible transition-colors duration-500 ${
           isEditing ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-200'
       }`}>
-        {/* Indicador visual de modo edición */}
         {isEditing && (
              <div className="absolute top-0 right-0 bg-amber-200 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-amber-300 uppercase">
                  Editando Registro Existente
@@ -264,7 +254,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* --- SELECCIONADOR TIPO COMBOBOX (ARREGLADO) --- */}
+                {/* --- SELECCIONADOR --- */}
                 <div className="md:col-span-1 relative z-50" ref={searchContainerRef}>
                     <label className={labelClass}>
                         Seleccionar Corredor <span className="text-gray-400 font-normal">({filteredRiders.length})</span>
@@ -279,7 +269,6 @@ export default function ResultManager({ events, riders, existingResults }: Props
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setIsSearching(true);
-                                // ARREGLO IMPORTANTE: Si escribe, reseteamos la selección interna para que no se bloquee
                                 setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
@@ -288,39 +277,48 @@ export default function ResultManager({ events, riders, existingResults }: Props
                             }`}
                         />
                         
-                        {/* Botón de limpiar / Flecha */}
                         <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer">
                              {searchTerm ? (
-                                 /* Botón X para limpiar rápido */
                                  <svg onClick={handleClearSearch} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                              ) : (
-                                 /* Flecha abajo */
                                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 pointer-events-none transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                              )}
                         </div>
                     </div>
 
-                    {/* LISTA DESPLEGABLE */}
+                    {/* LISTA DESPLEGABLE CORREGIDA */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden"> 
+                            {/* NOTA: overflow-hidden y sin padding en este div contenedor */}
+                            
                             {filteredRiders.length > 0 ? (
-                                filteredRiders.map(r => (
-                                    <div 
-                                        key={r.id}
-                                        onClick={() => handleSelectRider(r)}
-                                        className={`p-3 cursor-pointer border-b border-gray-50 transition-colors group ${
-                                            r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
-                                            {r.full_name}
+                                <div>
+                                    {filteredRiders.map(r => (
+                                        <div 
+                                            key={r.id}
+                                            onClick={() => handleSelectRider(r)}
+                                            className={`px-4 py-3 cursor-pointer border-b border-gray-50 transition-colors group flex justify-between items-center ${
+                                                r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <div>
+                                                <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
+                                                    {r.full_name}
+                                                </div>
+                                                <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-bold uppercase mt-1 inline-block">
+                                                    {r.club || 'Sin Club'}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* RUT MÁS VISIBLE */}
+                                            {r.rut && (
+                                                <span className="font-mono text-xs text-gray-500 font-bold ml-2 whitespace-nowrap">
+                                                    {r.rut}
+                                                </span>
+                                            )}
                                         </div>
-                                        <div className="text-[10px] text-gray-400 flex flex-wrap gap-2">
-                                            <span className="font-medium bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{r.club || 'Sin Club'}</span>
-                                            {r.rut && <span className="font-mono text-gray-400 pt-0.5">• {r.rut}</span>}
-                                        </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
                                 <div className="p-4 text-center text-gray-400 text-sm italic">
                                     No se encontraron corredores.
@@ -426,7 +424,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                     className={`cursor-pointer transition-colors ${isBeingEdited ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
                                     onClick={() => {
                                         setSelectedRiderId(res.rider_id);
-                                        setSearchTerm(rider?.full_name || ''); // Llenar el buscador al editar
+                                        setSearchTerm(rider?.full_name || '');
                                         setIsSearching(false);
                                     }}
                                 >
