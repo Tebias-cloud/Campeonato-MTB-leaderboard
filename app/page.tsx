@@ -90,7 +90,7 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES (LIMPIA) */}
+          {/* BARRA DE CLUBES - CON RESPLANDOR BLANCO */}
           <div className="w-full max-w-5xl mb-12 px-2">
               <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 opacity-90">
                   {clubsLogos.map((logo, index) => (
@@ -99,7 +99,9 @@ export default async function Home() {
                           <img 
                               src={logo} 
                               alt={`Club ${index + 1}`} 
-                              className="max-w-full max-h-full object-contain drop-shadow-lg" 
+                              /* CAMBIO: Resplandor blanco puro */
+                              className="max-w-full max-h-full object-contain" 
+                              style={{ filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.6))' }}
                           />
                       </div>
                   ))}
@@ -126,7 +128,8 @@ export default async function Home() {
                             src={second.club_logo} 
                             alt="Club" 
                             className="w-full h-full object-contain p-2" 
-                            style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }} // Sutil resplandor para logos negros
+                            /* CAMBIO: Resplandor blanco puro */
+                            style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' }} 
                         />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-gray-400 drop-shadow-md">{second?.full_name[0] || '2'}</span>
@@ -161,7 +164,8 @@ export default async function Home() {
                             src={first.club_logo} 
                             alt="Club" 
                             className="w-full h-full object-contain p-2 relative z-10" 
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.3))' }} // Resplandor un poco más fuerte para el 1ro
+                            /* CAMBIO: Resplandor blanco puro intenso */
+                            style={{ filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.7))' }} 
                         />
                     ) : (
                         <span className="font-heading text-7xl md:text-8xl text-[#FFD700] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] relative z-10">
@@ -196,7 +200,8 @@ export default async function Home() {
                             src={third.club_logo} 
                             alt="Club" 
                             className="w-full h-full object-contain p-2" 
-                            style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }} // Sutil resplandor
+                            /* CAMBIO: Resplandor blanco puro */
+                            style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' }} 
                         />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-[#CD7F32] drop-shadow-md">{third?.full_name[0] || '3'}</span>

@@ -244,13 +244,13 @@ export default async function RankingFull(props: Props) {
                     <>
                         {hasLogo && (
                             <div className="animate-fade-in-up mx-auto z-10">
-                                {/* CAMBIO: Eliminado contenedor gris, añadido efecto de resplandor (glow) */}
                                 <div className="h-24 w-24 md:h-40 md:w-40 flex items-center justify-center relative overflow-visible">
                                     <img 
                                         src={currentOrganizer!.logo} 
                                         alt={currentOrganizer!.name} 
-                                        className="h-full w-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" 
-                                        style={{ filter: 'drop-shadow(0 0 20px rgba(255, 223, 128, 0.5))' }}
+                                        /* CAMBIO: Resplandor BLANCO puro y fuerte */
+                                        className="h-full w-full object-contain" 
+                                        style={{ filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.7))' }}
                                     />
                                 </div>
                             </div>
