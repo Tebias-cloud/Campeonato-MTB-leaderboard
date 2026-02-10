@@ -11,39 +11,30 @@ interface Props {
 }
 
 export default function ResultManager({ events, riders, existingResults }: Props) {
-  // --- ESTADOS DE CONFIGURACIÓN ---
+  // --- ESTADOS ---
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Open');
-
-  // --- ESTADOS DEL FORMULARIO ---
   const [selectedRiderId, setSelectedRiderId] = useState<string>('');
   
-  // Estados para el Buscador Visual
+  // Buscador Visual
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null); // Referencia para detectar clics fuera
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   
+  // Datos
   const [position, setPosition] = useState<string>('');
   const [points, setPoints] = useState<string>('');
-  
-  // Datos Técnicos
   const [raceTime, setRaceTime] = useState<string>('');
   const [avgSpeed, setAvgSpeed] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. FILTRADO PARA EL BUSCADOR ---
+  // --- 1. FILTRADO INTELIGENTE ---
   const filteredRiders = useMemo(() => {
-    // 1. Base: Solo los de la categoría seleccionada
     const candidates = riders.filter(r => r.category === selectedCategory);
+    if (!searchTerm) return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
 
-    // 2. Si NO hay búsqueda, devolvemos TODOS los candidatos (ordenados alfabéticamente)
-    if (!searchTerm) {
-        return candidates.sort((a, b) => a.full_name.localeCompare(b.full_name));
-    }
-
-    // 3. Si HAY búsqueda, filtramos esa lista
     const term = searchTerm.toLowerCase();
     return candidates.filter(r => 
         r.full_name.toLowerCase().includes(term) || 
@@ -52,25 +43,18 @@ export default function ResultManager({ events, riders, existingResults }: Props
     ).sort((a, b) => a.full_name.localeCompare(b.full_name));
   }, [riders, selectedCategory, searchTerm]);
 
-
-  // --- 2. LISTA DE RESULTADOS YA CARGADOS (TABLA INFERIOR) ---
   const currentViewResults = existingResults.filter(r => 
     r.event_id === selectedEventId && 
     r.category_played === selectedCategory
   ).sort((a, b) => a.position - b.position);
 
-
-  // --- 3. AUTO-DETECCIÓN DE EDICIÓN ---
+  // --- 2. AUTO-EDICIÓN ---
   useEffect(() => {
     if (!selectedRiderId || !selectedEventId) {
         resetForm(false);
         return;
     }
-
-    const existing = existingResults.find(r => 
-        r.event_id === selectedEventId && 
-        r.rider_id === selectedRiderId
-    );
+    const existing = existingResults.find(r => r.event_id === selectedEventId && r.rider_id === selectedRiderId);
 
     if (existing) {
         setIsEditing(true);
@@ -79,17 +63,15 @@ export default function ResultManager({ events, riders, existingResults }: Props
         setRaceTime(existing.race_time || '');
         setAvgSpeed(existing.avg_speed?.toString() || '');
         
-        // Llenamos el buscador con el nombre para que se vea bonito
         const currentRider = riders.find(r => r.id === selectedRiderId);
         if (currentRider) setSearchTerm(currentRider.full_name);
-
     } else {
         resetForm(true); 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRiderId, selectedEventId, existingResults]);
 
-  // Cierra el menú si haces clic fuera
+  // Click Outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -112,32 +94,29 @@ export default function ResultManager({ events, riders, existingResults }: Props
       }
   };
 
-  // --- 4. SELECCIONAR UN RIDER DESDE LA LISTA ---
   const handleSelectRider = (rider: Rider) => {
       setSelectedRiderId(rider.id);
       setSearchTerm(rider.full_name); 
       setIsSearching(false); 
   };
 
-  // --- 5. CALCULADORA DE PUNTOS ---
+  // Calculadora Puntos
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setPosition(val);
-
       const pos = parseInt(val);
       if (!isNaN(pos) && pos > 0) {
           let calcPoints = 0;
           if (pos <= 10) calcPoints = 110 - (pos * 10);
           else if (pos < 20) calcPoints = 20 - pos;
           else calcPoints = 1;
-          
           setPoints(calcPoints.toString());
       } else {
           setPoints('');
       }
   };
 
-  // --- 6. FORMATO TIEMPO ---
+  // Formato Tiempo
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
     if (raw.length > 6) return; 
@@ -147,11 +126,9 @@ export default function ResultManager({ events, riders, existingResults }: Props
     setRaceTime(formatted);
   };
 
-  // --- HANDLERS ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId || !selectedRiderId || !position || !points) return;
-
     setLoading(true);
     try {
       await createResult({
@@ -163,10 +140,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
         race_time: raceTime || null,
         avg_speed: avgSpeed ? parseFloat(avgSpeed) : null
       });
-      
       resetForm(false); 
       alert(isEditing ? "¡Actualizado!" : "¡Registrado!");
-
     } catch (error) {
         console.error(error);
         alert("Ocurrió un error al guardar.");
@@ -246,13 +221,13 @@ export default function ResultManager({ events, riders, existingResults }: Props
       </div>
 
       {/* 2. FORMULARIO */}
+      {/* OJO: 'overflow-visible' es clave para que el menú salga de la caja */}
       <div className={`p-6 md:p-8 rounded-3xl shadow-lg border relative overflow-visible transition-colors duration-500 ${
           isEditing ? 'bg-amber-50 border-amber-300' : 'bg-white border-gray-200'
       }`}>
-        {/* Indicador visual de modo edición */}
         {isEditing && (
              <div className="absolute top-0 right-0 bg-amber-200 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-amber-300 uppercase">
-                 Editando Registro Existente
+                 Editando
              </div>
         )}
 
@@ -264,56 +239,68 @@ export default function ResultManager({ events, riders, existingResults }: Props
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* --- SELECCIONADOR HÍBRIDO (BUSCADOR + LISTA) --- */}
-                <div className="md:col-span-1 relative z-50" ref={searchContainerRef}>
+                {/* --- SELECCIONADOR MEJORADO --- */}
+                <div className="md:col-span-1 relative z-[100]" ref={searchContainerRef}>
                     <label className={labelClass}>
                         Seleccionar Corredor <span className="text-gray-400 font-normal">({filteredRiders.length})</span>
                     </label>
                     
-                    {/* Input que actúa como Buscador y Activador de Lista */}
                     <div className="relative">
                         <input 
                             type="text"
                             value={searchTerm}
-                            onClick={() => setIsSearching(true)} // Al hacer click, abre la lista completa
-                            onFocus={() => setIsSearching(true)} // Al enfocar, también
+                            onClick={() => setIsSearching(true)}
+                            onFocus={() => setIsSearching(true)}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setIsSearching(true);
                                 if(e.target.value === '') setSelectedRiderId('');
                             }}
-                            placeholder="Seleccionar o buscar..."
-                            className={`w-full p-3 pl-10 bg-white border cursor-pointer ${selectedRiderId ? 'border-green-500 bg-green-50 font-bold' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all`}
+                            placeholder="Buscar nombre o RUT..."
+                            className={`w-full p-3 pl-10 bg-white border cursor-pointer rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
+                                selectedRiderId ? 'border-green-500 text-green-700 font-bold bg-green-50' : 'border-gray-300'
+                            }`}
                         />
-                        <div className="absolute left-3 top-3.5 text-gray-400">
-                             {selectedRiderId ? '✅' : '🔻'}
+                        <div className="absolute left-3 top-3.5 text-gray-400 pointer-events-none">
+                             {selectedRiderId ? (
+                                 /* Icono Check Verde SVG */
+                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                             ) : (
+                                 /* Icono Lupa SVG */
+                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                             )}
+                        </div>
+                        
+                        {/* Icono Flecha Abajo Derecha */}
+                        <div className="absolute right-3 top-3.5 pointer-events-none text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </div>
                     </div>
 
-                    {/* Lista Desplegable (Siempre muestra datos si está abierto) */}
+                    {/* MENU DESPLEGABLE */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto">
+                        <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto z-[100] animate-in fade-in zoom-in-95 duration-100">
                             {filteredRiders.length > 0 ? (
                                 filteredRiders.map(r => (
                                     <div 
                                         key={r.id}
                                         onClick={() => handleSelectRider(r)}
                                         className={`p-3 cursor-pointer border-b border-gray-50 transition-colors group ${
-                                            r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
+                                            r.id === selectedRiderId ? 'bg-green-50' : 'hover:bg-gray-50'
                                         }`}
                                     >
-                                        <div className="font-bold text-[#1A1816] group-hover:text-[#C64928]">
+                                        <div className={`font-bold group-hover:text-[#C64928] ${r.id === selectedRiderId ? 'text-green-700' : 'text-[#1A1816]'}`}>
                                             {r.full_name}
                                         </div>
                                         <div className="text-[10px] text-gray-400 flex flex-wrap gap-2">
-                                            <span className="font-bold text-gray-500">{r.club || 'Sin Club'}</span>
-                                            {r.rut && <span>• {r.rut}</span>}
+                                            <span className="font-medium bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{r.club || 'Sin Club'}</span>
+                                            {r.rut && <span className="font-mono text-gray-400 pt-0.5">• {r.rut}</span>}
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="p-4 text-center text-gray-400 text-sm italic">
-                                    No hay corredores en esta categoría con ese nombre.
+                                    No se encontraron corredores.
                                 </div>
                             )}
                         </div>
@@ -414,7 +401,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                     className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedRiderId === res.rider_id ? 'bg-amber-50' : ''}`}
                                     onClick={() => {
                                         setSelectedRiderId(res.rider_id);
-                                        setSearchTerm(rider?.full_name || ''); // Llenar el buscador al editar
+                                        setSearchTerm(rider?.full_name || '');
                                     }}
                                 >
                                     <td className="p-4 font-heading text-2xl text-[#1A1816] text-center">{res.position}º</td>
@@ -432,7 +419,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                             onClick={(e) => { e.stopPropagation(); handleDelete(res.id); }}
                                             className="text-gray-300 hover:text-red-500 p-2"
                                         >
-                                            🗑️
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </td>
                                 </tr>

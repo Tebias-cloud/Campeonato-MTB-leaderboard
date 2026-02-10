@@ -200,12 +200,10 @@ export default async function RankingFull(props: Props) {
     <div className={`min-h-screen pb-20 overflow-x-hidden bg-[#EFE6D5] text-[#2A221B] ${montserrat.variable} ${teko.variable} font-sans selection:bg-[#C64928] selection:text-white antialiased`}>
       
       {/* HEADER DINÁMICO */}
-      {/* CAMBIO COLOR: Header bg-[#292725] en vez de negro puro */}
       <div className={`relative bg-[#292725] px-4 rounded-b-[50px] shadow-2xl overflow-hidden border-b-[6px] border-[#C64928] transition-all duration-300 ease-in-out ${
           isGeneral ? 'h-[340px] md:h-[440px]' : 'h-[300px] md:h-[400px]'
       }`}>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547234935-80c7142ee969?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-bottom opacity-30 mix-blend-luminosity grayscale"></div>
-        {/* CAMBIO COLOR: Degradado ajustado */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#292725] via-[#292725]/95 to-transparent"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-40 mix-blend-overlay"></div>
         
@@ -246,9 +244,9 @@ export default async function RankingFull(props: Props) {
                     <>
                         {hasLogo && (
                             <div className="animate-fade-in-up mx-auto z-10">
-                                <div className="h-24 w-24 md:h-40 md:w-40 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] border border-white/10 bg-black/70 backdrop-blur-xl flex items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.8)] relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-30"></div>
-                                    <img src={currentOrganizer!.logo} alt={currentOrganizer!.name} className="h-full w-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]" />
+                                {/* CAMBIO CLAVE: Caja del logo ahora es clara (#EFE6D5) para que los logos negros resalten */}
+                                <div className="h-24 w-24 md:h-40 md:w-40 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] border-2 border-[#1A1816]/10 bg-[#EFE6D5] flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)] relative overflow-hidden">
+                                    <img src={currentOrganizer!.logo} alt={currentOrganizer!.name} className="h-full w-full object-contain drop-shadow-sm" />
                                 </div>
                             </div>
                         )}
@@ -276,7 +274,6 @@ export default async function RankingFull(props: Props) {
         
         {/* BARRA DE FECHAS */}
         <div className="flex justify-center">
-            {/* CAMBIO COLOR: Fondo barra fechas #292725 */}
             <div className="bg-[#292725]/95 backdrop-blur-md p-1.5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/10 inline-flex flex-col md:flex-row items-center gap-1 max-w-full overflow-hidden">
                 <Link href={buildUrl(undefined, 'general')} scroll={false} className={`flex flex-col justify-center items-center px-4 py-1 rounded-[1.6rem] transition-all duration-300 relative z-10 shrink-0 h-14 w-24 group ${eventIdFilter === 'general' ? 'bg-gradient-to-br from-[#C64928] to-[#8B3A1E] text-white shadow-lg scale-105 ring-1 ring-white/20' : 'bg-transparent text-gray-500 hover:text-white hover:bg-white/5 border-r border-white/5 md:border-none'}`}>
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-80 leading-none mb-0.5 group-hover:opacity-100">Ranking</span>
@@ -289,7 +286,6 @@ export default async function RankingFull(props: Props) {
                         const day = dateObj.toLocaleDateString('es-CL', { day: '2-digit' });
                         const month = dateObj.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '').toUpperCase();
                         const isActive = eventIdFilter === event.id;
-                        /* CAMBIO COLOR: Botón activo usa #292725 */
                         return (
                         <Link key={event.id} href={buildUrl(undefined, event.id)} scroll={false} className={`shrink-0 flex flex-col items-center justify-center w-12 h-14 rounded-[1.4rem] transition-all duration-300 relative group ${isActive ? 'bg-white text-[#292725] shadow-xl transform scale-105 font-bold z-10 ring-4 ring-[#292725]' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}>
                             <span className="text-[8px] font-bold uppercase tracking-widest leading-none mb-0.5 group-hover:text-[#C64928] transition-colors">{month}</span>
@@ -311,7 +307,6 @@ export default async function RankingFull(props: Props) {
                 if (cat === 'E-Bike Open Mixto') displayName = 'E-Bike';
                 displayName = displayName.replace('Damas', 'D.');
 
-                /* CAMBIO COLOR: Filtro activo usa #292725 */
                 return (
                     <Link key={cat} href={buildUrl(cat, undefined)} scroll={false} className={`px-5 py-1.5 rounded-sm font-bold uppercase text-[10px] md:text-xs tracking-wider shadow-sm transition-all transform -skew-x-12 border ${categoryFilter === cat ? 'bg-[#292725] text-white border-[#C64928] border-b-4 scale-105 shadow-md' : 'bg-white text-[#1A1816] border-white hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5'}`}>
                         <span className="skew-x-12 block whitespace-nowrap">{displayName}</span>
