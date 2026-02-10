@@ -90,7 +90,7 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES - REVERTIDA A ESTILO LIMPIO */}
+          {/* BARRA DE CLUBES (LIMPIA) */}
           <div className="w-full max-w-5xl mb-12 px-2">
               <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 opacity-90">
                   {clubsLogos.map((logo, index) => (
@@ -122,7 +122,12 @@ export default async function Home() {
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
                 <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-gray-400 bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(192,192,192,0.3)] overflow-hidden">
                     {second?.club_logo ? (
-                        <img src={second.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
+                        <img 
+                            src={second.club_logo} 
+                            alt="Club" 
+                            className="w-full h-full object-contain p-2" 
+                            style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }} // Sutil resplandor para logos negros
+                        />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-gray-400 drop-shadow-md">{second?.full_name[0] || '2'}</span>
                     )}
@@ -133,7 +138,11 @@ export default async function Home() {
              </div>
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-gray-400 shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{second?.full_name.split(' ')[0] || 'Vacante'}</p>
-                <p className="text-[10px] text-gray-400 font-bold">{second?.total_points || 0} PTS</p>
+                {/* NOMBRE CLUB 2DO */}
+                {second?.club && (
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{second.club}</p>
+                )}
+                <p className="text-[10px] text-gray-400 font-bold mt-1">{second?.total_points || 0} PTS</p>
              </div>
           </div>
 
@@ -148,7 +157,12 @@ export default async function Home() {
                 <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-[4px] border-[#FFD700] bg-[#292725] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/10 to-transparent"></div>
                     {first?.club_logo ? (
-                        <img src={first.club_logo} alt="Club" className="w-full h-full object-contain p-2 relative z-10" />
+                        <img 
+                            src={first.club_logo} 
+                            alt="Club" 
+                            className="w-full h-full object-contain p-2 relative z-10" 
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.3))' }} // Resplandor un poco más fuerte para el 1ro
+                        />
                     ) : (
                         <span className="font-heading text-7xl md:text-8xl text-[#FFD700] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] relative z-10">
                             {first?.full_name[0] || '1'}
@@ -162,8 +176,12 @@ export default async function Home() {
              </div>
              <div className="bg-[#34312F] w-[110%] py-5 text-center rounded-b-xl border-b-4 border-[#FFD700] relative shadow-2xl">
                 <p className="font-black text-sm md:text-lg text-white truncate px-2 uppercase">{first?.full_name || 'Líder'}</p>
-                <div className="flex justify-center items-center gap-2 mt-1">
+                <div className="flex flex-col items-center gap-0.5 mt-1">
                     <span className="bg-[#C64928] text-white text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">{first?.current_category || '---'}</span>
+                    {/* NOMBRE CLUB 1RO */}
+                    {first?.club && (
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{first.club}</span>
+                    )}
                 </div>
                 <p className="text-sm font-bold mt-1 text-[#FFD700]">{first?.total_points || 0} PTS</p>
              </div>
@@ -174,7 +192,12 @@ export default async function Home() {
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
                 <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-[#CD7F32] bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(205,127,50,0.2)] overflow-hidden">
                     {third?.club_logo ? (
-                        <img src={third.club_logo} alt="Club" className="w-full h-full object-contain p-2" />
+                        <img 
+                            src={third.club_logo} 
+                            alt="Club" 
+                            className="w-full h-full object-contain p-2" 
+                            style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }} // Sutil resplandor
+                        />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-[#CD7F32] drop-shadow-md">{third?.full_name[0] || '3'}</span>
                     )}
@@ -185,6 +208,10 @@ export default async function Home() {
              </div>
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-[#CD7F32] shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{third?.full_name.split(' ')[0] || 'Vacante'}</p>
+                {/* NOMBRE CLUB 3RO */}
+                {third?.club && (
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{third.club}</p>
+                )}
                 <p className="text-[10px] text-gray-400 font-bold">{third?.total_points || 0} PTS</p>
              </div>
           </div>

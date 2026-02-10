@@ -244,10 +244,14 @@ export default async function RankingFull(props: Props) {
                     <>
                         {hasLogo && (
                             <div className="animate-fade-in-up mx-auto z-10">
-                                {/* CAMBIO: Color #504C48 (Charcoal claro) para que logos negros se vean */}
-                                <div className="h-24 w-24 md:h-40 md:w-40 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] border-2 border-white/10 bg-[#504C48] flex items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-20"></div>
-                                    <img src={currentOrganizer!.logo} alt={currentOrganizer!.name} className="h-full w-full object-contain drop-shadow-sm" />
+                                {/* CAMBIO: Eliminado contenedor gris, añadido efecto de resplandor (glow) */}
+                                <div className="h-24 w-24 md:h-40 md:w-40 flex items-center justify-center relative overflow-visible">
+                                    <img 
+                                        src={currentOrganizer!.logo} 
+                                        alt={currentOrganizer!.name} 
+                                        className="h-full w-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" 
+                                        style={{ filter: 'drop-shadow(0 0 20px rgba(255, 223, 128, 0.5))' }}
+                                    />
                                 </div>
                             </div>
                         )}
