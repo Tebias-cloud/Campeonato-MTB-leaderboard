@@ -258,6 +258,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         Seleccionar Corredor <span className="text-gray-400 font-normal">({filteredRiders.length})</span>
                     </label>
                     
+                    {/* CONTENEDOR RELATIVO PARA UNIR INPUT Y LISTA */}
                     <div className="relative">
                         <input 
                             type="text"
@@ -270,12 +271,12 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
-                            // CLASE CLAVE: border-b-0 para quitar borde inferior al buscar
+                            // CLAVE: Si está buscando, quitamos borde inferior y esquinas inferiores
                             className={`w-full p-3 pl-4 pr-10 bg-white border cursor-pointer focus:outline-none focus:ring-0 transition-all z-20 relative ${
                                 selectedRiderId 
                                     ? 'border-[#C64928] text-[#1A1816] font-bold rounded-xl' 
                                     : isSearching && searchTerm 
-                                        ? 'border-[#C64928] rounded-t-xl rounded-b-none border-b-0 shadow-lg' 
+                                        ? 'border-[#C64928] rounded-t-xl rounded-b-none border-b-0 shadow-none' 
                                         : 'border-gray-300 rounded-xl focus:border-[#C64928]'
                             }`}
                         />
@@ -287,48 +288,48 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                              )}
                         </div>
-                    </div>
 
-                    {/* LISTA DESPLEGABLE - SIN ESPACIO Y CON BORDES A JUEGO */}
-                    {isSearching && (
-                        /* CORRECCIÓN: -mt-[1px] (margen negativo) para subir la lista y solaparla con el input */
-                        <div className="absolute top-full left-0 w-full -mt-[1px] bg-white rounded-b-xl shadow-2xl border-x border-b border-[#C64928] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
-                            
-                            {filteredRiders.length > 0 ? (
-                                <div>
-                                    {filteredRiders.map(r => (
-                                        <div 
-                                            key={r.id}
-                                            onClick={() => handleSelectRider(r)}
-                                            className={`px-4 py-3 cursor-pointer border-b border-gray-100 transition-colors group flex justify-between items-center ${
-                                                r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            <div className="flex flex-col">
-                                                <span className={`font-bold text-sm ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
-                                                    {r.full_name}
-                                                </span>
-                                                <span className="text-[10px] text-gray-400 uppercase font-bold mt-0.5">
-                                                    {r.club || 'Sin Club'}
-                                                </span>
+                        {/* LISTA DESPLEGABLE - DENTRO DEL RELATIVE */}
+                        {isSearching && (
+                            /* CLAVE: -mt-[1px] para subirla un pixel y tapar la unión */
+                            <div className="absolute top-full left-0 w-full -mt-[1px] bg-white rounded-b-xl shadow-2xl border-x border-b border-[#C64928] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
+                                
+                                {filteredRiders.length > 0 ? (
+                                    <div>
+                                        {filteredRiders.map(r => (
+                                            <div 
+                                                key={r.id}
+                                                onClick={() => handleSelectRider(r)}
+                                                className={`px-4 py-3 cursor-pointer border-b border-gray-100 transition-colors group flex justify-between items-center ${
+                                                    r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className={`font-bold text-sm ${r.id === selectedRiderId ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
+                                                        {r.full_name}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400 uppercase font-bold mt-0.5">
+                                                        {r.club || 'Sin Club'}
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* RUT MÁS OSCURO Y VISIBLE */}
+                                                {r.rut && (
+                                                    <span className="font-mono text-xs font-black text-gray-900 bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300">
+                                                        {r.rut}
+                                                    </span>
+                                                )}
                                             </div>
-                                            
-                                            {/* RUT DESTACADO */}
-                                            {r.rut && (
-                                                <span className="font-mono text-xs font-bold text-black bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300 shadow-sm">
-                                                    {r.rut}
-                                                </span>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-4 text-center text-gray-400 text-sm italic">
-                                    No se encontraron corredores.
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center text-gray-400 text-sm italic">
+                                        No se encontraron corredores.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* COLUMNA 2: POSICIÓN Y PUNTOS */}
