@@ -270,16 +270,17 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
-                            className={`w-full p-3 pl-4 pr-10 bg-white border cursor-pointer focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
+                            // LÓGICA DE BORDES: Si está buscando, quitamos el borde inferior y las esquinas redondeadas de abajo
+                            className={`w-full p-3 pl-4 pr-10 bg-white border cursor-pointer focus:outline-none focus:ring-0 transition-all z-20 relative ${
                                 selectedRiderId 
                                     ? 'border-[#C64928] text-[#1A1816] font-bold rounded-xl' 
-                                    : isSearching 
-                                        ? 'border-[#C64928] rounded-t-xl rounded-b-none border-b-0' 
-                                        : 'border-gray-300 rounded-xl'
+                                    : isSearching && searchTerm 
+                                        ? 'border-[#C64928] rounded-t-xl rounded-b-none border-b-0 shadow-lg' 
+                                        : 'border-gray-300 rounded-xl focus:border-[#C64928]'
                             }`}
                         />
                         
-                        <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer pointer-events-none">
+                        <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer pointer-events-none z-30">
                              {searchTerm ? (
                                  <svg onClick={handleClearSearch} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hover:text-red-500 transition-colors pointer-events-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                              ) : (
@@ -288,9 +289,9 @@ export default function ResultManager({ events, riders, existingResults }: Props
                         </div>
                     </div>
 
-                    {/* LISTA DESPLEGABLE SIN ESPACIO (mt-0) */}
+                    {/* LISTA DESPLEGABLE - SIN ESPACIO Y CON BORDES A JUEGO */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-0 bg-white rounded-b-xl shadow-2xl border border-gray-300 border-t-0 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
+                        <div className="absolute top-full left-0 w-full mt-0 bg-white rounded-b-xl shadow-2xl border-x border-b border-[#C64928] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
                             
                             {filteredRiders.length > 0 ? (
                                 <div>
@@ -311,9 +312,9 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                                 </span>
                                             </div>
                                             
-                                            {/* RUT DESTACADO (Negrita y oscuro) */}
+                                            {/* RUT MUCHO MÁS VISIBLE */}
                                             {r.rut && (
-                                                <span className="font-mono text-xs font-bold text-gray-800 bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300">
+                                                <span className="font-mono text-xs font-bold text-black bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300 shadow-sm">
                                                     {r.rut}
                                                 </span>
                                             )}
