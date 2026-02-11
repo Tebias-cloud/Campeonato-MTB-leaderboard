@@ -11,19 +11,17 @@ interface Props {
 }
 
 export default function ResultManager({ events, riders, existingResults }: Props) {
-  // --- ESTADOS DE CONFIGURACIÓN ---
+  // --- ESTADOS ---
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Open');
-
-  // --- ESTADOS DEL FORMULARIO ---
   const [selectedRiderId, setSelectedRiderId] = useState<string>('');
   
-  // Estados para el Buscador
+  // Buscador
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
-  // Datos Técnicos
+  // Datos
   const [position, setPosition] = useState<string>('');
   const [points, setPoints] = useState<string>('');
   const [raceTime, setRaceTime] = useState<string>('');
@@ -32,7 +30,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. FILTRADO INTELIGENTE ---
+  // --- 1. FILTRADO ---
   const filteredRiders = useMemo(() => {
     const candidates = riders.filter(r => r.category === selectedCategory);
 
@@ -53,7 +51,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
     r.category_played === selectedCategory
   ).sort((a, b) => a.position - b.position);
 
-  // --- 2. AUTO-DETECCIÓN DE EDICIÓN ---
+  // --- 2. AUTO-EDICIÓN ---
   useEffect(() => {
     if (!selectedRiderId || !selectedEventId) {
         if (!selectedRiderId) resetDataFields();
@@ -78,7 +76,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRiderId, selectedEventId, existingResults]);
 
-  // Cierra el menú si haces clic fuera
+  // Click Outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -272,24 +270,27 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
-                            className={`w-full p-3 pl-4 pr-10 bg-white border rounded-xl focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
-                                selectedRiderId ? 'border-[#C64928] text-[#1A1816] font-bold' : 'border-gray-300'
+                            className={`w-full p-3 pl-4 pr-10 bg-white border cursor-pointer focus:outline-none focus:border-[#C64928] focus:ring-2 focus:ring-[#C64928]/20 transition-all ${
+                                selectedRiderId 
+                                    ? 'border-[#C64928] text-[#1A1816] font-bold rounded-xl' 
+                                    : isSearching 
+                                        ? 'border-[#C64928] rounded-t-xl rounded-b-none border-b-0' 
+                                        : 'border-gray-300 rounded-xl'
                             }`}
                         />
                         
-                        <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer">
+                        <div className="absolute right-3 top-3.5 text-gray-400 cursor-pointer pointer-events-none">
                              {searchTerm ? (
-                                 <svg onClick={handleClearSearch} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                 <svg onClick={handleClearSearch} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 hover:text-red-500 transition-colors pointer-events-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                              ) : (
-                                 <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 pointer-events-none transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                 <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isSearching ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                              )}
                         </div>
                     </div>
 
-                    {/* LISTA DESPLEGABLE CORREGIDA */}
+                    {/* LISTA DESPLEGABLE SIN ESPACIO (mt-0) */}
                     {isSearching && (
-                        /* CORRECCIÓN: 'mt-1' para reducir el espacio y que quede pegadito */
-                        <div className="absolute top-full left-0 w-full mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden"> 
+                        <div className="absolute top-full left-0 w-full mt-0 bg-white rounded-b-xl shadow-2xl border border-gray-300 border-t-0 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
                             
                             {filteredRiders.length > 0 ? (
                                 <div>
@@ -297,7 +298,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                         <div 
                                             key={r.id}
                                             onClick={() => handleSelectRider(r)}
-                                            className={`px-4 py-3 cursor-pointer border-b border-gray-50 transition-colors group flex justify-between items-center ${
+                                            className={`px-4 py-3 cursor-pointer border-b border-gray-100 transition-colors group flex justify-between items-center ${
                                                 r.id === selectedRiderId ? 'bg-amber-50' : 'hover:bg-gray-50'
                                             }`}
                                         >
@@ -310,9 +311,9 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                                 </span>
                                             </div>
                                             
-                                            {/* RUT MÁS VISIBLE Y DESTACADO */}
+                                            {/* RUT DESTACADO (Negrita y oscuro) */}
                                             {r.rut && (
-                                                <span className="font-mono text-xs font-black text-gray-700 bg-gray-100 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-200">
+                                                <span className="font-mono text-xs font-bold text-gray-800 bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300">
                                                     {r.rut}
                                                 </span>
                                             )}
