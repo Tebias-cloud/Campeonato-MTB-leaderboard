@@ -270,7 +270,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                 setSelectedRiderId(''); 
                             }}
                             placeholder="Buscar nombre o RUT..."
-                            // LÓGICA DE BORDES: Si está buscando, quitamos el borde inferior y las esquinas redondeadas de abajo
+                            // CLASE CLAVE: border-b-0 para quitar borde inferior al buscar
                             className={`w-full p-3 pl-4 pr-10 bg-white border cursor-pointer focus:outline-none focus:ring-0 transition-all z-20 relative ${
                                 selectedRiderId 
                                     ? 'border-[#C64928] text-[#1A1816] font-bold rounded-xl' 
@@ -291,7 +291,8 @@ export default function ResultManager({ events, riders, existingResults }: Props
 
                     {/* LISTA DESPLEGABLE - SIN ESPACIO Y CON BORDES A JUEGO */}
                     {isSearching && (
-                        <div className="absolute top-full left-0 w-full mt-0 bg-white rounded-b-xl shadow-2xl border-x border-b border-[#C64928] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
+                        /* CORRECCIÓN: -mt-[1px] (margen negativo) para subir la lista y solaparla con el input */
+                        <div className="absolute top-full left-0 w-full -mt-[1px] bg-white rounded-b-xl shadow-2xl border-x border-b border-[#C64928] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 overflow-hidden z-[100]"> 
                             
                             {filteredRiders.length > 0 ? (
                                 <div>
@@ -312,7 +313,7 @@ export default function ResultManager({ events, riders, existingResults }: Props
                                                 </span>
                                             </div>
                                             
-                                            {/* RUT MUCHO MÁS VISIBLE */}
+                                            {/* RUT DESTACADO */}
                                             {r.rut && (
                                                 <span className="font-mono text-xs font-bold text-black bg-gray-200 px-2 py-1 rounded ml-3 whitespace-nowrap border border-gray-300 shadow-sm">
                                                     {r.rut}
