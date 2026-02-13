@@ -35,29 +35,37 @@ export async function getPendingRequests(): Promise<RegistrationRequest[]> {
   return data as RegistrationRequest[];
 }
 
-// Función principal de Aprobación Mejorada (Anti-Duplicados)
+// Función principal de Aprobación Mejorada (Anti-Duplicados y Anti-Caché)
 export async function approveRequest(
   requestId: string, 
   overrides?: { club?: string, category?: string, rut?: string, instagram?: string, phone?: string }
 ) {
   try {
-    // 1. Buscar la solicitud original
+    // 1. Buscar la solicitud original usando maybeSingle para ser más flexible
     const { data: request, error: fetchError } = await supabase
       .from('registration_requests')
       .select('*')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !request) return { success: false, message: 'Solicitud no encontrada.' };
+    if (fetchError) {
+      console.error('FALLO BUSQUEDA SUPABASE:', fetchError);
+      return { success: false, message: 'Error de conexión con la base de datos.' };
+    }
+
+    if (!request) {
+      // Si no la encuentra, imprimimos el ID para rastrear en Supabase
+      console.warn(`Solicitud con ID ${requestId} no encontrada en la DB.`);
+      return { success: false, message: 'Solicitud no encontrada o ya procesada.' };
+    }
 
     // 2. Determinar los valores finales y Normalizar (Mayúsculas)
     const finalRut = (overrides?.rut || request.rut).trim().toUpperCase();
     const finalClub = (overrides?.club || request.club || 'INDEPENDIENTE / LIBRE').trim().toUpperCase();
     const finalFullName = request.full_name.trim().toUpperCase();
-    const finalCiudad = request.ciudad.trim().toUpperCase();
+    const finalCiudad = (request.ciudad || 'IQUIQUE').trim().toUpperCase();
 
     // 3. Lógica UPSERT: Si el RUT existe, actualiza; si no, inserta.
-    // Esto mata el error 23505 de raíz.
     const { error: upsertError } = await supabase
       .from('riders')
       .upsert({
@@ -71,31 +79,32 @@ export async function approveRequest(
         phone: overrides?.phone || request.phone,
         instagram: overrides?.instagram || request.instagram,
       }, { 
-        onConflict: 'rut' // Si el RUT ya existe, actualiza los campos anteriores
+        onConflict: 'rut' 
       });
 
     if (upsertError) {
       console.error('Error en UPSERT Rider:', upsertError);
-      return { success: false, message: 'Error al sincronizar con la base de datos de Riders.' };
+      return { success: false, message: 'Error al registrar al corredor.' };
     }
 
-    // 4. Limpiar la solicitud: La borramos de la cola de pendientes
-    // Usamos delete en lugar de status='approved' para mantener la tabla de solicitudes ligera
+    // 4. Limpiar la solicitud: La borramos físicamente
     const { error: deleteError } = await supabase
         .from('registration_requests')
         .delete()
         .eq('id', requestId);
 
-    if (deleteError) console.error('Error al eliminar solicitud procesada:', deleteError);
+    if (deleteError) {
+      console.error('Error al eliminar solicitud aprobada:', deleteError);
+    }
     
-    // 5. Revalidar todas las rutas afectadas para refrescar caché
+    // 5. Revalidar todas las rutas afectadas
     revalidatePath('/admin');
     revalidatePath('/admin/solicitudes');
     revalidatePath('/admin/riders');
     revalidatePath('/ranking'); 
     revalidatePath('/');
     
-    return { success: true, message: 'Rider procesado y base de datos actualizada.' };
+    return { success: true, message: 'Rider aprobado y ranking actualizado.' };
 
   } catch (error) {
     console.error('Error crítico en approveRequest:', error);
@@ -116,9 +125,9 @@ export async function rejectRequest(requestId: string) {
     revalidatePath('/admin/solicitudes');
     revalidatePath('/admin');
     
-    return { success: true, message: 'Solicitud eliminada correctamente.' };
+    return { success: true, message: 'Solicitud eliminada.' };
   } catch (error) {
     console.error('Error en rejectRequest:', error);
-    return { success: false, message: 'Error al eliminar la solicitud.' };
+    return { success: false, message: 'Error al borrar la solicitud.' };
   }
 }

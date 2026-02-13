@@ -14,12 +14,12 @@ const initialState: RegisterState = { message: null, success: false, fields: {} 
 export default function InscripcionPage() {
   const [state, formAction, isPending] = useActionState(submitRegistration, initialState);
   
-  // ESTADO LOCAL: Preserva los datos ante errores del servidor
+  // ESTADO LOCAL
   const [formValues, setFormValues] = useState({
     email: '',
     full_name: '',
     rut: '',
-    club: 'INDEPENDIENTE / LIBRE', // <--- CAMBIO: Preseleccionado por defecto
+    club: 'INDEPENDIENTE / LIBRE',
     ciudad: '',
     phone: '',
     birth_date: '',
@@ -30,10 +30,7 @@ export default function InscripcionPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [accepted, setAccepted] = useState(false);
   const [clubsList, setClubsList] = useState<string[]>([]);
-  
-  // Nuevo estado: Controla si el usuario está ingresando un club manual
   const [isManualClub, setIsManualClub] = useState(false);
-  
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -44,21 +41,15 @@ export default function InscripcionPage() {
     fetchClubs();
   }, []);
 
-  // Lógica de formateo de RUT (11.111.111-K)
+  // Formateo de RUT
   const formatRut = (value: string) => {
-    // Eliminar todo lo que no sea número o K
     let clean = value.replace(/[^0-9kK]/g, '');
-    
-    // Limitar largo máximo (aprox 9 caracteres para rut chileno estándar sin puntos ni guion)
     if (clean.length > 9) clean = clean.slice(0, 9);
-    
     if (clean.length <= 1) return clean;
 
-    // Separar cuerpo y dígito verificador
     const body = clean.slice(0, -1);
     const dv = clean.slice(-1).toUpperCase();
 
-    // Agregar puntos al cuerpo
     let formattedBody = "";
     for (let i = body.length - 1, j = 0; i >= 0; i--, j++) {
         if (j > 0 && j % 3 === 0) {
@@ -70,19 +61,16 @@ export default function InscripcionPage() {
     return `${formattedBody}-${dv}`;
   };
 
-  // Función Centralizada de Cambios (Maneja Formateo y Estado)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let finalValue = value;
 
-    // Si es el campo RUT, aplicamos el formateo
     if (name === 'rut') {
         finalValue = formatRut(value);
     }
 
     setFormValues(prev => ({ ...prev, [name]: finalValue }));
     
-    // Limpiar error al escribir
     if (errors[name]) {
         setErrors(prev => {
             const newErrors = { ...prev };
@@ -92,12 +80,11 @@ export default function InscripcionPage() {
     }
   };
 
-  // Manejador específico para el cambio de modo Club
   const handleClubSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const val = e.target.value;
       if (val === 'OTHER_MANUAL_INPUT') {
           setIsManualClub(true);
-          setFormValues(prev => ({ ...prev, club: '' })); // Limpiamos para que escriba
+          setFormValues(prev => ({ ...prev, club: '' })); 
       } else {
           setIsManualClub(false);
           setFormValues(prev => ({ ...prev, club: val }));
@@ -123,7 +110,7 @@ export default function InscripcionPage() {
     let error = "";
     if (name === 'rut') {
       if (!value) error = "El RUT es obligatorio";
-      else if (!checkRut(value)) error = "RUT inválido (Revisa el dígito verificador)";
+      else if (!checkRut(value)) error = "RUT inválido";
     }
     if (name === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Email inválido";
     if (name === 'phone' && value && value.length < 9) error = "Mínimo 9 dígitos";
@@ -158,8 +145,8 @@ export default function InscripcionPage() {
   if (state.success) {
     return (
       <div className={`min-h-screen bg-[#1A1816] flex items-center justify-center p-4 ${montserrat.variable} ${teko.variable} font-sans text-center`}>
-        <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border-b-[8px] border-[#C64928]">
-          <h2 className="text-6xl font-bold uppercase italic mb-4 text-[#C64928] tracking-tighter">¡Registro Exitoso!</h2>
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border-b-[8px] border-[#C64928]">
+          <h2 className="text-5xl md:text-6xl font-bold uppercase italic mb-4 text-[#C64928] tracking-tighter">¡Registro Exitoso!</h2>
           <p className="text-slate-600 font-medium mb-8 text-lg">Tu ficha ha sido guardada. Por favor envía tu comprobante al WhatsApp para validar la inscripción.</p>
           <Link href="/" className="inline-block bg-[#1A1816] text-white font-bold py-4 px-12 rounded-xl text-sm uppercase tracking-widest hover:bg-[#C64928] transition-colors">Volver al Inicio</Link>
         </div>
@@ -168,34 +155,33 @@ export default function InscripcionPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#F8FAFC] py-8 md:py-16 px-3 ${montserrat.variable} ${teko.variable} font-sans text-slate-800`}>
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-[#F8FAFC] py-6 px-3 md:py-16 ${montserrat.variable} ${teko.variable} font-sans text-slate-800`}>
+      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
         
         {/* HEADER */}
-        <div className="bg-[#1A1816] text-white p-8 md:p-12 rounded-t-[3rem] rounded-b-3xl shadow-2xl text-center mb-10 border-b-[8px] border-[#C64928] relative overflow-hidden">
+        <div className="bg-[#1A1816] text-white p-6 md:p-12 rounded-t-[2.5rem] rounded-b-3xl shadow-2xl text-center mb-6 md:mb-10 border-b-[8px] border-[#C64928] relative overflow-hidden">
             <div className="relative z-10">
-                <h1 className="font-heading text-6xl md:text-8xl uppercase italic leading-none mb-2 tracking-tighter">
-                    PAMPA <span className="text-[#C64928]">Y MAR</span>
+                <h1 className="font-heading text-5xl md:text-8xl uppercase italic leading-none mb-2 tracking-tighter">
+                    XCM PAMPA <span className="text-[#C64928]">Y MAR</span>
                 </h1>
-                <p className="font-heading text-xl md:text-3xl text-slate-400 uppercase tracking-[0.2em] mb-8">
-                    CYCLES FRANKLIN • IV CAMPEONATO REGIONAL TARAPACÁ
+                <p className="font-heading text-lg md:text-3xl text-slate-400 uppercase tracking-[0.2em] mb-6 md:mb-8 leading-tight">
+                    IV CAMPEONATO REGIONAL DE TARAPACÁ • 1RA FECHA
                 </p>
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl text-xs md:text-sm text-slate-200 text-justify font-normal border border-white/10 leading-relaxed space-y-3">
-                    <p>Este evento deportivo consiste en una carrera de ciclismo de montaña (XCM), a desarrollarse en la región de Tarapacá, desde el sector de la Huayca en la comuna de Pozo Almonte hasta el sector de tres islas en la comuna de Iquique.</p>
-                    <p>La longitud de esta carrera es de aproximadamente 80 k y una altimetría de 600 mts. Aproximadamente, con una dificultad media a media-alta, incluyendo algunos tramos técnicos, como es la bajada a la costa por el sector &quot;Paso la Mula&quot;.</p>
-                    <p>El recorrido de esta carrera es en gran parte paralelo a las tuberías de agua y a la línea férrea que bajan a la ciudad de Iquique, pasando por algunas ruinas de las antiguas oficinas salitreras, dándole una connotación de homenaje a la historia de la región, uniendo la pampa del tamarugal, las calicheras y el mar.</p>
+                <div className="bg-white/10 backdrop-blur-md p-4 md:p-6 rounded-2xl text-xs md:text-sm text-slate-200 text-justify font-normal border border-white/10 leading-relaxed space-y-3">
+                    <p>Este evento deportivo consiste en una carrera de ciclismo de montaña (XCM), a desarrollarse en la región de Tarapacá, desde el sector de la <strong>Huayca en la comuna de Pozo Almonte</strong> hasta el sector de <strong>Tres Islas en la comuna de Iquique</strong>.</p>
+                    <p>La longitud de esta carrera es de aproximadamente <strong>80 k</strong> y una altimetría de 600 mts. Aproximadamente, con una dificultad media a media-alta, incluyendo algunos tramos técnicos, como es la bajada a la costa por el sector &quot;Paso la Mula&quot;.</p>
+                    <p className="hidden md:block">El recorrido de esta carrera es en gran parte paralelo a las tuberías de agua y a la línea férrea que bajan a la ciudad de Iquique, pasando por algunas ruinas de las antiguas oficinas salitreras, dándole una connotación de homenaje a la historia de la región, uniendo la pampa del tamarugal, las calicheras y el mar.</p>
                     <p className="text-center pt-4 border-t border-white/20 mt-4">
-                        Este evento es organizado por la agrupación <strong>TEAM CYCLES FRANKLIN</strong> de Alto Hospicio.<br/>
-                        Estando también circunscrito dentro de lo que será el 4to campeonato regional de ciclismo de montaña (MTB) siendo la 1ra Fecha.
+                        Este evento es organizado por la agrupación <strong>TEAM CYCLES FRANKLIN</strong> de Alto Hospicio.
                     </p>
-                    <p className="text-center pt-2 text-[#C64928] font-heading text-2xl uppercase">FECHA: SÁBADO 4 DE ABRIL DEL 2026</p>
+                    <p className="text-center pt-2 text-[#C64928] font-heading text-xl md:text-2xl uppercase">FECHA: SÁBADO 4 DE ABRIL DEL 2026</p>
                 </div>
             </div>
         </div>
 
         {/* ALERTA DE ERROR DEL SERVIDOR */}
         {state.message && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-r shadow-md mb-6 animate-pulse">
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-r shadow-md mb-6 animate-pulse text-sm md:text-base">
                 <p className="font-bold">Atención:</p>
                 <p>{state.message}</p>
             </div>
@@ -209,57 +195,66 @@ export default function InscripcionPage() {
         >
             
             {/* 1. INFORMACIÓN DE PAGO */}
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-lg border-b-4 border-slate-200 text-center">
-                <h3 className="font-heading text-4xl uppercase mb-6 text-slate-800 italic flex items-center justify-center gap-3">
-                    <span className="bg-[#C64928] text-white w-10 h-10 flex items-center justify-center rounded-full not-italic text-xl shadow-md">1</span> 
+            <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-lg border-b-4 border-slate-200 text-center">
+                <h3 className="font-heading text-3xl md:text-4xl uppercase mb-6 text-slate-800 italic flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3">
+                    <span className="bg-[#C64928] text-white w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full not-italic text-lg md:text-xl shadow-md">1</span> 
                     Información de Transferencia
                 </h3>
-                <div className="bg-slate-50 p-8 rounded-[2rem] border-2 border-dashed border-slate-300 max-w-xl mx-auto">
-                    <div className="mb-6">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">VALOR DE INSCRIPCIÓN</p>
-                        <p className="text-7xl font-heading font-bold text-slate-900">$20.000</p>
+                
+                <div className="bg-slate-50 p-5 md:p-8 rounded-[2rem] border-2 border-dashed border-slate-300 max-w-xl mx-auto relative overflow-hidden">
+                    <div className="mb-6 relative z-10">
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">VALOR DE INSCRIPCIÓN</p>
+                        <p className="text-6xl md:text-7xl font-heading font-bold text-slate-900 tracking-tighter">$20.000</p>
                     </div>
-                    <div className="space-y-3 text-slate-800 text-left bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    
+                    <div className="space-y-4 text-slate-800 text-left bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200 relative z-10">
                         <div>
                             <p className="text-[10px] text-[#C64928] uppercase font-bold tracking-wider mb-1">TITULAR</p>
-                            <p className="text-xl font-bold uppercase leading-none">MARÍA TERESA VALENCIA PALACIOS</p>
+                            <p className="text-lg md:text-xl font-bold uppercase leading-tight">MARÍA TERESA VALENCIA PALACIOS</p>
                         </div>
-                        <div className="flex justify-between items-end border-b border-slate-100 pb-3">
+                        
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-slate-100 pb-4 gap-3 md:gap-0">
                             <div>
                                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">RUT</p>
-                                <p className="text-lg font-mono font-bold text-slate-700">12.835.496-4</p>
+                                <p className="text-xl md:text-lg font-mono font-bold text-slate-700">12.835.496-4</p>
                             </div>
-                            <div className="text-right">
+                            <div className="md:text-right">
                                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">BANCO</p>
-                                <p className="text-lg font-bold text-slate-700">SANTANDER</p>
+                                <p className="text-xl md:text-lg font-bold text-slate-700">SANTANDER</p>
                             </div>
                         </div>
+                        
                         <div>
                             <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">CUENTA</p>
-                            <p className="text-lg font-bold">Chequera Electrónica: <span className="text-2xl ml-2 tracking-wider">5612835496</span></p>
+                            <div className="flex flex-col md:block">
+                                <span className="text-sm font-bold text-slate-600 mb-1 md:mb-0">Chequera Electrónica</span>
+                                <span className="text-2xl md:ml-2 tracking-wider font-bold">5612835496</span>
+                            </div>
                         </div>
+                        
                         <div>
                             <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">CORREO</p>
-                            <p className="text-sm font-bold text-slate-600 lowercase select-all">Mteresavalenciapalacios@gmail.com</p>
+                            <p className="text-sm font-bold text-slate-600 lowercase select-all break-all">Mteresavalenciapalacios@gmail.com</p>
                         </div>
                     </div>
                 </div>
-                <div className="mt-8 inline-flex items-center gap-3 bg-slate-900 text-white py-3 px-8 rounded-full shadow-lg">
+
+                <div className="mt-8 inline-flex flex-col md:flex-row items-center gap-2 md:gap-3 bg-slate-900 text-white py-3 px-6 md:px-8 rounded-2xl md:rounded-full shadow-lg w-full md:w-auto">
                     <span className="text-xl">📱</span>
-                    <div className="text-left leading-tight">
+                    <div className="text-center md:text-left leading-tight">
                         <p className="text-[9px] font-bold uppercase text-slate-400">Enviar Comprobante al</p>
-                        <p className="text-base font-bold tracking-wider">+56 9 2633 6663</p>
+                        <p className="text-lg md:text-base font-bold tracking-wider">+56 9 2633 6663</p>
                     </div>
                 </div>
             </div>
 
             {/* 2. FICHA TÉCNICA */}
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-lg border-b-4 border-slate-200">
-                <h3 className="font-heading text-4xl uppercase mb-8 text-slate-800 italic flex items-center gap-3">
-                    <span className="bg-[#C64928] text-white w-10 h-10 flex items-center justify-center rounded-full not-italic text-xl shadow-md">2</span> 
+            <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-lg border-b-4 border-slate-200">
+                <h3 className="font-heading text-3xl md:text-4xl uppercase mb-6 md:mb-8 text-slate-800 italic flex items-center gap-3">
+                    <span className="bg-[#C64928] text-white w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full not-italic text-lg md:text-xl shadow-md">2</span> 
                     Datos del Corredor
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                     <div className="md:col-span-2">
                         <label className={labelClass}>Correo Electrónico *</label>
                         <input 
@@ -302,7 +297,6 @@ export default function InscripcionPage() {
                         {errors.rut && <span className="text-[10px] text-red-500 font-bold mt-1 uppercase ml-1">{errors.rut}</span>}
                     </div>
                     
-                    {/* CAMPO DE SELECCIÓN DE CLUB PRESELECCIONADO */}
                     <div>
                         <label className={labelClass}>Club / Team *</label>
                         {!isManualClub ? (
@@ -335,7 +329,7 @@ export default function InscripcionPage() {
                                     onClick={() => { setIsManualClub(false); setFormValues(p => ({...p, club: 'INDEPENDIENTE / LIBRE'})) }}
                                     className="absolute right-2 top-2 bottom-2 px-3 bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-bold uppercase rounded-lg transition-colors"
                                 >
-                                    Volver a Lista
+                                    Volver
                                 </button>
                             </div>
                         )}
@@ -390,10 +384,20 @@ export default function InscripcionPage() {
                         >
                             <option value="" disabled>-- Selecciona tu Categoría --</option>
                             <optgroup label="VARONES" className="font-bold text-slate-900">
-                                {["Elite Open", "Pre Master (16 a 29 Años)", "Master A (30 a 39 Años)", "Master B (40 a 49 Años)", "Master C (50 a 59 Años)", "Master D (60 Años y Más)", "Novicios Open (Recien empezando)"].map(v => <option key={v} value={v}>{v}</option>)}
+                                <option value="Elite Open">Elite Open</option>
+                                <option value="Pre Master">Pre Master (16 a 29 Años)</option>
+                                <option value="Master A">Master A (30 a 39 Años)</option>
+                                <option value="Master B">Master B (40 a 49 Años)</option>
+                                <option value="Master C">Master C (50 a 59 Años)</option>
+                                <option value="Master D">Master D (60 Años y Más)</option>
+                                <option value="Novicios Open">Novicios Open (Recien empezando)</option>
                             </optgroup>
                             <optgroup label="DAMAS" className="font-bold text-slate-900">
-                                {["Novicias Open (Recién empezando)", "Damas Pre Master (15 a 29 Años)", "Damas Master A (30 a 39 Años)", "Damas Master B (40 a 49 Años)", "Damas Master C (50 Años y más)"].map(d => <option key={d} value={d}>{d}</option>)}
+                                <option value="Damas Pre Master">Pre Master (15 a 29 Años)</option>
+                                <option value="Damas Master A">Master A (30 a 39 Años)</option>
+                                <option value="Damas Master B">Master B (40 a 49 Años)</option>
+                                <option value="Damas Master C">Master C (50 Años y más)</option>
+                                <option value="Novicias Open">Novicias Open (Recién empezando)</option>
                             </optgroup>
                             <optgroup label="MIXTAS" className="font-bold text-slate-900">
                                 <option value="EBike Mixto Open">E-Bike Open Mixto (Sin restricciones)</option>
@@ -416,9 +420,9 @@ export default function InscripcionPage() {
             </div>
 
             {/* 3. REGLAMENTO INTEGRAL */}
-            <div className="bg-[#1A1816] text-slate-300 p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-b-8 border-[#C64928]">
-                <h3 className="font-heading text-3xl uppercase mb-6 text-white italic border-b border-white/10 pb-4">Declaración Jurada y Reglamento</h3>
-                <div className="h-96 overflow-y-auto pr-3 text-[11px] md:text-xs space-y-4 bg-white/5 p-6 rounded-2xl border border-white/10 text-justify leading-relaxed font-normal scrollbar-thin scrollbar-thumb-[#C64928] scrollbar-track-transparent">
+            <div className="bg-[#1A1816] text-slate-300 p-6 md:p-12 rounded-[2.5rem] shadow-2xl border-b-8 border-[#C64928]">
+                <h3 className="font-heading text-2xl md:text-3xl uppercase mb-6 text-white italic border-b border-white/10 pb-4">Declaración Jurada y Reglamento</h3>
+                <div className="h-80 md:h-[30rem] overflow-y-auto pr-3 text-[11px] md:text-xs space-y-4 bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 text-justify leading-relaxed font-normal scrollbar-thin scrollbar-thumb-[#C64928] scrollbar-track-transparent">
                     <p className="font-bold text-white mb-2">Declaro bajo juramento lo siguiente:</p>
                     <p><strong className="text-[#C64928]">1.</strong> Que me encuentro (o mi representado se encuentra) en condiciones físicas y mentales de salud aptas para participar en el evento denominado &quot;XCM Pampa y Mar, correspondiente a la 1ra Fecha del IV Campeonato Regional Tarapacá 2026&quot;, actividad que se desarrollará en las comunas de Pozo Almonte, Iquique y Alto Hospicio organizada por el Team Cycles Franklin.</p>
                     <p><strong className="text-[#C64928]">2.</strong> Por el sólo hecho de inscribirse a la carrera &quot;XCM Pampa y Mar, correspondiente a la 1ra Fecha del IV Campeonato Regional Tarapacá 2026&quot;, declaro estar en conocimiento y acepto cada aspecto y condición indicado en el presente reglamento, a respetar y cumplir todas las medidas de seguridad establecidas por la organización, además de las instrucciones que serán impartidas antes, durante y después del evento, sea por sus organizadores o por cualquier autoridad.</p>
@@ -442,18 +446,18 @@ export default function InscripcionPage() {
                     <p className="text-right text-xs mt-2 italic text-[#C64928]">Atte. Franklin Troncoso. Organizador</p>
                 </div>
 
-                <label className="flex items-center gap-4 cursor-pointer group mt-6 p-5 rounded-2xl bg-[#C64928]/10 hover:bg-[#C64928]/20 border border-[#C64928]/30 transition-all shadow-inner">
+                <label className="flex items-start md:items-center gap-3 md:gap-4 cursor-pointer group mt-6 p-4 md:p-5 rounded-2xl bg-[#C64928]/10 hover:bg-[#C64928]/20 border border-[#C64928]/30 transition-all shadow-inner">
                     <input 
                       type="checkbox" 
                       name="terms_accepted" 
                       required 
                       checked={accepted} 
                       onChange={(e) => setAccepted(e.target.checked)} 
-                      className="h-8 w-8 rounded-lg accent-[#C64928] cursor-pointer bg-white" 
+                      className="mt-1 md:mt-0 h-6 w-6 md:h-8 md:w-8 rounded-lg accent-[#C64928] cursor-pointer bg-white shrink-0" 
                     />
                     <div className="flex flex-col">
-                        <span className="font-bold text-white uppercase text-sm italic tracking-wide">Sí, Acepto y firmo bajo juramento</span>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Requerido para activar el botón</span>
+                        <span className="font-bold text-white uppercase text-xs md:text-sm italic tracking-wide leading-tight">Sí, Acepto y firmo bajo juramento</span>
+                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Requerido para activar el botón</span>
                     </div>
                 </label>
             </div>
@@ -461,14 +465,14 @@ export default function InscripcionPage() {
             <button 
                 type="submit" 
                 disabled={isPending || !accepted} 
-                className="w-full bg-[#C64928] hover:bg-[#1A1816] text-white font-heading text-5xl uppercase py-8 rounded-[2rem] shadow-[0_15px_40px_rgba(198,73,40,0.4)] transition-all transform hover:scale-[1.01] active:scale-95 disabled:opacity-30 disabled:grayscale italic tracking-tighter border-b-[8px] border-orange-900 leading-none"
+                className="w-full bg-[#C64928] hover:bg-[#1A1816] text-white font-heading text-3xl md:text-5xl uppercase py-6 md:py-8 rounded-[2rem] shadow-[0_15px_40px_rgba(198,73,40,0.4)] transition-all transform hover:scale-[1.01] active:scale-95 disabled:opacity-30 disabled:grayscale italic tracking-tighter border-b-[8px] border-orange-900 leading-none whitespace-normal h-auto"
             >
                 {isPending ? 'Enviando...' : 'Confirmar e Inscribirme'}
             </button>
         </form>
 
-        <footer className="text-center py-8">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">© 2026 CHASKI RIDERS • CYCLES FRANKLIN</p>
+        <footer className="text-center py-6 md:py-8">
+            <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">© 2026 CHASKI RIDERS • CYCLES FRANKLIN</p>
         </footer>
       </div>
     </div>

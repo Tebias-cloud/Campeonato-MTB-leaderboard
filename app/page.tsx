@@ -192,46 +192,40 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ================= SECCIÓN DINÁMICA: INSCRIPCIÓN POR FECHA ================= */}
-      <section className="py-20 px-4">
+      {/* ================= SECCIÓN DINÁMICA: INSCRIPCIÓN (BOTÓN GRANDE) ================= */}
+      <section className="py-20 px-4 relative z-30">
         <div className="max-w-xl mx-auto">
             <Link 
               href="/inscripcion"
-              className="bg-[#34312F] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group hover:border-[#C64928]/50 transition-colors block"
+              className="group relative block bg-[#C64928] hover:bg-[#D85A35] rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(198,73,40,0.4)] border-4 border-white/10 hover:border-white/30 transition-all transform hover:-translate-y-2 cursor-pointer active:scale-95"
             >
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                </div>
-                <p className="text-[#C64928] text-xs font-black uppercase tracking-[0.2em] mb-2">
-                  {nextEvent ? 'Inscripción Disponible' : 'Proceso Abierto'}
-                </p>
-                <h3 className="font-heading text-5xl uppercase leading-[0.9] mb-4 text-white group-hover:text-[#C64928] transition-colors">
-                    INSCRIPCIÓN <br/> 
-                    {nextEvent ? nextEvent.name : 'AL CAMPEONATO'}
-                </h3>
-                
-                {nextEvent && (
-                  <div className="mb-4 flex items-center gap-3 bg-white/5 w-fit px-3 py-1 rounded-lg border border-white/10">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">FECHA:</span>
-                    <span className="text-xs font-bold text-white uppercase">
-                      {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
+                {/* Badge Parpadeante */}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
                     </span>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📝</div>
-                        <p className="text-sm text-gray-300 font-bold uppercase tracking-tight">
-                            REGISTRO OFICIAL TEMPORADA 2026
-                        </p>
-                    </div>
+                    <span className="text-white font-black text-[10px] uppercase tracking-widest drop-shadow-md">Abierto</span>
                 </div>
+
+                {/* TEXTO */}
+                <h2 className="font-heading text-5xl md:text-6xl text-white uppercase italic leading-none mb-4 drop-shadow-xl group-hover:drop-shadow-2xl transition-all pt-4">
+                    {nextEvent ? 'INSCRÍBETE' : 'INSCRIPCIÓN'} <br/>
+                    <span className="text-black/20 group-hover:text-black/30 transition-colors">AQUÍ</span>
+                </h2>
                 
-                <div className="mt-8 inline-flex items-center gap-2 bg-[#C64928] text-white px-6 py-2 rounded font-bold uppercase text-xs tracking-widest group-hover:bg-white group-hover:text-[#C64928] transition-all shadow-lg">
-                    {nextEvent ? 'Inscribirme Ahora' : 'Comenzar Registro'} ➔
+                {/* Caja con Nombre del Evento */}
+                <div className="bg-black/20 rounded-xl py-2 px-6 inline-block backdrop-blur-sm border border-white/10 group-hover:bg-black/30 transition-colors">
+                  <p className="text-white font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-2">
+                    {nextEvent ? nextEvent.name : 'TEMPORADA 2026'} 
+                    <span className="text-2xl transition-transform group-hover:translate-x-1">➔</span>
+                  </p>
+                  
+                  {nextEvent && (
+                    <p className="text-white/80 text-[10px] font-bold uppercase mt-1">
+                       FECHA: {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
+                    </p>
+                  )}
                 </div>
             </Link>
         </div>

@@ -49,7 +49,7 @@ export default function AdminSolicitudes() {
       setClubs(clubData.data ? clubData.data.map(c => c.name) : []);
       setExistingRiders(riderData.data ? riderData.data as ExistingRider[] : []);
     } catch (error) {
-      console.error("Error cargando datos:", error);
+      console.error("Error en la carga de datos:", error);
     } finally { setLoading(false); }
   }, []);
 
@@ -74,10 +74,9 @@ export default function AdminSolicitudes() {
   };
 
   const onApprove = async (req: RegistrationRequest, isDuplicate: boolean) => {
-    // Manejo de errores visual y por confirmación
     const confirmMessage = isDuplicate 
-      ? `⚠️ ATENCIÓN: El rider con RUT ${req.rut} ya existe en la base de datos.\n\n¿Deseas sincronizar y ACTUALIZAR sus datos con esta nueva solicitud?`
-      : `¿Aprobar inscripción de ${req.full_name}?`;
+      ? `ATENCION: El rider con RUT ${req.rut} ya existe en el sistema. ¿Desea sincronizar y actualizar la ficha existente?`
+      : `¿Confirmar aprobacion de inscripcion para ${req.full_name}?`;
 
     if (!confirm(confirmMessage)) return;
     
@@ -86,35 +85,36 @@ export default function AdminSolicitudes() {
       const res = await approveRequest(req.id, edits[req.id]);
       
       if (res.success) {
-        // Limpiamos los estados locales para este ID
         setRequests(prev => prev.filter(r => r.id !== req.id));
-        const newEdits = { ...edits };
-        delete newEdits[req.id];
-        setEdits(newEdits);
+        setEdits(prev => {
+          const next = { ...prev };
+          delete next[req.id];
+          return next;
+        });
       } else {
-        // Si el servidor devuelve error (ej. el 23505 capturado en el action)
-        alert(`❌ Error al procesar: ${res.message}`);
+        alert(`Error en el proceso: ${res.message}`);
       }
     } catch (err) {
-      alert("❌ Ocurrió un error crítico en el servidor.");
+      alert("Error critico en el servidor de aplicaciones.");
     } finally {
       setProcessing(null);
-      // Recargamos datos de riders existentes por si hubo cambios
-      const { data } = await supabase.from('riders').select('rut, email');
-      if (data) setExistingRiders(data as ExistingRider[]);
+      loadData();
     }
   };
 
   const onReject = async (req: RegistrationRequest) => {
-    if (!confirm(`¿ELIMINAR SOLICITUD?\n\nSe borrarán permanentemente los datos de: ${req.full_name}`)) return;
+    if (!confirm(`ADVERTENCIA: ¿Eliminar solicitud definitivamente? Los datos de ${req.full_name} seran borrados.`)) return;
     setProcessing(req.id);
-    const res = await rejectRequest(req.id);
-    if (res.success) {
-      setRequests(prev => prev.filter(r => r.id !== req.id));
-    } else {
-      alert(res.message);
+    try {
+      const res = await rejectRequest(req.id);
+      if (res.success) {
+        setRequests(prev => prev.filter(r => r.id !== req.id));
+      } else {
+        alert(`Error al eliminar: ${res.message}`);
+      }
+    } finally {
+      setProcessing(null);
     }
-    setProcessing(null);
   };
 
   return (
@@ -124,25 +124,25 @@ export default function AdminSolicitudes() {
         <div className="max-w-[95rem] mx-auto relative z-10 flex flex-col md:flex-row justify-between items-end gap-4">
           <div>
             <Link href="/admin" className="text-[#FFD700] text-[10px] font-black uppercase tracking-[0.3em] mb-2 block hover:underline transition-all">
-              ← VOLVER AL PANEL
+              REGRESAR AL PANEL DE ADMINISTRACION
             </Link>
             <h1 className="font-heading text-6xl md:text-7xl text-white uppercase italic leading-none tracking-tighter">
-              SOLICITUDES <span className="text-[#C64928]">ENTRANTES</span>
+              SOLICITUDES <span className="text-[#C64928]">PENDIENTES</span>
             </h1>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-[#FFD700] font-heading text-6xl leading-none">{requests.length}</span>
-            <span className="text-[10px] font-black uppercase text-white tracking-[0.2em]">En Espera</span>
+            <span className="text-[10px] font-black uppercase text-white tracking-[0.2em]">Registros en espera</span>
           </div>
         </div>
       </header>
 
       <div className="max-w-[95rem] mx-auto px-4 -mt-12 relative z-20">
         {loading ? (
-          <div className="text-center py-24 font-heading text-4xl animate-pulse text-[#1A1816]">OBTENIENDO DATOS...</div>
+          <div className="text-center py-24 font-heading text-4xl animate-pulse text-[#1A1816]">CARGANDO BASE DE DATOS...</div>
         ) : requests.length === 0 ? (
           <div className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-dashed border-slate-200 p-24 text-center">
-            <p className="font-heading text-5xl text-slate-300 uppercase italic">Bandeja Vacía</p>
+            <p className="font-heading text-5xl text-slate-300 uppercase italic">Sin registros pendientes</p>
           </div>
         ) : (
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
@@ -150,13 +150,13 @@ export default function AdminSolicitudes() {
               <table className="w-full text-left border-collapse min-w-[1200px]">
                 <thead className="bg-slate-50 border-b-2 border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                   <tr>
-                    <th className="p-6 w-16 text-center">#</th>
-                    <th className="p-6 w-36">RUT / ID</th>
-                    <th className="p-6 w-72">CORREDOR</th>
-                    <th className="p-6 w-96">CLUB / TEAM</th>
-                    <th className="p-6 w-56">CATEGORÍA</th>
-                    <th className="p-6 w-56">CONTACTO</th>
-                    <th className="p-6 text-center w-36">GESTIÓN</th>
+                    <th className="p-6 w-16 text-center">ID</th>
+                    <th className="p-6 w-36">IDENTIFICACION</th>
+                    <th className="p-6 w-72">NOMBRE DEL CORREDOR</th>
+                    <th className="p-6 w-96">CLUB / TEAM ASIGNADO</th>
+                    <th className="p-6 w-56">CATEGORIA</th>
+                    <th className="p-6 w-56">DATOS CONTACTO</th>
+                    <th className="p-6 text-center w-36">ACCION</th>
                   </tr>
                 </thead>
 
@@ -168,7 +168,7 @@ export default function AdminSolicitudes() {
                     const isDuplicate = existingRiders.some(r => r.rut === req.rut);
 
                     return (
-                      <tr key={req.id} className={`group transition-all ${isDuplicate ? 'bg-orange-50/50 hover:bg-orange-50' : 'hover:bg-slate-50'}`}>
+                      <tr key={`${req.id}-${idx}`} className={`group transition-all ${isDuplicate ? 'bg-orange-50/50 hover:bg-orange-50' : 'hover:bg-slate-50'}`}>
                         <td className="p-5 text-center font-mono text-slate-300 font-black text-xs border-r border-slate-50">{idx + 1}</td>
 
                         <td className="p-5 border-r border-slate-50">
@@ -177,7 +177,7 @@ export default function AdminSolicitudes() {
                           </div>
                           {isDuplicate && (
                             <div className="text-[9px] font-black text-orange-600 mt-2 uppercase tracking-tighter animate-pulse">
-                              ⚠️ Ya existe en base
+                              REGISTRO DUPLICADO
                             </div>
                           )}
                         </td>
@@ -186,7 +186,7 @@ export default function AdminSolicitudes() {
                           <div className="font-black text-[#1A1816] text-base uppercase leading-none tracking-tighter mb-1">{req.full_name}</div>
                           <div className="text-[10px] text-slate-400 font-bold lowercase mb-2">{req.email}</div>
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border-2 ${req.terms_accepted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
-                            {req.terms_accepted ? 'Legal OK' : 'No Firmó'}
+                            {req.terms_accepted ? 'TERMINOS OK' : 'SIN FIRMA'}
                           </span>
                         </td>
 
@@ -200,7 +200,7 @@ export default function AdminSolicitudes() {
                                 onChange={(e) => handleEdit(req.id, 'club', e.target.value)}
                                 autoFocus
                               />
-                              <button onClick={() => revertToListMode(req.id)} className="p-3 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl font-black">↩</button>
+                              <button onClick={() => revertToListMode(req.id)} className="p-3 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl font-black">RESET</button>
                             </div>
                           ) : (
                             <div className="relative group/sel">
@@ -209,9 +209,9 @@ export default function AdminSolicitudes() {
                                 value={currentClub}
                                 onChange={(e) => handleClubChange(req.id, e.target.value)}
                               >
-                                <option value="INDEPENDIENTE / LIBRE">⭐ INDEPENDIENTE / LIBRE</option>
+                                <option value="INDEPENDIENTE / LIBRE">INDEPENDIENTE / LIBRE</option>
                                 {clubs.map(c => <option key={c} value={c}>{c}</option>)}
-                                <option value="__MANUAL_MODE__" className="bg-[#C64928] text-white font-black">✍️ NUEVO CLUB...</option>
+                                <option value="__MANUAL_MODE__" className="bg-[#C64928] text-white font-black">INGRESAR CLUB NUEVO...</option>
                               </select>
                               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#C64928] font-black text-[10px]">▼</div>
                             </div>
@@ -231,8 +231,8 @@ export default function AdminSolicitudes() {
 
                         <td className="p-5 border-r border-slate-50 font-black">
                            <div className="flex flex-col gap-1">
-                              <span className="text-xs font-mono text-[#1A1816]">📞 {changes.phone ?? req.phone}</span>
-                              {req.instagram && <span className="text-[10px] text-pink-600 italic tracking-tight">ig: @{req.instagram.replace('@','')}</span>}
+                              <span className="text-xs font-mono text-[#1A1816]">{changes.phone ?? req.phone}</span>
+                              {req.instagram && <span className="text-[10px] text-pink-600 italic tracking-tight">@{req.instagram.replace('@','')}</span>}
                            </div>
                         </td>
 
@@ -241,12 +241,12 @@ export default function AdminSolicitudes() {
                             <button 
                               onClick={() => onApprove(req, isDuplicate)}
                               disabled={!!processing}
-                              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg border-b-4 border-black/20 active:border-b-0 ${isDuplicate ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#1A1816] hover:bg-[#C64928]'} text-white`}
+                              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg border-b-4 border-black/20 active:border-b-0 ${isDuplicate ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#1A1816] hover:bg-[#C64928]'} text-white font-black`}
                             >
-                               {processing === req.id ? '⏳' : '✓'}
+                               {processing === req.id ? '...' : 'OK'}
                             </button>
-                            <button onClick={() => onReject(req)} disabled={!!processing} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 text-slate-300 hover:text-red-500 flex items-center justify-center transition-all">
-                               ✕
+                            <button onClick={() => onReject(req)} disabled={!!processing} className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 text-slate-300 hover:text-red-500 flex items-center justify-center transition-all font-black">
+                               DEL
                             </button>
                           </div>
                         </td>
@@ -261,7 +261,7 @@ export default function AdminSolicitudes() {
       </div>
 
       <div className="mt-12 text-center opacity-30">
-        <p className="text-[9px] font-black uppercase tracking-[0.4em]">Dashboard de Validación Chaski Riders v2.2</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.4em]">SISTEMA DE GESTION CHASKI RIDERS V2.3</p>
       </div>
     </main>
   );
