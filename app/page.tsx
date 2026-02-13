@@ -5,7 +5,7 @@ import { Event } from '@/lib/definitions';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
-const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat' });
+const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "700", "800", "900"], variable: '--font-montserrat' });
 
 // --- CONFIGURACIÓN ---
 export const dynamic = 'force-dynamic';
@@ -90,17 +90,15 @@ export default async function Home() {
             REGIÓN DE TARAPACÁ
           </p>
 
-          {/* BARRA DE CLUBES - GLOW SUTIL Y BLANCO */}
+          {/* BARRA DE CLUBES */}
           <div className="w-full max-w-5xl mb-12 px-2">
               <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 opacity-90">
                   {clubsLogos.map((logo, index) => (
                       <div key={index} className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center transition-all duration-500 hover:scale-110 relative">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
                               src={logo} 
                               alt={`Club ${index + 1}`} 
                               className="max-w-full max-h-full object-contain" 
-                              /* CAMBIO: Glow blanco sutil */
                               style={{ filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.25))' }}
                           />
                       </div>
@@ -124,13 +122,7 @@ export default async function Home() {
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
                 <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-gray-400 bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(192,192,192,0.3)] overflow-hidden">
                     {second?.club_logo ? (
-                        <img 
-                            src={second.club_logo} 
-                            alt="Club" 
-                            className="w-full h-full object-contain p-2" 
-                            /* CAMBIO: Glow blanco para podio */
-                            style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35))' }} 
-                        />
+                        <img src={second.club_logo} alt="Club" className="w-full h-full object-contain p-2" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35))' }} />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-gray-400 drop-shadow-md">{second?.full_name[0] || '2'}</span>
                     )}
@@ -141,10 +133,7 @@ export default async function Home() {
              </div>
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-gray-400 shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{second?.full_name.split(' ')[0] || 'Vacante'}</p>
-                {/* NOMBRE CLUB 2DO */}
-                {second?.club && (
-                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{second.club}</p>
-                )}
+                {second?.club && <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{second.club}</p>}
                 <p className="text-[10px] text-gray-400 font-bold mt-1">{second?.total_points || 0} PTS</p>
              </div>
           </div>
@@ -160,17 +149,9 @@ export default async function Home() {
                 <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-[4px] border-[#FFD700] bg-[#292725] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/10 to-transparent"></div>
                     {first?.club_logo ? (
-                        <img 
-                            src={first.club_logo} 
-                            alt="Club" 
-                            className="w-full h-full object-contain p-2 relative z-10" 
-                            /* CAMBIO: Glow blanco un poco más intenso */
-                            style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.4))' }} 
-                        />
+                        <img src={first.club_logo} alt="Club" className="w-full h-full object-contain p-2 relative z-10" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.4))' }} />
                     ) : (
-                        <span className="font-heading text-7xl md:text-8xl text-[#FFD700] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] relative z-10">
-                            {first?.full_name[0] || '1'}
-                        </span>
+                        <span className="font-heading text-7xl md:text-8xl text-[#FFD700] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] relative z-10">{first?.full_name[0] || '1'}</span>
                     )}
                 </div>
              </div>
@@ -182,10 +163,7 @@ export default async function Home() {
                 <p className="font-black text-sm md:text-lg text-white truncate px-2 uppercase">{first?.full_name || 'Líder'}</p>
                 <div className="flex flex-col items-center gap-0.5 mt-1">
                     <span className="bg-[#C64928] text-white text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">{first?.current_category || '---'}</span>
-                    {/* NOMBRE CLUB 1RO */}
-                    {first?.club && (
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{first.club}</span>
-                    )}
+                    {first?.club && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{first.club}</span>}
                 </div>
                 <p className="text-sm font-bold mt-1 text-[#FFD700]">{first?.total_points || 0} PTS</p>
              </div>
@@ -196,13 +174,7 @@ export default async function Home() {
              <div className="mb-[-20px] z-20 relative transition-transform group-hover:-translate-y-3">
                 <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-[3px] border-[#CD7F32] bg-[#292725] flex items-center justify-center shadow-[0_0_15px_rgba(205,127,50,0.2)] overflow-hidden">
                     {third?.club_logo ? (
-                        <img 
-                            src={third.club_logo} 
-                            alt="Club" 
-                            className="w-full h-full object-contain p-2" 
-                            /* CAMBIO: Glow blanco para podio */
-                            style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35))' }} 
-                        />
+                        <img src={third.club_logo} alt="Club" className="w-full h-full object-contain p-2" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35))' }} />
                     ) : (
                         <span className="font-heading text-5xl md:text-6xl text-[#CD7F32] drop-shadow-md">{third?.full_name[0] || '3'}</span>
                     )}
@@ -213,54 +185,55 @@ export default async function Home() {
              </div>
              <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-[#CD7F32] shadow-lg">
                 <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{third?.full_name.split(' ')[0] || 'Vacante'}</p>
-                {/* NOMBRE CLUB 3RO */}
-                {third?.club && (
-                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{third.club}</p>
-                )}
+                {third?.club && <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5 truncate px-2">{third.club}</p>}
                 <p className="text-[10px] text-gray-400 font-bold">{third?.total_points || 0} PTS</p>
              </div>
           </div>
-
         </div>
       </section>
 
-      {/* ================= PRÓXIMA CARRERA ================= */}
+      {/* ================= SECCIÓN DINÁMICA: INSCRIPCIÓN POR FECHA ================= */}
       <section className="py-20 px-4">
         <div className="max-w-xl mx-auto">
-            {nextEvent ? (
-                <Link 
-                  href={`/ranking?eventId=${nextEvent.id}`}
-                  className="bg-[#34312F] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group hover:border-[#C64928]/50 transition-colors block"
-                >
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <p className="text-[#C64928] text-xs font-black uppercase tracking-[0.2em] mb-2">Próxima Carrera</p>
-                    <h3 className="font-heading text-5xl uppercase leading-[0.9] mb-4 text-white group-hover:text-[#C64928] transition-colors">
-                        {nextEvent.name}
-                    </h3>
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📅</div>
-                            <p className="text-sm text-gray-300 font-bold uppercase">
-                                {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📍</div>
-                            <p className="text-sm text-gray-300 font-bold uppercase">Tarapacá</p>
-                        </div>
-                    </div>
-                    <div className="absolute bottom-8 right-8 w-10 h-10 bg-[#C64928] rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                        ➔
-                    </div>
-                </Link>
-            ) : (
-                <div className="bg-[#34312F] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden text-center">
-                      <h3 className="font-heading text-4xl uppercase text-gray-600">Temporada Finalizada</h3>
-                      <p className="text-sm text-gray-500 mt-2">Pronto más información.</p>
+            <Link 
+              href="/inscripcion"
+              className="bg-[#34312F] rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group hover:border-[#C64928]/50 transition-colors block"
+            >
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
                 </div>
-            )}
+                <p className="text-[#C64928] text-xs font-black uppercase tracking-[0.2em] mb-2">
+                  {nextEvent ? 'Inscripción Disponible' : 'Proceso Abierto'}
+                </p>
+                <h3 className="font-heading text-5xl uppercase leading-[0.9] mb-4 text-white group-hover:text-[#C64928] transition-colors">
+                    INSCRIPCIÓN <br/> 
+                    {nextEvent ? nextEvent.name : 'AL CAMPEONATO'}
+                </h3>
+                
+                {nextEvent && (
+                  <div className="mb-4 flex items-center gap-3 bg-white/5 w-fit px-3 py-1 rounded-lg border border-white/10">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">FECHA:</span>
+                    <span className="text-xs font-bold text-white uppercase">
+                      {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">📝</div>
+                        <p className="text-sm text-gray-300 font-bold uppercase tracking-tight">
+                            REGISTRO OFICIAL TEMPORADA 2026
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="mt-8 inline-flex items-center gap-2 bg-[#C64928] text-white px-6 py-2 rounded font-bold uppercase text-xs tracking-widest group-hover:bg-white group-hover:text-[#C64928] transition-all shadow-lg">
+                    {nextEvent ? 'Inscribirme Ahora' : 'Comenzar Registro'} ➔
+                </div>
+            </Link>
         </div>
       </section>
 
