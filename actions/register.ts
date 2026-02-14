@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
+import nodemailer from 'nodemailer'; // <-- NUEVO: Importamos la herramienta de correos
 
 export interface RegisterFields {
   email?: string;
@@ -22,6 +23,15 @@ export type RegisterState = {
   fields?: RegisterFields;
   timestamp?: number; // <--- ESTA ES LA CLAVE DE LA SOLUCIÓN
 }
+
+// Configuración del "Cartero" (Nodemailer) usando tu Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Tu correo de Gmail
+    pass: process.env.EMAIL_PASS, // Tu Contraseña de Aplicación de Gmail
+  },
+});
 
 export async function submitRegistration(prevState: RegisterState, formData: FormData): Promise<RegisterState> {
   
@@ -106,7 +116,40 @@ export async function submitRegistration(prevState: RegisterState, formData: For
       };
     }
 
-    // 5. ÉXITO
+    // 5. ENVIAR CORREO AUTOMÁTICO AL COMPETIDOR
+    try {
+      await transporter.sendMail({
+        from: `"Campeonato MTB Tarapacá" <${process.env.EMAIL_USER}>`,
+        to: fields.email, // El correo que puso el corredor en el formulario
+        subject: "¡Solicitud Recibida! Pasos para confirmar tu pago 🚴‍♂️",
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #1A1816; max-w: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+            <div style="background-color: #C64928; padding: 20px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-style: italic;">¡HOLA ${fields.full_name.toUpperCase()}!</h1>
+            </div>
+            <div style="padding: 30px; background-color: #ffffff;">
+              <p style="font-size: 16px;">Hemos recibido tu solicitud de inscripción para el <strong>XCM Pampa y Mar</strong> en la categoría <strong>${fields.category}</strong>.</p>
+              
+              <div style="background-color: #fff7ed; border-left: 4px solid #C64928; padding: 15px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #C64928;">Siguiente paso obligatorio:</h3>
+                <p style="margin-bottom: 0;">Para validar tu inscripción, debes enviar el comprobante de transferencia por WhatsApp al <strong>+56 9 2633 6663</strong>.</p>
+              </div>
+
+              <p style="font-size: 16px;"><strong>Apenas la organización confirme tu pago, entrarás oficialmente al Ranking de la carrera.</strong></p>
+              
+              <br/>
+              <p style="font-size: 14px; color: #64748b;">Nos vemos en la meta,</p>
+              <p style="font-size: 14px; font-weight: bold; margin-top: 5px;">Team Cycles Franklin</p>
+            </div>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Error enviando el correo de confirmación:', emailError);
+      // No retornamos error aquí para que la inscripción no falle si el correo falla
+    }
+
+    // 6. ÉXITO
     revalidatePath('/admin/solicitudes');
     
     // Aquí NO devolvemos fields para que el formulario se limpie al tener éxito

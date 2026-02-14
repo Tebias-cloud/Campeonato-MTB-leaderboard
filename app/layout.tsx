@@ -17,7 +17,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Chaski Riders Iquique",
+  title: "Campeonato MTB Tarapacá", // <-- Aquí está el cambio
   description: "Ranking Oficial MTB",
 };
 

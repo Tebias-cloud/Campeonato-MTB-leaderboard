@@ -35,10 +35,19 @@ export async function getPendingRequests(): Promise<RegistrationRequest[]> {
   return data as RegistrationRequest[];
 }
 
-// Función principal de Aprobación Mejorada (Anti-Duplicados y Anti-Caché)
+// Función principal de Aprobación Mejorada (Ahora acepta TODOS los campos)
 export async function approveRequest(
   requestId: string, 
-  overrides?: { club?: string, category?: string, rut?: string, instagram?: string, phone?: string }
+  overrides?: { 
+    full_name?: string, 
+    email?: string, 
+    rut?: string, 
+    birth_date?: string, 
+    club?: string, 
+    category?: string, 
+    phone?: string, 
+    instagram?: string 
+  }
 ) {
   try {
     // 1. Buscar la solicitud original usando maybeSingle para ser más flexible
@@ -54,15 +63,16 @@ export async function approveRequest(
     }
 
     if (!request) {
-      // Si no la encuentra, imprimimos el ID para rastrear en Supabase
       console.warn(`Solicitud con ID ${requestId} no encontrada en la DB.`);
       return { success: false, message: 'Solicitud no encontrada o ya procesada.' };
     }
 
-    // 2. Determinar los valores finales y Normalizar (Mayúsculas)
+    // 2. Determinar los valores finales (Fusionar originales con las ediciones del Admin) y Normalizar
     const finalRut = (overrides?.rut || request.rut).trim().toUpperCase();
+    const finalFullName = (overrides?.full_name || request.full_name).trim().toUpperCase();
+    const finalEmail = (overrides?.email || request.email)?.toLowerCase().trim();
+    const finalBirthDate = overrides?.birth_date || request.birth_date;
     const finalClub = (overrides?.club || request.club || 'INDEPENDIENTE / LIBRE').trim().toUpperCase();
-    const finalFullName = request.full_name.trim().toUpperCase();
     const finalCiudad = (request.ciudad || 'IQUIQUE').trim().toUpperCase();
 
     // 3. Lógica UPSERT: Si el RUT existe, actualiza; si no, inserta.
@@ -71,11 +81,11 @@ export async function approveRequest(
       .upsert({
         rut: finalRut,
         full_name: finalFullName,
+        email: finalEmail,
+        birth_date: finalBirthDate,
         ciudad: finalCiudad,
         category: overrides?.category || request.category,
         club: finalClub,
-        birth_date: request.birth_date,
-        email: request.email?.toLowerCase().trim(),
         phone: overrides?.phone || request.phone,
         instagram: overrides?.instagram || request.instagram,
       }, { 
@@ -87,7 +97,7 @@ export async function approveRequest(
       return { success: false, message: 'Error al registrar al corredor.' };
     }
 
-    // 4. Limpiar la solicitud: La borramos físicamente
+    // 4. Limpiar la solicitud: La borramos físicamente de las pendientes
     const { error: deleteError } = await supabase
         .from('registration_requests')
         .delete()
