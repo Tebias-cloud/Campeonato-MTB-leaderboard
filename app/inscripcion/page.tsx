@@ -145,10 +145,27 @@ export default function InscripcionPage() {
   if (state.success) {
     return (
       <div className={`min-h-screen bg-[#1A1816] flex items-center justify-center p-4 ${montserrat.variable} ${teko.variable} font-sans text-center`}>
-        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border-b-[8px] border-[#C64928]">
-          <h2 className="text-5xl md:text-6xl font-bold uppercase italic mb-4 text-[#C64928] tracking-tighter">¡Registro Exitoso!</h2>
-          <p className="text-slate-600 font-medium mb-8 text-lg">Tu ficha ha sido guardada. Por favor envía tu comprobante al WhatsApp para validar la inscripción.</p>
-          <Link href="/" className="inline-block bg-[#1A1816] text-white font-bold py-4 px-12 rounded-xl text-sm uppercase tracking-widest hover:bg-[#C64928] transition-colors">Volver al Inicio</Link>
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border-b-[8px] border-[#C64928] relative overflow-hidden">
+          
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+
+          <h2 className="text-5xl md:text-6xl font-bold uppercase italic mb-4 text-[#1A1816] tracking-tighter">¡Inscripción Recibida!</h2>
+          
+          <p className="text-slate-600 font-medium mb-10 text-lg md:text-xl">
+            Te hemos enviado un correo con los detalles.<br/><br/>
+            <strong></strong> Para aparecer en el ranking oficial debes enviar tu comprobante de pago a la organización.
+          </p>
+
+          <Link 
+            href="/" 
+            className="block w-full bg-[#C64928] hover:bg-[#1A1816] text-white font-heading text-3xl md:text-4xl uppercase py-5 rounded-2xl shadow-lg transition-all transform hover:-translate-y-1 italic tracking-wide border-b-4 border-orange-900 active:border-b-0 active:translate-y-0"
+          >
+            Ver Ranking Oficial
+          </Link>
         </div>
       </div>
     );
@@ -240,9 +257,11 @@ export default function InscripcionPage() {
                 </div>
 
                 <div className="mt-8 inline-flex flex-col md:flex-row items-center gap-2 md:gap-3 bg-slate-900 text-white py-3 px-6 md:px-8 rounded-2xl md:rounded-full shadow-lg w-full md:w-auto">
-                    <span className="text-xl">📱</span>
+                    <svg className="w-6 h-6 text-[#C64928] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
                     <div className="text-center md:text-left leading-tight">
-                        <p className="text-[9px] font-bold uppercase text-slate-400">Enviar Comprobante al</p>
+                        <p className="text-[9px] font-bold uppercase text-slate-400">Dudas al WhatsApp</p>
                         <p className="text-lg md:text-base font-bold tracking-wider">+56 9 2633 6663</p>
                     </div>
                 </div>
