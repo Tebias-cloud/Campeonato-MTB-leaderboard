@@ -178,7 +178,8 @@ export default async function RankingFull(props: Props) {
     'Novicias Open',
     'Damas Pre Master', 
     'Damas Master A', 
-    'Damas Master B', 
+    'Damas Master B',
+    'Damas Master C', 
     'Damas Master D',
     'Enduro Open Mixto', 
     'E-Bike Open Mixto'
