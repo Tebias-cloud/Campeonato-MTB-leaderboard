@@ -3,22 +3,22 @@
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 
-// 1. Actualizamos la interfaz para incluir los nuevos campos opcionales
+// Definimos los tipos exactos
 interface CreateResultData {
   event_id: string;
   rider_id: string;
+  category_played: string; // "Novicios", "Elite", etc.
   position: number;
   points: number;
-  category_played: string;
-  race_time?: string | null; // Nuevo: Tiempo ("HH:MM:SS")
-  avg_speed?: number | null; // Nuevo: Velocidad Promedio
+  race_time?: string | null;
+  avg_speed?: number | null;
 }
 
 export async function createResult(data: CreateResultData) {
-  console.log("--- INTENTANDO GUARDAR RESULTADO (MODO UPSERT) ---", data);
+  console.log("--- GUARDANDO ---", data);
 
-  // USAMOS UPSERT: Si existe la combinación (event_id, rider_id), actualiza. Si no, crea.
-  // Al pasar 'data' completo, Supabase guardará automáticamente race_time y avg_speed
+  // Upsert busca coincidencias en (event_id, rider_id).
+  // Si existe, actualiza. Si no, crea.
   const { error } = await supabase
     .from('results')
     .upsert(data, { 
@@ -27,31 +27,19 @@ export async function createResult(data: CreateResultData) {
     });
 
   if (error) {
-    console.error('❌ Error fatal en base de datos:', error);
+    console.error('Error DB:', error);
     throw new Error('Error al guardar: ' + error.message);
   }
 
-  console.log("✅ Resultado guardado/actualizado con éxito");
-
-  // Actualizamos todas las vistas relevantes
+  // Refrescamos las vistas
   revalidatePath('/admin/results');
-  revalidatePath('/ranking');
+  revalidatePath('/ranking'); 
   revalidatePath('/');
-  revalidatePath(`/profile/${data.rider_id}`); // Importante: refrescar el perfil del rider modificado
 }
 
 export async function deleteResult(resultId: string) {
-  const { error } = await supabase
-    .from('results')
-    .delete()
-    .eq('id', resultId);
-
-  if (error) {
-    console.error('Error borrando resultado:', error);
-    throw new Error('No se pudo borrar el resultado');
-  }
-
+  const { error } = await supabase.from('results').delete().eq('id', resultId);
+  if (error) throw new Error('Error al borrar');
   revalidatePath('/admin/results');
   revalidatePath('/ranking');
-  revalidatePath('/');
 }

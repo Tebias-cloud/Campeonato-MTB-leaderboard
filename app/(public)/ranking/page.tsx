@@ -18,7 +18,7 @@ const organizersByDate = [
   { name: 'Club Camanchaca', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png' }
 ];
 
-// --- TIPOS ---
+// --- TIPOS CORREGIDOS (Sin columnas inexistentes) ---
 interface ResultWithRider {
   rider_id: string;
   points: number;
@@ -29,21 +29,20 @@ interface ResultWithRider {
     full_name: string;
     club: string | null;
     ciudad: string | null;
-    club_logo: string | null;
     instagram: string | null;
-    sponsor_1: string | null;
-    sponsor_2: string | null;
-    sponsor_3: string | null;
+    // Eliminados club_logo y sponsors porque no están en tu tabla riders
   } | null;
 }
 
+// Para el global, asumimos que la VISTA (view) sí podría tenerlos calculados, 
+// o los dejamos opcionales.
 interface GlobalRankingRow {
   rider_id: string;
   full_name: string;
-  current_category: string;
+  category: string; 
   club: string | null;
   ciudad: string | null;
-  club_logo: string | null;
+  club_logo: string | null; // Puede venir nulo si la vista no lo tiene
   instagram: string | null;
   sponsor_1: string | null;
   sponsor_2: string | null;
@@ -92,13 +91,14 @@ export default async function RankingFull(props: Props) {
   let currentOrganizer = null; 
 
   if (isGeneral) {
+    // --- LÓGICA GENERAL ---
     let query = supabase
       .from('ranking_global')
       .select('*')
       .order('total_points', { ascending: false });
 
     if (categoryFilter !== 'Todas') {
-      query = query.eq('current_category', categoryFilter);
+      query = query.eq('category', categoryFilter); 
     }
     
     const { data } = await query.returns<GlobalRankingRow[]>();
@@ -106,10 +106,10 @@ export default async function RankingFull(props: Props) {
     rankingData = data?.map(item => ({
       rider_id: item.rider_id,
       full_name: item.full_name,
-      category_shown: item.current_category,
+      category_shown: item.category, 
       club: item.club,
       city: item.ciudad,
-      club_logo: item.club_logo,
+      club_logo: item.club_logo || null,
       instagram: item.instagram,
       sponsors: [item.sponsor_1, item.sponsor_2, item.sponsor_3].filter(s => s && s.length > 5) as string[],
       points_display: item.total_points,
@@ -117,19 +117,18 @@ export default async function RankingFull(props: Props) {
     })) || [];
 
   } else {
-    // --- EVENTO ESPECÍFICO ---
+    // --- LÓGICA POR EVENTO ---
     const selectedEvent = events?.find(e => e.id === eventIdFilter);
     
     if (selectedEvent && events) {
         const eventIndex = events.findIndex(e => e.id === selectedEvent.id);
-        const roundNumber = eventIndex + 1;
-        titleSuffix = `${roundNumber}ª FECHA`; 
-
+        titleSuffix = `${eventIndex + 1}ª FECHA`; 
         if (eventIndex >= 0 && eventIndex < organizersByDate.length) {
             currentOrganizer = organizersByDate[eventIndex];
         }
     }
 
+    // CORRECCIÓN: Quitamos club_logo y sponsors del select
     let query = supabase
       .from('results')
       .select(`
@@ -138,27 +137,35 @@ export default async function RankingFull(props: Props) {
         category_played,
         race_time,
         avg_speed,
-        riders ( full_name, club, ciudad, club_logo, instagram, sponsor_1, sponsor_2, sponsor_3 ) 
+        riders ( full_name, club, ciudad, instagram ) 
       `)
       .eq('event_id', eventIdFilter)
       .order('points', { ascending: false });
 
     if (categoryFilter !== 'Todas') {
-      query = query.eq('category_played', categoryFilter);
+      query = query.ilike('category_played', categoryFilter);
     }
     
-    const { data } = await query;
+    const { data, error } = await query;
+    
+    if (error) {
+        // Truco para ver el error real si es un objeto
+        console.error("❌ Error Supabase Detallado:", JSON.stringify(error, null, 2));
+    } else {
+        console.log(`✅ Evento: ${eventIdFilter} | Filtro: ${categoryFilter} | Resultados: ${data?.length || 0}`);
+    }
+
     const typedData = data as unknown as ResultWithRider[];
 
     rankingData = typedData?.map((item) => ({
       rider_id: item.rider_id,
-      full_name: item.riders?.full_name || 'Desconocido',
+      full_name: item.riders?.full_name || 'Corredor Desconocido',
       category_shown: item.category_played,
       club: item.riders?.club || null,
       city: item.riders?.ciudad || null,
-      club_logo: item.riders?.club_logo || null,
+      club_logo: null, // No existe en la tabla riders
       instagram: item.riders?.instagram || null,
-      sponsors: [item.riders?.sponsor_1, item.riders?.sponsor_2, item.riders?.sponsor_3].filter(s => s && s.length > 5) as string[],
+      sponsors: [], // No existen en la tabla riders
       points_display: item.points,
       stats_extra: null,
       race_time: item.race_time,
@@ -166,6 +173,7 @@ export default async function RankingFull(props: Props) {
     })) || [];
   }
 
+  // --- RESTO DEL COMPONENTE IGUAL ---
   const categories = [
     'Todas',
     'Novicios Open', 
@@ -191,8 +199,7 @@ export default async function RankingFull(props: Props) {
       const params = new URLSearchParams();
       if (cat !== 'Todas') params.set('category', cat);
       if (evt !== 'general') params.set('eventId', evt);
-      const queryString = params.toString();
-      return queryString ? `/ranking?${queryString}` : '/ranking';
+      return params.toString() ? `/ranking?${params.toString()}` : '/ranking';
   }
 
   const hasLogo = !isGeneral && currentOrganizer && currentOrganizer.logo;
@@ -200,7 +207,7 @@ export default async function RankingFull(props: Props) {
   return (
     <div className={`min-h-screen pb-20 overflow-x-hidden bg-[#EFE6D5] text-[#2A221B] ${montserrat.variable} ${teko.variable} font-sans selection:bg-[#C64928] selection:text-white antialiased`}>
       
-      {/* HEADER DINÁMICO */}
+      {/* HEADER */}
       <div className={`relative bg-[#292725] px-4 rounded-b-[50px] shadow-2xl overflow-hidden border-b-[6px] border-[#C64928] transition-all duration-300 ease-in-out ${
           isGeneral ? 'h-[340px] md:h-[440px]' : 'h-[300px] md:h-[400px]'
       }`}>
@@ -246,13 +253,7 @@ export default async function RankingFull(props: Props) {
                         {hasLogo && (
                             <div className="animate-fade-in-up mx-auto z-10">
                                 <div className="h-24 w-24 md:h-40 md:w-40 flex items-center justify-center relative overflow-visible">
-                                    <img 
-                                        src={currentOrganizer!.logo} 
-                                        alt={currentOrganizer!.name} 
-                                        /* CAMBIO: Glow sutil blanco */
-                                        className="h-full w-full object-contain" 
-                                        style={{ filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.3))' }}
-                                    />
+                                    <img src={currentOrganizer!.logo} alt={currentOrganizer!.name} className="h-full w-full object-contain" style={{ filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.3))' }}/>
                                 </div>
                             </div>
                         )}
@@ -275,7 +276,7 @@ export default async function RankingFull(props: Props) {
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL - DOCK */}
+      {/* CONTENIDO PRINCIPAL */}
       <div className={`max-w-7xl mx-auto px-2 md:px-4 relative z-30 space-y-5 transition-all duration-300 -mt-14 md:-mt-12`}>
         
         {/* BARRA DE FECHAS */}
@@ -325,16 +326,12 @@ export default async function RankingFull(props: Props) {
         <div className="max-w-4xl mx-auto px-2 md:px-4 pb-20 relative z-10 pt-2">
             {rankingData.map((rider, index) => {
             const rank = index + 1;
-            
             const isGold = rank === 1;
             const isSilver = rank === 2;
             const isBronze = rank === 3;
             const isPodiumExtended = rank === 4 || rank === 5; 
             const isTop10 = rank >= 6 && rank <= 10;
-
-            const instaLink = rider.instagram 
-                ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` 
-                : null;
+            const instaLink = rider.instagram ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` : null;
 
             return (
             <div key={rider.rider_id + index} className={`group relative p-2.5 mb-2 rounded-xl border-l-[6px] bg-white transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden ${
@@ -345,7 +342,6 @@ export default async function RankingFull(props: Props) {
                 isTop10 ? 'border-gray-600' : 
                 'border-gray-200' 
             }`}>
-                
                 <Link href={`/profile/${rider.rider_id}`} className="absolute inset-0 z-10" />
 
                 <div className={`font-heading text-4xl w-10 text-center shrink-0 ${
@@ -363,7 +359,7 @@ export default async function RankingFull(props: Props) {
                     {rider.club_logo ? (
                         <img src={rider.club_logo} alt="Club" className="w-full h-full object-contain p-1.5" />
                     ) : (
-                        <span className="text-gray-300">{rider.full_name[0]}</span>
+                        <span className="text-gray-300">{rider.full_name ? rider.full_name[0] : '?'}</span>
                     )}
                 </div>
 
@@ -372,34 +368,20 @@ export default async function RankingFull(props: Props) {
                         <div className="flex items-center gap-2">
                             <h3 className={`font-black text-xs md:text-base uppercase truncate transition-colors leading-tight ${
                                 isGold ? 'text-[#1A1816]' : 'text-[#2A221B] group-hover:text-[#C64928]'
-                            }`}>
+                            } ${rider.full_name === 'Corredor Desconocido' ? 'text-red-500' : ''}`}>
                                 {rider.full_name}
                             </h3>
                             {instaLink && (
                                 <a href={instaLink} target="_blank" rel="noopener noreferrer" className="relative z-20 text-gray-400 hover:text-[#C13584] transition-colors p-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                                 </a>
                             )}
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-1.5 text-[9px] text-gray-500 font-bold uppercase mt-0.5">
                             <span className="bg-[#EFE6D5] text-[#1A1816] px-1.5 py-0.5 rounded-sm leading-none">{rider.category_shown}</span>
-                            
-                            {rider.city && (
-                                <span className="text-gray-600 truncate max-w-[80px]">
-                                    • {rider.city}
-                                </span>
-                            )}
-                            
-                            {rider.club && (
-                                <span className="truncate max-w-[80px] text-gray-400">
-                                    • {rider.club}
-                                </span>
-                            )}
+                            {rider.city && <span className="text-gray-600 truncate max-w-[80px]">• {rider.city}</span>}
+                            {rider.club && <span className="truncate max-w-[80px] text-gray-400">• {rider.club}</span>}
                         </div>
                     </div>
 
@@ -407,18 +389,13 @@ export default async function RankingFull(props: Props) {
                         <div className="hidden sm:flex flex-col items-end shrink-0 gap-0.5">
                             {rider.race_time && (
                                 <div className="flex items-center gap-1.5" title="Tiempo">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C64928] mb-0.5">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C64928] mb-0.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                     <span className="font-heading text-xl text-[#1A1816] leading-none tracking-wide">{rider.race_time}</span>
                                 </div>
                             )}
                             {rider.avg_speed && (
                                 <div className="flex items-center gap-1.5" title="Velocidad Promedio">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-0.5">
-                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-0.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
                                     <span className="font-heading text-lg text-gray-400 leading-none">{rider.avg_speed} km/h</span>
                                 </div>
                             )}
@@ -427,9 +404,7 @@ export default async function RankingFull(props: Props) {
                 </div>
 
                 <div className="text-right pl-4 shrink-0 self-center">
-                    <span className={`block font-heading text-4xl leading-none transition-transform group-hover:scale-110 ${isGold ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>
-                        {rider.points_display}
-                    </span>
+                    <span className={`block font-heading text-4xl leading-none transition-transform group-hover:scale-110 ${isGold ? 'text-[#C64928]' : 'text-[#1A1816]'}`}>{rider.points_display}</span>
                     <span className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em] block text-right pr-1">PTS</span>
                 </div>
             </div>
@@ -438,7 +413,10 @@ export default async function RankingFull(props: Props) {
             {rankingData.length === 0 && (
                 <div className="text-center py-10 opacity-50">
                     <p className="font-heading text-2xl uppercase text-gray-400">Sin registros</p>
-                    <p className="text-xs font-bold uppercase text-gray-500 tracking-widest mt-2">Intenta cambiar los filtros</p>
+                    <div className="text-xs font-bold uppercase text-gray-500 tracking-widest mt-2 space-y-1">
+                        <p>{isGeneral ? 'Intenta cambiar los filtros' : 'No se encontraron resultados'}</p>
+                        {!isGeneral && <p>Filtro: {categoryFilter}</p>}
+                    </div>
                 </div>
             )}
         </div>
