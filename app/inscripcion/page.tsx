@@ -409,14 +409,14 @@ export default function InscripcionPage() {
                                 <option value="Master B">Master B (40 a 49 Años)</option>
                                 <option value="Master C">Master C (50 a 59 Años)</option>
                                 <option value="Master D">Master D (60 Años y Más)</option>
-                                <option value="Novicios Open">Novicios Open (Recien empezando)</option>
+                                <option value="Novicios Open">Novicios Open (55k - Recién empezando)</option>
                             </optgroup>
                             <optgroup label="DAMAS" className="font-bold text-slate-900">
                                 <option value="Damas Pre Master">Pre Master (15 a 29 Años)</option>
                                 <option value="Damas Master A">Master A (30 a 39 Años)</option>
                                 <option value="Damas Master B">Master B (40 a 49 Años)</option>
                                 <option value="Damas Master C">Master C (50 Años y más)</option>
-                                <option value="Novicias Open">Novicias Open (Recién empezando)</option>
+                                <option value="Novicias Open">Novicias Open (55k - Recién empezando)</option>
                             </optgroup>
                             <optgroup label="MIXTAS" className="font-bold text-slate-900">
                                 <option value="EBike Mixto Open">E-Bike Open Mixto (Sin restricciones)</option>
