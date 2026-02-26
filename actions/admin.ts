@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 
 // Definición estricta de tipos para TypeScript
