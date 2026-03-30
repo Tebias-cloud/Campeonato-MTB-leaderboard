@@ -30,19 +30,16 @@ interface ResultWithRider {
     club: string | null;
     ciudad: string | null;
     instagram: string | null;
-    // Eliminados club_logo y sponsors porque no están en tu tabla riders
   } | null;
 }
 
-// Para el global, asumimos que la VISTA (view) sí podría tenerlos calculados, 
-// o los dejamos opcionales.
 interface GlobalRankingRow {
   rider_id: string;
   full_name: string;
   category: string; 
   club: string | null;
   ciudad: string | null;
-  club_logo: string | null; // Puede venir nulo si la vista no lo tiene
+  club_logo: string | null; 
   instagram: string | null;
   sponsor_1: string | null;
   sponsor_2: string | null;
@@ -91,7 +88,6 @@ export default async function RankingFull(props: Props) {
   let currentOrganizer = null; 
 
   if (isGeneral) {
-    // --- LÓGICA GENERAL ---
     let query = supabase
       .from('ranking_global')
       .select('*')
@@ -117,7 +113,6 @@ export default async function RankingFull(props: Props) {
     })) || [];
 
   } else {
-    // --- LÓGICA POR EVENTO ---
     const selectedEvent = events?.find(e => e.id === eventIdFilter);
     
     if (selectedEvent && events) {
@@ -128,7 +123,6 @@ export default async function RankingFull(props: Props) {
         }
     }
 
-    // CORRECCIÓN: Quitamos club_logo y sponsors del select
     let query = supabase
       .from('results')
       .select(`
@@ -149,7 +143,6 @@ export default async function RankingFull(props: Props) {
     const { data, error } = await query;
     
     if (error) {
-        // Truco para ver el error real si es un objeto
         console.error("❌ Error Supabase Detallado:", JSON.stringify(error, null, 2));
     } else {
         console.log(`✅ Evento: ${eventIdFilter} | Filtro: ${categoryFilter} | Resultados: ${data?.length || 0}`);
@@ -163,9 +156,9 @@ export default async function RankingFull(props: Props) {
       category_shown: item.category_played,
       club: item.riders?.club || null,
       city: item.riders?.ciudad || null,
-      club_logo: null, // No existe en la tabla riders
+      club_logo: null,
       instagram: item.riders?.instagram || null,
-      sponsors: [], // No existen en la tabla riders
+      sponsors: [],
       points_display: item.points,
       stats_extra: null,
       race_time: item.race_time,
@@ -173,7 +166,7 @@ export default async function RankingFull(props: Props) {
     })) || [];
   }
 
-  // --- RESTO DEL COMPONENTE IGUAL ---
+  // --- AQUÍ ESTÁN LAS CORRECCIONES ---
   const categories = [
     'Todas',
     'Novicios Open', 
@@ -188,9 +181,8 @@ export default async function RankingFull(props: Props) {
     'Damas Master A', 
     'Damas Master B',
     'Damas Master C', 
-    'Damas Master D',
-    'Enduro Open Mixto', 
-    'E-Bike Open Mixto'
+    'Enduro Mixto Open', 
+    'EBike Mixto Open'
   ];
 
   const buildUrl = (newCategory?: string, newEventId?: string) => {
@@ -310,8 +302,8 @@ export default async function RankingFull(props: Props) {
                 if (cat === 'Novicios Open') displayName = 'Novicios';
                 if (cat === 'Novicias Open') displayName = 'Novicias';
                 if (cat === 'Elite Open') displayName = 'Elite';
-                if (cat === 'Enduro Open Mixto') displayName = 'Enduro';
-                if (cat === 'E-Bike Open Mixto') displayName = 'E-Bike';
+                if (cat === 'Enduro Mixto Open') displayName = 'Enduro';
+                if (cat === 'EBike Mixto Open') displayName = 'E-Bike';
                 displayName = displayName.replace('Damas', 'D.');
 
                 return (

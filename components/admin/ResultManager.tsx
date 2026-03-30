@@ -173,6 +173,10 @@ export default function ResultManager({ events, riders, existingResults }: Props
                     <optgroup label="DAMAS" className="bg-white text-black">
                         {["Damas Pre Master", "Damas Master A", "Damas Master B", "Damas Master C", "Novicias Open"].map(c => <option key={c} value={c}>{c}</option>)}
                     </optgroup>
+                    {/* ✅ AQUÍ ESTÁ LA CORRECCIÓN: AGREGAMOS LAS MIXTAS */}
+                    <optgroup label="MIXTAS" className="bg-white text-black">
+                        {["Enduro Mixto Open", "EBike Mixto Open"].map(c => <option key={c} value={c}>{c}</option>)}
+                    </optgroup>
                 </select>
             </div>
         </div>

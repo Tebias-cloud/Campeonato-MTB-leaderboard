@@ -1,7 +1,6 @@
 'use client';
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-// import { useDebouncedCallback } from 'use-debounce'; // Si decides instalarlo después
 
 export default function RiderFilters() {
   const searchParams = useSearchParams();
@@ -44,7 +43,7 @@ export default function RiderFilters() {
         />
       </div>
 
-      {/* FILTRO DE CATEGORÍA - ACTUALIZADO CON TUS NUEVAS CATEGORÍAS */}
+      {/* FILTRO DE CATEGORÍA - CORREGIDO */}
       <div className="w-full md:w-1/3">
         <select
           className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-[#C64928] shadow-sm appearance-none cursor-pointer"
@@ -68,12 +67,12 @@ export default function RiderFilters() {
             <option value="Damas Pre Master">Damas Pre Master</option>
             <option value="Damas Master A">Damas Master A</option>
             <option value="Damas Master B">Damas Master B</option>
-            <option value="Damas Master D">Damas Master D</option>
+            <option value="Damas Master C">Damas Master C</option> {/* ✅ Cambiado de D a C */}
           </optgroup>
 
           <optgroup label="Mixtas">
-            <option value="Enduro Open Mixto">Enduro Open Mixto</option>
-            <option value="E-Bike Open Mixto">E-Bike Open Mixto</option>
+            <option value="Enduro Mixto Open">Enduro Mixto Open</option> {/* ✅ Nombre alineado con la BD */}
+            <option value="EBike Mixto Open">EBike Mixto Open</option>   {/* ✅ Nombre alineado con la BD */}
           </optgroup>
         </select>
       </div>
