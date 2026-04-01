@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Teko, Montserrat, Roboto_Mono } from "next/font/google";
 import { Rider } from '@/lib/definitions';
 import RiderFilters from '@/components/admin/RiderFilters';
+import ExportExcelButton from '@/components/admin/ExportExcelButton';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "700", "900"], variable: '--font-montserrat' });
@@ -40,10 +41,33 @@ export default async function RidersListPage({
     return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  // ✅ 1. Generamos la fecha
+  const fechaHoy = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
+  
+  // ✅ 2. Detectamos si hay una categoría filtrada y armamos el nombre
+  // Si está en "Todas" (o vacío), se llama "Todas_Las_Categorias". 
+  // Si filtraste "Elite Open", se llamará "Elite_Open".
+  const categoriaArchivo = (!categoryFilter || categoryFilter === 'Todas') 
+    ? 'Todas_Las_Categorias' 
+    : categoryFilter.replace(/ /g, '_'); // Cambia los espacios por guiones bajos
+    
+  const nombreArchivo = `Riders_${categoriaArchivo}_${fechaHoy}`;
+
+  const datosParaExcel = riders?.map(rider => ({
+    'RUT': rider.rut,
+    'Corredor': rider.full_name,
+    'Categoría': rider.category,
+    'Club / Team': rider.club || 'INDEPENDIENTE',
+    'Ciudad': rider.ciudad || 'No especificada',
+    'Teléfono': rider.phone || '-',
+    'Email': rider.email || '-',
+    'F. Nacimiento': formatDate(rider.birth_date),
+    'Instagram': rider.instagram ? `@${rider.instagram.replace('@', '')}` : '-'
+  })) || [];
+
   return (
     <main className={`min-h-screen bg-[#EFE6D5] text-[#1A1816] ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans pb-32`}>
       
-      {/* HEADER ESTILO PANEL ADMIN */}
       <header className="bg-[#1A1816] pt-12 pb-24 px-6 rounded-b-[50px] shadow-2xl relative border-b-[8px] border-[#C64928]">
         <div className="max-w-[95rem] mx-auto relative z-10 flex flex-col md:flex-row justify-between items-end gap-4">
           <div>
@@ -56,93 +80,94 @@ export default async function RidersListPage({
             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-2">Base de Datos Completa Temporada 2026</p>
           </div>
           
-          <Link href="/admin/riders/new" className="bg-[#C64928] text-white px-8 py-3 rounded-2xl font-heading text-2xl uppercase italic shadow-lg hover:bg-[#A03518] transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 border-b-4 border-black/20">
-            + NUEVO RIDER
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {riders && riders.length > 0 && (
+              <ExportExcelButton data={datosParaExcel} fileName={nombreArchivo} />
+            )}
+            
+            <Link href="/admin/riders/new" className="bg-[#C64928] text-white px-8 py-3 rounded-2xl font-heading text-2xl uppercase italic shadow-lg hover:bg-[#A03518] transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 border-b-4 border-black/20">
+              + NUEVO RIDER
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* CONTENIDO EXPANDIDO (Ancho mayor para mostrar todos los datos) */}
       <div className="max-w-[95rem] mx-auto px-4 -mt-12 relative z-20 space-y-6">
         
-        {/* FILTROS */}
         <div className="bg-white p-4 rounded-[2rem] shadow-2xl border border-slate-100">
           <RiderFilters />
         </div>
 
-        {/* TABLA MAESTRA TIPO EXCEL */}
-        <div className="bg-white border border-slate-100 shadow-2xl overflow-hidden rounded-[2.5rem]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1200px]">
-              <thead>
-                <tr className="bg-slate-50 border-b-2 border-slate-100 text-[9px] uppercase font-black tracking-widest text-slate-400">
-                  <th className="px-6 py-5">RUT / ID</th>
-                  <th className="px-6 py-5">CORREDOR & CONTACTO</th>
-                  <th className="px-6 py-5">CATEGORÍA</th>
-                  <th className="px-6 py-5">CLUB / TEAM</th>
-                  <th className="px-6 py-5">UBICACIÓN</th>
-                  <th className="px-6 py-5">NACIMIENTO</th>
-                  <th className="px-6 py-5 text-center">ACCIÓN</th>
+        <div className="bg-white border-2 border-slate-200 shadow-2xl overflow-hidden rounded-[2.5rem]">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#C64928] scrollbar-track-slate-100">
+            <table className="w-full text-left border-collapse min-w-[1300px]">
+              
+              {/* ✅ CABECERA DE ALTO CONTRASTE TIPO RACING */}
+              <thead className="bg-[#1A1816] border-b-4 border-[#C64928] text-[10px] uppercase font-black tracking-widest text-[#EFE6D5]">
+                <tr>
+                  <th className="px-6 py-5 w-36">RUT / ID</th>
+                  <th className="px-6 py-5 min-w-[250px]">CORREDOR & CONTACTO</th>
+                  <th className="px-6 py-5 min-w-[180px]">CATEGORÍA</th>
+                  <th className="px-6 py-5 min-w-[250px]">CLUB / TEAM</th>
+                  <th className="px-6 py-5 min-w-[150px]">UBICACIÓN</th>
+                  <th className="px-6 py-5 w-32">NACIMIENTO</th>
+                  <th className="px-6 py-5 text-center w-32">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              
+              <tbody className="divide-y-2 divide-slate-100">
                 {riders?.map((rider) => (
-                  <tr key={rider.id} className="hover:bg-orange-50/40 transition-all group">
+                  <tr key={rider.id} className="bg-white hover:bg-[#EFE6D5]/40 transition-colors group">
                     
-                    {/* RUT */}
-                    <td className="px-6 py-4 border-r border-slate-50">
-                      <div className="bg-[#1A1816] text-[#C64928] font-mono font-bold text-xs px-2 py-1 rounded shadow-inner inline-block">
+                    <td className="px-6 py-4 align-top">
+                      <div className="bg-slate-100 text-[#C64928] border border-slate-200 font-mono font-bold text-xs px-2 py-1 rounded shadow-sm inline-block">
                         {rider.rut}
                       </div>
                     </td>
 
-                    {/* NOMBRE, EMAIL, TEL, IG */}
-                    <td className="px-6 py-4">
-                      <div className="font-black text-[#1A1816] text-sm uppercase leading-tight tracking-tighter">
+                    <td className="px-6 py-4 align-top">
+                      {/* ✅ BREAK-WORDS PERMITE QUE EL TEXTO BAJE DE LÍNEA */}
+                      <div className="font-black text-[#1A1816] text-sm uppercase leading-tight tracking-tighter whitespace-normal break-words">
                         {rider.full_name}
                       </div>
-                      <div className="flex flex-col gap-0.5 mt-1">
-                        <span className="text-[9px] text-slate-400 font-bold lowercase">{rider.email || 'sin@correo.cl'}</span>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[9px] text-slate-500 font-black">📞 {rider.phone || '-'}</span>
+                      <div className="flex flex-col gap-0.5 mt-1.5">
+                        <span className="text-[10px] text-slate-500 font-bold lowercase truncate">{rider.email || 'sin@correo.cl'}</span>
+                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                           <span className="text-[10px] text-slate-600 font-black">📞 {rider.phone || '-'}</span>
                            {rider.instagram && (
-                             <span className="text-[9px] text-pink-600 font-black italic">@{(rider.instagram).replace('@','')}</span>
+                             <span className="text-[10px] text-pink-600 font-black italic">@{(rider.instagram).replace('@','')}</span>
                            )}
                         </div>
                       </div>
                     </td>
 
-                    {/* CATEGORÍA */}
-                    <td className="px-6 py-4">
-                      <span className="text-[10px] font-black uppercase text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">
+                    <td className="px-6 py-4 align-top">
+                      <span className="text-[10px] font-black uppercase text-[#1A1816] bg-[#FFD700]/30 px-3 py-1.5 rounded-lg border border-[#FFD700]/50 shadow-sm inline-block">
                         {rider.category}
                       </span>
                     </td>
 
-                    {/* CLUB */}
-                    <td className="px-6 py-4">
-                      <div className="text-[#1A1816] font-black italic uppercase text-[11px] truncate max-w-[150px]">
-                        {rider.club || <span className="text-slate-300 font-normal">Independiente</span>}
+                    <td className="px-6 py-4 align-top">
+                      {/* ✅ TEXTOS LARGOS AHORA SE VEN COMPLETOS */}
+                      <div className="text-[#C64928] font-black italic uppercase text-xs leading-snug whitespace-normal break-words">
+                        {rider.club || <span className="text-slate-400 font-bold normal-case">Independiente</span>}
                       </div>
                     </td>
 
-                    {/* CIUDAD */}
-                    <td className="px-6 py-4">
-                       <div className="text-[11px] font-black uppercase text-slate-600">
+                    <td className="px-6 py-4 align-top">
+                       <div className="text-xs font-bold uppercase text-slate-700 whitespace-normal break-words">
                           {rider.ciudad || 'No especificada'}
                        </div>
                     </td>
 
-                    {/* FECHA NACIMIENTO */}
-                    <td className="px-6 py-4 font-mono text-[11px] font-bold text-slate-500">
+                    <td className="px-6 py-4 align-top font-mono text-xs font-bold text-slate-500">
                        {formatDate(rider.birth_date)}
                     </td>
 
-                    {/* ACCION */}
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-6 py-4 text-center align-middle">
                       <Link 
                         href={`/admin/riders/${rider.id}`}
-                        className="inline-flex items-center justify-center bg-white text-[#1A1816] h-9 px-4 rounded-xl border-2 border-slate-200 font-black uppercase text-[9px] tracking-widest hover:bg-[#1A1816] hover:text-white hover:border-[#1A1816] transition-all"
+                        className="inline-flex items-center justify-center bg-white text-[#1A1816] h-10 px-5 rounded-xl border-2 border-[#1A1816] font-black uppercase text-[10px] tracking-widest hover:bg-[#1A1816] hover:text-[#EFE6D5] transition-all shadow-md hover:shadow-lg"
                       >
                         EDITAR
                       </Link>
@@ -160,9 +185,8 @@ export default async function RidersListPage({
           </div>
         </div>
 
-        {/* FOOTER INFO */}
-        <div className="text-center opacity-30">
-          <p className="text-[9px] font-black uppercase tracking-[0.4em]">{riders?.length || 0} REGISTROS EN TOTAL</p>
+        <div className="text-center opacity-40">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em]">{riders?.length || 0} REGISTROS EN TOTAL</p>
         </div>
       </div>
     </main>
