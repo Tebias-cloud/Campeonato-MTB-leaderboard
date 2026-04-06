@@ -144,7 +144,6 @@ export default function Home() {
               </div>
           </div>
 
-          {/* EL BOTÓN RECUPERADO Y DESTACADO */}
           <Link href="/ranking" className="group relative inline-flex items-center gap-3 bg-[#C64928] text-white px-10 py-4 rounded-sm font-heading text-3xl uppercase tracking-widest overflow-hidden transform hover:scale-105 transition-all shadow-[0_0_20px_rgba(198,73,40,0.5)]">
              <span className="relative z-10">Ver Ranking Oficial</span>
              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
@@ -157,8 +156,6 @@ export default function Home() {
         
         {/* --- SELECTOR SUTIL (AJUSTADO) --- */}
         <div className="flex flex-col items-center justify-center mb-6 relative z-30 mt-5">
-          
-          {/* Se aumentó la opacidad base a 70% y se añadió un fondo sutil al hacer hover */}
           <div className="group flex items-center gap-3 opacity-70 hover:opacity-100 transition-all duration-500 cursor-pointer bg-black/20 px-4 py-2 rounded-full hover:bg-black/40 backdrop-blur-sm border border-white/5">
              <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -285,13 +282,21 @@ export default function Home() {
       {/* ================= SECCIÓN DINÁMICA: INSCRIPCIÓN ================= */}
       <section className="py-20 px-4 relative z-30">
         <div className="max-w-xl mx-auto">
-            <Link href="/inscripcion" className="group relative block bg-[#C64928] hover:bg-[#D85A35] rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(198,73,40,0.4)] border-4 border-white/10 hover:border-white/30 transition-all transform hover:-translate-y-2 cursor-pointer active:scale-95">
+            {/* ✅ AQUÍ ESTÁ EL CAMBIO CLAVE: href dinámico al evento o deshabilitado si no hay */}
+            <Link 
+              href={nextEvent ? `/inscripcion/${nextEvent.id}` : '#'} 
+              className={`group relative block rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(198,73,40,0.4)] border-4 border-white/10 transition-all transform cursor-pointer ${nextEvent ? 'bg-[#C64928] hover:bg-[#D85A35] hover:border-white/30 hover:-translate-y-2 active:scale-95' : 'bg-gray-800 opacity-60 cursor-not-allowed'}`}
+            >
                 <div className="absolute top-4 right-4 flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    {nextEvent && (
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                      </span>
+                    )}
+                    <span className="text-white font-black text-[10px] uppercase tracking-widest drop-shadow-md">
+                      {nextEvent ? 'Abierto' : 'Cerrado'}
                     </span>
-                    <span className="text-white font-black text-[10px] uppercase tracking-widest drop-shadow-md">Abierto</span>
                 </div>
                 <h2 className="font-heading text-5xl md:text-6xl text-white uppercase italic leading-none mb-4 drop-shadow-xl group-hover:drop-shadow-2xl transition-all pt-4">
                     {nextEvent ? 'INSCRÍBETE' : 'INSCRIPCIÓN'} <br/>
@@ -300,7 +305,7 @@ export default function Home() {
                 <div className="bg-black/20 rounded-xl py-2 px-6 inline-block backdrop-blur-sm border border-white/10 group-hover:bg-black/30 transition-colors">
                   <p className="text-white font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-2">
                     {nextEvent ? nextEvent.name : 'TEMPORADA 2026'} 
-                    <span className="text-2xl transition-transform group-hover:translate-x-1">➔</span>
+                    {nextEvent && <span className="text-2xl transition-transform group-hover:translate-x-1">➔</span>}
                   </p>
                   {nextEvent && (
                     <p className="text-white/80 text-[10px] font-bold uppercase mt-1">

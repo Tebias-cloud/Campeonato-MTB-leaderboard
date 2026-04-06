@@ -1,35 +1,49 @@
+// lib/definitions.ts
+
+export interface FormField {
+  id: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+  fullWidth?: boolean;
+}
+
+export type Event = {
+  id: string;
+  name: string;
+  subtitle?: string;
+  description?: string;
+  date: string;
+  status: string;
+  price?: string;
+  bank_owner?: string;
+  bank_rut?: string;
+  bank_name?: string;
+  bank_account?: string;
+  terms_conditions?: string;
+  form_config: {
+    fields: FormField[];
+    categories: string[];
+  };
+};
+
 export type Rider = {
   id: string;
   full_name: string;
   club: string | null;
   category: string;
-  
-  // --- CAMPOS GEOGRÁFICOS Y LEGALES ---
   ciudad: string | null;
   rut: string | null;
-  
-  // --- CAMPOS DE CONTACTO (Nuevos) ---
   email: string | null;
   phone: string | null;
-  
-  // --- PERFIL ---
   birth_date: string | null;
   instagram: string | null;
-  
-  // --- IMÁGENES Y SPONSORS (Opcionales) ---
   club_logo: string | null;
   sponsor_1: string | null;
   sponsor_2: string | null;
   sponsor_3: string | null;
-  
   created_at?: string;
-};
-
-export type Event = {
-  id: string;
-  name: string;
-  date: string;
-  status: string;
 };
 
 export type RawResult = {
@@ -44,7 +58,6 @@ export type RawResult = {
   avg_speed?: number | null;
 };
 
-// --- TIPO ACTUALIZADO PARA EL RANKING ---
 export type RankingDisplayData = {
   rider_id: string;
   full_name: string;
@@ -52,7 +65,6 @@ export type RankingDisplayData = {
   club: string | null;
   points_display: number;
   stats_extra: string | null;
-
   city: string | null;
   club_logo: string | null;
   instagram: string | null;
