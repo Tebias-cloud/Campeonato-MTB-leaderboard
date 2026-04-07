@@ -16,6 +16,14 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600"
 const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: '--font-mono' });
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600", "700"], variable: '--font-teko' });
 
+const OFFICIAL_CATEGORIES = [
+  "Elite Open", "Pre Master (16 a 29 Años)", "Master A (30 a 39 Años)", "Master B (40 a 49 Años)", 
+  "Master C (50 a 59 Años)", "Master D (60 Años y Más)", "Novicios Open (55k - Recién empezando)", 
+  "Damas Pre Master (15 a 29 Años)", "Damas Master A (30 a 39 Años)", "Damas Master B (40 a 49 Años)", 
+  "Damas Master C (50 Años y más)", "Novicias Open (55k - Recién empezando)", 
+  "E-Bike Open Mixto (Sin restricciones)", "Enduro Open Mixto (Horquilla 140mm+)"
+];
+
 interface EditFields {
   full_name?: string;
   email?: string;
@@ -92,7 +100,7 @@ export default function AdminSolicitudes() {
 
   const onApprove = async (req: RegistrationRequest, isDuplicate: boolean) => {
     const confirmMessage = isDuplicate 
-      ? `ATENCIÓN: El rider con RUT ${req.rut} ya existe en el sistema. ¿Desea sincronizar y actualizar la ficha existente?`
+      ? `Este rider ya existe en el sistema. ¿Confirmas su pago para esta nueva carrera y actualizas su ficha?`
       : `¿Confirmar aprobación de inscripción para ${req.full_name}?`;
 
     if (!confirm(confirmMessage)) return;
@@ -112,7 +120,7 @@ export default function AdminSolicitudes() {
         alert(`Error en el proceso: ${res.message}`);
       }
     } catch (err) {
-      alert("Error crítico en el servidor de aplicaciones.");
+      alert("Error crítico en el servidor.");
     } finally {
       setProcessing(null);
       loadData();
@@ -134,7 +142,6 @@ export default function AdminSolicitudes() {
     }
   };
 
-  // ✅ INPUTS MEJORADOS: Fondo claro al pasar el mouse y bordes más limpios
   const inputClass = "w-full bg-transparent border-2 border-transparent hover:border-slate-200 hover:bg-slate-50 focus:border-[#C64928] focus:bg-white rounded-lg px-3 py-2 outline-none transition-all placeholder:text-slate-400";
 
   const fechaHoy = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
@@ -155,7 +162,7 @@ export default function AdminSolicitudes() {
       'Teléfono': currentData.phone || '-',
       'Email': currentData.email || '-',
       'Instagram': currentData.instagram ? `@${currentData.instagram.replace('@', '')}` : '-',
-      'Estado': isDuplicate ? 'Duplicado (Ya existe)' : 'Nuevo Registro',
+      'Estado': isDuplicate ? 'Rider Frecuente (Ya existe)' : 'Nuevo Registro',
       'Fecha Solicitud': formatDate(currentData.created_at)
     };
   }) || [];
@@ -191,10 +198,21 @@ export default function AdminSolicitudes() {
       <div className="max-w-[95rem] mx-auto px-4 -mt-12 relative z-20">
         
         {requests.length > 0 && (
-          <div className="mb-6 flex flex-col md:flex-row items-start md:items-center bg-[#EFE6D5] border-l-8 border-[#C64928] p-5 rounded-xl shadow-md text-sm text-[#1A1816] font-medium">
-            <p>
-              <strong className="text-[#1A1816] font-black uppercase tracking-wide">💡 Modo de Edición Rápida:</strong> Puedes <strong className="text-[#C64928]">editar cualquier campo</strong> directamente sobre la tabla antes de aprobar. La edad mostrada es al 31 de dic. de 2026.
-            </p>
+          <div className="space-y-3 mb-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center bg-[#EFE6D5] border-l-8 border-[#C64928] p-5 rounded-xl shadow-md text-sm text-[#1A1816] font-medium">
+              <p>
+                <strong className="text-[#1A1816] font-black uppercase tracking-wide">💡 Edición Rápida:</strong> Puedes editar los campos directamente en la tabla. La edad se calcula al 31-12-2026.
+              </p>
+            </div>
+
+            {/* ✅ BANNER EXPLICATIVO PARA RIDERS FRECUENTES */}
+            {requests.some(req => existingRiders.some(r => r.rut === (edits[req.id]?.rut ?? req.rut))) && (
+              <div className="flex flex-col md:flex-row items-start md:items-center bg-blue-50 border-l-8 border-blue-500 p-5 rounded-xl shadow-md text-sm text-blue-900 font-medium">
+                <p>
+                  <strong className="text-blue-700 font-black uppercase tracking-wide">ℹ️ Riders Frecuentes:</strong> Los marcados en azul ya están en el sistema. <strong>Solo verifica su nuevo pago</strong> y dales "Aprobar" para inscribirlos en esta fecha.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -208,7 +226,6 @@ export default function AdminSolicitudes() {
           <div className="bg-white rounded-[2rem] shadow-2xl border-2 border-slate-200 overflow-hidden">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#C64928] scrollbar-track-slate-100">
               
-              {/* ✅ CABECERA ESTILO RACING MATCHING */}
               <table className="w-full text-left border-collapse min-w-[1350px]">
                 <thead className="bg-[#1A1816] border-b-4 border-[#C64928] text-[10px] uppercase font-black tracking-widest text-[#EFE6D5]">
                   <tr>
@@ -234,7 +251,7 @@ export default function AdminSolicitudes() {
                     const racingAge = calculateRacingAge2026(displayBirth);
 
                     return (
-                      <tr key={`${req.id}-${idx}`} className={`group transition-all ${isDuplicate ? 'bg-orange-50/60 hover:bg-orange-100/60' : 'bg-white hover:bg-slate-50'}`}>
+                      <tr key={`${req.id}-${idx}`} className={`group transition-all ${isDuplicate ? 'bg-blue-50/60 hover:bg-blue-100/60' : 'bg-white hover:bg-slate-50'}`}>
                         <td className="p-5 text-center font-mono text-slate-400 font-bold text-sm align-top pt-8">{idx + 1}</td>
 
                         <td className="p-5 align-top">
@@ -242,7 +259,7 @@ export default function AdminSolicitudes() {
                             <div className="relative">
                               <input 
                                 type="text"
-                                className={`${inputClass} font-mono font-bold text-sm ${isDuplicate ? 'text-orange-700 bg-orange-100/50 border-orange-200' : 'text-[#1A1816]'}`}
+                                className={`${inputClass} font-mono font-bold text-sm ${isDuplicate ? 'text-blue-700 bg-blue-100/50 border-blue-200' : 'text-[#1A1816]'}`}
                                 value={displayRut}
                                 onChange={(e) => handleEdit(req.id, 'rut', e.target.value)}
                                 placeholder="RUT"
@@ -256,14 +273,14 @@ export default function AdminSolicitudes() {
                                 onChange={(e) => handleEdit(req.id, 'birth_date', e.target.value)}
                               />
                               {racingAge !== null && (
-                                <span className="bg-[#1A1816] text-[#EFE6D5] px-2.5 py-1 rounded-md text-[10px] font-black tracking-widest shadow-sm whitespace-nowrap">
+                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-black tracking-widest shadow-sm whitespace-nowrap ${isDuplicate ? 'bg-blue-600 text-white' : 'bg-[#1A1816] text-[#EFE6D5]'}`}>
                                   {racingAge} AÑOS
                                 </span>
                               )}
                             </div>
                             {isDuplicate && (
-                              <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest px-2 flex items-center gap-1.5 mt-1">
-                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> Duplicado
+                              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-2 flex items-center gap-1.5 mt-1 bg-blue-100 w-fit py-0.5 rounded-md">
+                                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Rider Frecuente
                               </span>
                             )}
                           </div>
@@ -315,13 +332,12 @@ export default function AdminSolicitudes() {
 
                         <td className="p-5 align-top pt-6">
                           <select 
-                            className="w-full p-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#C64928] rounded-xl font-bold text-[#1A1816] outline-none text-xs uppercase transition-colors shadow-sm"
+                            className="w-full p-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#C64928] rounded-xl font-bold text-[#1A1816] outline-none text-[11px] uppercase transition-colors shadow-sm"
                             value={changes.category ?? req.category}
                             onChange={(e) => handleEdit(req.id, 'category', e.target.value)}
                           >
-                             <optgroup label="VARONES">{["Elite Open", "Pre Master", "Master A", "Master B", "Master C", "Master D", "Novicios Open"].map(v => <option key={v} value={v}>{v}</option>)}</optgroup>
-                             <optgroup label="DAMAS">{["Novicias Open", "Damas Pre Master", "Damas Master A", "Damas Master B", "Damas Master C"].map(d => <option key={d} value={d}>{d}</option>)}</optgroup>
-                             <optgroup label="MIXTAS">{["EBike Mixto Open", "Enduro Mixto Open"].map(m => <option key={m} value={m}>{m}</option>)}</optgroup>
+                            <option value={req.category} className="hidden">{req.category}</option>
+                            {OFFICIAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
                         </td>
 
@@ -350,7 +366,7 @@ export default function AdminSolicitudes() {
                               onClick={() => onApprove(req, isDuplicate)}
                               disabled={!!processing}
                               title="Aprobar e Inscribir"
-                              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shadow-md hover:shadow-lg ${isDuplicate ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#1A1816] hover:bg-[#C64928] hover:scale-105'} text-[#EFE6D5] font-black text-lg`}
+                              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shadow-md hover:shadow-lg ${isDuplicate ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#1A1816] hover:bg-[#C64928] hover:scale-105'} text-[#EFE6D5] font-black text-lg`}
                             >
                                {processing === req.id ? '...' : '✓'}
                             </button>
