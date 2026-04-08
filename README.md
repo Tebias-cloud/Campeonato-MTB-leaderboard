@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚵‍♂️ Campeonato MTB Tarapacá - Plataforma de Gestión y Leaderboard
 
-## Getting Started
+Plataforma integral desarrollada para la gestión de inscripciones, administración de eventos y visualización en tiempo real del ranking del Campeonato MTB Tarapacá. Construida con tecnologías modernas para asegurar escalabilidad, seguridad y una experiencia de usuario premium (tanto para corredores como para administradores).
 
-First, run the development server:
+## 🚀 Tecnologías Principales (Tech Stack)
+
+* **Framework Frontend/Backend:** [Next.js 15](https://nextjs.org/) (App Router)
+* **Lenguaje:** [TypeScript](https://www.typescriptlang.org/) (Estricto tipado en todo el proyecto)
+* **Base de Datos & Auth:** [Supabase](https://supabase.com/) (PostgreSQL)
+* **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
+* **Manejo de Formularios/Acciones:** React Server Actions (`'use server'`)
+* **Correos Transaccionales:** [Nodemailer](https://nodemailer.com/) (Envío de correos automáticos al inscribirse)
+* **Tipografía:** Google Fonts (`Teko` para encabezados racing, `Montserrat` para lectura clara)
+
+---
+
+## 📂 Estructura del Proyecto
+
+El proyecto sigue la estructura recomendada del App Router de Next.js:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+├── actions/             # Lógica de servidor (Server Actions). El "Backend" de la app.
+│   ├── admin.ts         # Acciones de administrador (Aprobar, rechazar, exportar)
+│   ├── events.ts        # Gestión de las carreras (Crear, editar, subir afiches)
+│   └── register.ts      # Procesamiento de inscripciones públicas y envío de correos
+├── app/                 # Rutas de la aplicación (Frontend)
+│   ├── admin/           # Zona segura (Panel de control del administrador)
+│   │   ├── events/      # Creador/Editor de fechas de campeonato
+│   │   ├── resultados/  # Panel de carga de tiempos para el juez
+│   │   ├── riders/      # Base de datos histórica de corredores
+│   │   └── solicitudes/ # Bandeja de entrada de inscripciones (Para validar pagos)
+│   ├── inscripcion/[id]/# Formulario público de inscripción por evento
+│   ├── login/           # Acceso de administrador
+│   └── page.tsx         # Landing Page: Ranking Oficial en Vivo
+├── components/          # Componentes de React reutilizables (Botones, Modales, Tablas)
+├── lib/                 # Utilidades y configuración
+│   ├── definitions.ts   # Interfaces y Tipos de TypeScript (Modelos de BD)
+│   └── supabase.ts      # Cliente de conexión a Supabase
+└── public/              # Archivos estáticos (Imágenes, logos)

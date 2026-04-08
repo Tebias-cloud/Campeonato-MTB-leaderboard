@@ -17,11 +17,20 @@ const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], va
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600", "700"], variable: '--font-teko' });
 
 const OFFICIAL_CATEGORIES = [
-  "Elite Open", "Pre Master (16 a 29 Años)", "Master A (30 a 39 Años)", "Master B (40 a 49 Años)", 
-  "Master C (50 a 59 Años)", "Master D (60 Años y Más)", "Novicios Open (55k - Recién empezando)", 
-  "Damas Pre Master (15 a 29 Años)", "Damas Master A (30 a 39 Años)", "Damas Master B (40 a 49 Años)", 
-  "Damas Master C (50 Años y más)", "Novicias Open (55k - Recién empezando)", 
-  "E-Bike Open Mixto (Sin restricciones)", "Enduro Open Mixto (Horquilla 140mm+)"
+  "Elite Open", 
+  "Pre Master (16 a 29 Años)", 
+  "Master A (30 a 39 Años)", 
+  "Master B (40 a 49 Años)", 
+  "Master C (50 a 59 Años)", 
+  "Master D (60 Años y Más)", 
+  "Novicios Open (Recién empezando)", 
+  "Damas Pre Master (15 a 29 Años)", 
+  "Damas Master A (30 a 39 Años)", 
+  "Damas Master B (40 a 49 Años)", 
+  "Damas Master C (50 Años y más)", 
+  "Novicias Open (Recién empezando)", 
+  "E-Bike Open Mixto (Sin restricciones)", 
+  "Enduro Open Mixto (Horquilla 140mm+)"
 ];
 
 interface EditFields {
