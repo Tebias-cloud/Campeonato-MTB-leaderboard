@@ -5,19 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { saveEvent, type EventSaveState } from '@/actions/events';
 import Link from 'next/link';
 import { Teko, Montserrat, Roboto_Mono } from "next/font/google";
-import { Event } from '@/lib/definitions';
+import { Event, OFFICIAL_CATEGORIES } from '@/lib/definitions';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "700", "900"], variable: '--font-montserrat' });
 const robotoMono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: '--font-mono' });
-
-const OFFICIAL_CATEGORIES = [
-  "Elite Open", "Pre Master (16 a 29 Años)", "Master A (30 a 39 Años)", "Master B (40 a 49 Años)", 
-  "Master C (50 a 59 Años)", "Master D (60 Años y Más)", "Novicios Open (Recién empezando)", 
-  "Damas Pre Master (15 a 29 Años)", "Damas Master A (30 a 39 Años)", "Damas Master B (40 a 49 Años)", 
-  "Damas Master C (50 Años y más)", "Novicias Open (Recién empezando)", 
-  "E-Bike Open Mixto (Sin restricciones)", "Enduro Open Mixto (Horquilla 140mm+)"
-];
 
 interface EventFormConfig {
   categories?: string[];

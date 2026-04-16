@@ -18,6 +18,7 @@ export interface RegistrationRequest {
   instagram: string | null;
   status: string;
   terms_accepted: boolean; 
+  event_id?: string; // FK al evento a inscribir
 }
 
 // Obtener solo las solicitudes pendientes
@@ -95,6 +96,25 @@ export async function approveRequest(
     if (upsertError) {
       console.error('Error en UPSERT Rider:', upsertError);
       return { success: false, message: 'Error al registrar al corredor.' };
+    }
+
+    // 3.5. NUEVA TAREA: Insertar ticket en registrations para el evento si corresponde
+    if (request.event_id) {
+      const { error: insertRegistrationError } = await supabase
+        .from('registrations')
+        .insert({
+          event_id: request.event_id,
+          rut: finalRut,
+          full_name: finalFullName,
+          email: finalEmail || 'sin@correo.cl',
+          category_selected: overrides?.category || request.category,
+          status: 'approved'
+        });
+
+      if (insertRegistrationError) {
+        console.error('Error al insertar en registrations:', insertRegistrationError);
+        // Opcional: No retornar error aquí para no romper el flujo principal si un request huérfano no tiene el evento bien configurado, pero se loguea.
+      }
     }
 
     // 4. Limpiar la solicitud: La borramos físicamente de las pendientes

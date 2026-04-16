@@ -11,27 +11,11 @@ import { Montserrat, Roboto_Mono, Teko } from "next/font/google";
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
+import { OFFICIAL_CATEGORIES } from '@/lib/definitions';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "900"], variable: '--font-montserrat' });
 const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: '--font-mono' });
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600", "700"], variable: '--font-teko' });
-
-const OFFICIAL_CATEGORIES = [
-  "Elite Open", 
-  "Pre Master (16 a 29 Años)", 
-  "Master A (30 a 39 Años)", 
-  "Master B (40 a 49 Años)", 
-  "Master C (50 a 59 Años)", 
-  "Master D (60 Años y Más)", 
-  "Novicios Open (Recién empezando)", 
-  "Damas Pre Master (15 a 29 Años)", 
-  "Damas Master A (30 a 39 Años)", 
-  "Damas Master B (40 a 49 Años)", 
-  "Damas Master C (50 Años y más)", 
-  "Novicias Open (Recién empezando)", 
-  "E-Bike Open Mixto (Sin restricciones)", 
-  "Enduro Open Mixto (Horquilla 140mm+)"
-];
 
 interface EditFields {
   full_name?: string;
@@ -70,18 +54,21 @@ export default function AdminSolicitudes() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [edits, setEdits] = useState<Record<string, EditFields>>({});
   const [manualModeRows, setManualModeRows] = useState<Record<string, boolean>>({});
+  const [events, setEvents] = useState<{id: string, name: string}[]>([]);
 
   const loadData = useCallback(async () => {
     try {
-      const [reqData, clubData, riderData] = await Promise.all([
+      const [reqData, clubData, riderData, eventsData] = await Promise.all([
         getPendingRequests(),
         supabase.from('clubs').select('name').order('name'),
-        supabase.from('riders').select('rut, email')
+        supabase.from('riders').select('rut, email'),
+        supabase.from('events').select('id, name')
       ]);
 
       setRequests(reqData);
       setClubs(clubData.data ? clubData.data.map(c => c.name) : []);
       setExistingRiders(riderData.data ? riderData.data as ExistingRider[] : []);
+      setEvents(eventsData.data ? eventsData.data as {id: string, name: string}[] : []);
     } catch (error) {
       console.error("Error en la carga de datos:", error);
     } finally { setLoading(false); }
@@ -160,10 +147,13 @@ export default function AdminSolicitudes() {
     const currentData = { ...req, ...edits[req.id] };
     const isDuplicate = existingRiders.some(r => r.rut === currentData.rut);
     const racingAge = calculateRacingAge2026(currentData.birth_date);
+    
+    const eventName = events.find(e => e.id.toString() === req.event_id?.toString())?.name || 'Evento Desconocido';
 
     return {
       'RUT': currentData.rut,
       'Corredor': currentData.full_name,
+      'Evento': eventName,
       'Categoría': currentData.category,
       'Club / Team': currentData.club || 'INDEPENDIENTE',
       'Edad de Carrera': racingAge ? `${racingAge} años` : '-',

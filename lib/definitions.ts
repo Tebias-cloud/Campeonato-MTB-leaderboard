@@ -72,3 +72,29 @@ export type RankingDisplayData = {
   race_time?: string | null;
   avg_speed?: number | null;
 };
+
+// CATEGORÍAS GLOBALES CENTRALIZADAS
+export const CATEGORY_GROUPS = {
+  "Varones": [
+    "Novicios Open (Recién empezando)",
+    "Pre Master (16 a 29 Años)",
+    "Master A (30 a 39 Años)",
+    "Master B (40 a 49 Años)",
+    "Master C (50 a 59 Años)",
+    "Master D (60 Años y Más)",
+    "Elite Open"
+  ],
+  "Damas": [
+    "Novicias Open (Recién empezando)",
+    "Damas Pre Master (15 a 29 Años)",
+    "Damas Master A (30 a 39 Años)",
+    "Damas Master B (40 a 49 Años)",
+    "Damas Master C (50 Años y más)"
+  ],
+  "Mixtas": [
+    "Enduro Mixto Open",
+    "EBike Mixto Open"
+  ]
+};
+
+export const OFFICIAL_CATEGORIES = Object.values(CATEGORY_GROUPS).flat();
