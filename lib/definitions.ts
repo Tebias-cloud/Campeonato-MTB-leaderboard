@@ -76,24 +76,24 @@ export type RankingDisplayData = {
 // CATEGORÍAS GLOBALES CENTRALIZADAS
 export const CATEGORY_GROUPS = {
   "Varones": [
-    "Novicios Open (Recién empezando)",
-    "Pre Master (16 a 29 Años)",
-    "Master A (30 a 39 Años)",
-    "Master B (40 a 49 Años)",
-    "Master C (50 a 59 Años)",
-    "Master D (60 Años y Más)",
-    "Elite Open"
+    "Novicios Varones",
+    "Pre Master",
+    "Master A",
+    "Master B",
+    "Master C",
+    "Master D",
+    "Elite"
   ],
   "Damas": [
-    "Novicias Open (Recién empezando)",
-    "Damas Pre Master (15 a 29 Años)",
-    "Damas Master A (30 a 39 Años)",
-    "Damas Master B (40 a 49 Años)",
-    "Damas Master C (50 Años y más)"
+    "Novicias Damas",
+    "Damas Pre Master",
+    "Damas Master A",
+    "Damas Master B",
+    "Damas Master C"
   ],
   "Mixtas": [
-    "Enduro Mixto Open",
-    "EBike Mixto Open"
+    "Enduro Mixto",
+    "EBike Mixto"
   ]
 };
 

@@ -62,8 +62,33 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
       }
     } else {
       // INSERTAR
-      const { error: insertError } = await supabase.from('riders').insert(dataToSave);
+      const { data: newRider, error: insertError } = await supabase
+        .from('riders')
+        .insert(dataToSave)
+        .select('id')
+        .single();
+        
       error = insertError;
+
+      // ✅ AUTO-REGISTRAR AL PRÓXIMO EVENTO (Para que no quede "en el aire")
+      if (!error && newRider) {
+        const { data: upcomingEvent } = await supabase
+          .from('events')
+          .select('id')
+          .gte('date', new Date().toISOString().split('T')[0])
+          .order('date', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (upcomingEvent) {
+          await supabase.from('event_riders').insert({
+            event_id: upcomingEvent.id,
+            rider_id: newRider.id,
+            category_at_event: dataToSave.category,
+            club_at_event: dataToSave.club
+          });
+        }
+      }
     }
 
     if (error) {

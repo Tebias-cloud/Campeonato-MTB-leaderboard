@@ -122,12 +122,9 @@ export async function approveRequest(
       .limit(1)
       .maybeSingle();
 
-    if (upcomingEvent) {
-      // Si no tiene evento o el que tiene es distinto al próximo, usamos el próximo
-      if (!finalEventId || finalEventId !== upcomingEvent.id) {
-        console.log(`Asignando automáticamente al próximo evento [${upcomingEvent.id}] en lugar de [${finalEventId}]`);
-        finalEventId = upcomingEvent.id;
-      }
+    if (!finalEventId && upcomingEvent) {
+      console.log(`Asignando automáticamente al próximo evento [${upcomingEvent.id}]`);
+      finalEventId = upcomingEvent.id;
     } else if (!finalEventId) {
        // Si no hay futuros, buscamos el último creado por si acaso
        const { data: lastEvent } = await supabase.from('events').select('id').order('date', { ascending: false }).limit(1).maybeSingle();

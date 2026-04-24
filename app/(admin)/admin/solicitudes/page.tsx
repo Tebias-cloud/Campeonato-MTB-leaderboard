@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
+import { normalizeCategory } from '@/lib/utils';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "900"], variable: '--font-montserrat' });
 const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: '--font-mono' });
@@ -374,7 +375,7 @@ export default function AdminSolicitudes() {
                         <td className="p-5 align-top pt-6">
                           <select 
                             className="w-full p-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#C64928] rounded-xl font-bold text-[#1A1816] outline-none text-[11px] uppercase transition-colors shadow-sm"
-                            value={changes.category ?? req.category}
+                            value={normalizeCategory(changes.category ?? req.category)}
                             onChange={(e) => handleEdit(req.id, 'category', e.target.value)}
                           >
                             {OFFICIAL_CATEGORIES.map(c => (
