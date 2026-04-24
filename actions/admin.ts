@@ -2,6 +2,7 @@
 
 import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
+import { sendEmail, getApprovalEmailHtml } from '@/lib/email-service';
 
 // Definición estricta de tipos para TypeScript
 export interface RegistrationRequest {
@@ -76,8 +77,15 @@ export async function approveRequest(
     const finalClub = (overrides?.club || request.club || 'INDEPENDIENTE / LIBRE').trim().toUpperCase();
     const finalCiudad = (request.ciudad || 'IQUIQUE').trim().toUpperCase();
 
+    // 2.5. TAREA: Si el club es nuevo, agregarlo a la lista oficial
+    if (finalClub !== 'INDEPENDIENTE / LIBRE') {
+      // El upsert fallará silenciosamente si ya existe por el UNIQUE del nombre
+      await supabase.from('clubs').upsert({ name: finalClub }, { onConflict: 'name' });
+    }
+
     // 3. Lógica UPSERT: Si el RUT existe, actualiza; si no, inserta.
-    const { error: upsertError } = await supabase
+    // Usamos .select('id') para obtener el ID generado u original para vincular con event_riders
+    const { data: riderData, error: upsertError } = await supabase
       .from('riders')
       .upsert({
         rut: finalRut,
@@ -91,29 +99,74 @@ export async function approveRequest(
         instagram: overrides?.instagram || request.instagram,
       }, { 
         onConflict: 'rut' 
-      });
+      })
+      .select('id')
+      .single();
 
-    if (upsertError) {
+    if (upsertError || !riderData) {
       console.error('Error en UPSERT Rider:', upsertError);
       return { success: false, message: 'Error al registrar al corredor.' };
     }
 
-    // 3.5. NUEVA TAREA: Insertar ticket en registrations para el evento si corresponde
-    if (request.event_id) {
+    const riderId = riderData.id;
+
+    // 3.5. DETERMINAR EVENT_ID (Siempre buscamos la fecha más próxima para asegurar inscripción activa)
+    let finalEventId = request.event_id;
+    
+    // Buscamos el evento más cercano (hoy o futuro)
+    const { data: upcomingEvent } = await supabase
+      .from('events')
+      .select('id, date')
+      .gte('date', new Date().toISOString().split('T')[0]) // Fecha >= hoy
+      .order('date', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (upcomingEvent) {
+      // Si no tiene evento o el que tiene es distinto al próximo, usamos el próximo
+      if (!finalEventId || finalEventId !== upcomingEvent.id) {
+        console.log(`Asignando automáticamente al próximo evento [${upcomingEvent.id}] en lugar de [${finalEventId}]`);
+        finalEventId = upcomingEvent.id;
+      }
+    } else if (!finalEventId) {
+       // Si no hay futuros, buscamos el último creado por si acaso
+       const { data: lastEvent } = await supabase.from('events').select('id').order('date', { ascending: false }).limit(1).maybeSingle();
+       finalEventId = lastEvent?.id;
+    }
+
+    // 3.6. Insertar ticket en event_riders (LA VERDADERA PARTICIPACION)
+    if (finalEventId) {
+      const { error: eventRiderError } = await supabase
+        .from('event_riders')
+        .upsert({
+          event_id: finalEventId,
+          rider_id: riderId,
+          category_at_event: overrides?.category || request.category,
+          club_at_event: finalClub,
+        }, {
+          onConflict: 'event_id,rider_id'
+        });
+
+      if (eventRiderError) {
+        console.error('Error al insertar en event_riders:', eventRiderError);
+      }
+
+      // También mantenemos registrations para compatibilidad con el sistema de correos/vistas antiguas
       const { error: insertRegistrationError } = await supabase
         .from('registrations')
-        .insert({
-          event_id: request.event_id,
+        .upsert({
+          event_id: finalEventId,
           rut: finalRut,
           full_name: finalFullName,
           email: finalEmail || 'sin@correo.cl',
           category_selected: overrides?.category || request.category,
           status: 'approved'
+        }, {
+          onConflict: 'event_id,rut'
         });
 
       if (insertRegistrationError) {
         console.error('Error al insertar en registrations:', insertRegistrationError);
-        // Opcional: No retornar error aquí para no romper el flujo principal si un request huérfano no tiene el evento bien configurado, pero se loguea.
       }
     }
 
@@ -126,15 +179,28 @@ export async function approveRequest(
     if (deleteError) {
       console.error('Error al eliminar solicitud aprobada:', deleteError);
     }
+
+    // 5. ENVIAR CORREO DE APROBACIÓN (Background task)
+    const { data: eventInfo } = await supabase.from('events').select('name').eq('id', finalEventId).single();
+    if (eventInfo && finalEmail) {
+      const html = getApprovalEmailHtml(finalFullName, eventInfo.name, (overrides?.category || request.category));
+      
+      // No bloqueamos el retorno por el envío de email, pero intentamos enviarlo
+      sendEmail({
+        to: finalEmail,
+        subject: `¡Inscripción Confirmada! - ${eventInfo.name}`,
+        html
+      }).catch(e => console.error('Error enviando correo de aprobación:', e));
+    }
     
-    // 5. Revalidar todas las rutas afectadas
+    // 6. Revalidar todas las rutas afectadas (Next.js Cache)
     revalidatePath('/admin');
     revalidatePath('/admin/solicitudes');
     revalidatePath('/admin/riders');
     revalidatePath('/ranking'); 
     revalidatePath('/');
     
-    return { success: true, message: 'Rider aprobado y ranking actualizado.' };
+    return { success: true, message: 'Rider aprobado, participación registrada y correo enviado.' };
 
   } catch (error) {
     console.error('Error crítico en approveRequest:', error);

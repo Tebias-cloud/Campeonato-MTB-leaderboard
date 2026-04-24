@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { formatChileanPhone, cleanInstagramHandle } from '@/lib/utils';
+
 export type RiderState = {
   message?: string | null;
   success?: boolean;
@@ -32,8 +34,8 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
     club: finalClub, 
     ciudad: (formData.get('ciudad') as string)?.toUpperCase(),
     email: (formData.get('email') as string)?.toLowerCase() || null,
-    phone: formData.get('phone') as string || null,
-    instagram: formData.get('instagram') as string || null,
+    phone: formatChileanPhone(formData.get('phone') as string), 
+    instagram: cleanInstagramHandle(formData.get('instagram') as string),
     birth_date: (formData.get('birth_date') as string) || null,
   };
 
@@ -45,24 +47,40 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
     let error;
     if (id) {
       // ACTUALIZAR
-      const response = await supabase.from('riders').update(dataToSave).eq('id', id);
-      error = response.error;
+      const { error: updateError } = await supabase.from('riders').update(dataToSave).eq('id', id);
+      error = updateError;
+
+      // ✅ SINCRONIZAR CATEGORÍA Y CLUB EN PARTICIPACIONES ACTIVAS
+      // Si actualizamos el perfil, queremos que sus inscripciones actuales reflejen el cambio
+      if (!error) {
+        await supabase.from('event_riders')
+          .update({ 
+            category_at_event: dataToSave.category,
+            club_at_event: dataToSave.club 
+          })
+          .eq('rider_id', id);
+      }
     } else {
       // INSERTAR
-      const response = await supabase.from('riders').insert(dataToSave);
-      error = response.error;
+      const { error: insertError } = await supabase.from('riders').insert(dataToSave);
+      error = insertError;
     }
 
     if (error) {
-      console.error('Error DB:', error);
+      console.error('Error DB Rider:', error);
       if (error.code === '23505') {
-        return { message: 'Error: Ya existe un corredor con ese RUT.', success: false, timestamp: Date.now() };
+        return { 
+          message: 'Error: El RUT ' + dataToSave.rut + ' ya está registrado con otro corredor.', 
+          success: false, 
+          timestamp: Date.now() 
+        };
       }
-      return { message: 'Error al guardar: ' + error.message, success: false, timestamp: Date.now() };
+      return { message: 'Error de Database: ' + error.message, success: false, timestamp: Date.now() };
     }
 
-  } catch (e) {
-    return { message: 'Error inesperado en el servidor.', success: false, timestamp: Date.now() };
+  } catch (e: any) {
+    console.error('Error Crítico saveRider:', e);
+    return { message: 'Error de servidor: ' + (e.message || 'Desconocido'), success: false, timestamp: Date.now() };
   }
 
   // Limpiar caché para que los cambios se vean al instante
@@ -74,15 +92,22 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
   redirect('/admin/riders');
 }
 
-// --- FUNCIÓN PARA ELIMINAR ---
+// --- FUNCIÓN PARA ELIMINAR CON LIMPIEZA PROFUNDA ---
 export async function deleteRider(id: string) {
   let isDeleted = false;
   try {
+    // 1. Limpiar participaciones en eventos
+    await supabase.from('event_riders').delete().eq('rider_id', id);
+    
+    // 2. Limpiar resultados históricos
+    await supabase.from('results').delete().eq('rider_id', id);
+
+    // 3. Finalmente borrar al corredor
     const { error } = await supabase.from('riders').delete().eq('id', id);
 
     if (error) {
-      console.error('Error eliminando:', error);
-      return { message: 'Error al eliminar.', success: false };
+      console.error('Error eliminando corredor:', error);
+      return { message: 'Error al eliminar el perfil principal.', success: false };
     }
 
     revalidatePath('/admin/riders');
@@ -91,7 +116,8 @@ export async function deleteRider(id: string) {
     isDeleted = true;
     
   } catch (error) {
-    return { message: 'Error inesperado.', success: false };
+    console.error('Error inesperado en deleteRider:', error);
+    return { message: 'Error de integridad en la base de datos.', success: false };
   }
   
   if (isDeleted) {

@@ -20,6 +20,7 @@ export default async function ResultsPage({
   const { data: events } = await supabase.from('events').select('*').order('date', { ascending: true }).returns<Event[]>();
   const { data: riders } = await supabase.from('riders').select('*').order('full_name', { ascending: true }).returns<Rider[]>();
   const { data: results, error } = await supabase.from('results').select('*').order('created_at', { ascending: false }).returns<RawResult[]>();
+  const { data: eventRiders } = await supabase.from('event_riders').select('*, riders(full_name)');
 
   if (error) console.error("Error fetching results:", error);
 
@@ -44,9 +45,14 @@ export default async function ResultsPage({
         </div>
       </header>
       
-      <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 -mt-16 relative">
          <div className="bg-[#EFE6D5] rounded-3xl p-4 md:p-8 shadow-2xl border border-white/10 text-[#1A1816]">
-             <ResultManager events={events || []} riders={riders || []} existingResults={results || []} />
+             <ResultManager 
+                events={events || []} 
+                riders={riders || []} 
+                existingResults={results || []} 
+                eventRiders={eventRiders || []}
+             />
          </div>
       </div>
     </main>

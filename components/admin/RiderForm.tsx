@@ -4,6 +4,7 @@ import { useActionState, useState, useEffect } from 'react';
 import { saveRider, deleteRider } from '@/actions/riders';
 import { Rider } from '@/lib/definitions';
 import { supabase } from '@/lib/supabase';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 
 // Función para calcular la edad al 31 de diciembre de 2026 (Edad de competición UCI)
 const calculateRacingAge2026 = (birthDateStr?: string) => {
@@ -29,21 +30,75 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
   // EFECTO ESTABILIZADO: Carga la lista de clubes y detecta si el club es manual
   useEffect(() => {
     const fetchClubs = async () => {
-      const { data } = await supabase.from('clubs').select('name').order('name');
-      if (data) {
-        const names = data.map(c => c.name);
-        setClubsList(names);
+      const [clubsData, ridersData] = await Promise.all([
+        supabase.from('clubs').select('name'),
+        supabase.from('riders').select('club')
+      ]);
+
+      if (clubsData.data) {
+        // Contar ocurrencias para ordenar por popularidad
+        const counts: Record<string, number> = {};
+        ridersData.data?.forEach(r => {
+          if (r.club) {
+            const name = r.club.trim().toUpperCase();
+            counts[name] = (counts[name] || 0) + 1;
+          }
+        });
+
+        // Asegurar que la lista sea de valores ÚNICOS y en MAYÚSCULAS
+        const rawClubNames = (clubsData.data || []).map(c => c.name.trim().toUpperCase());
+        const uniqueClubs = Array.from(new Set(rawClubNames));
+        
+        const sorted = uniqueClubs.sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+
+        setClubsList(sorted);
         
         // Si el rider tiene un club que NO está en la lista oficial, activar modo manual
-        if (initialData?.club && 
-            initialData.club !== 'INDEPENDIENTE / LIBRE' && 
-            !names.includes(initialData.club)) {
-          setIsManualClub(true);
+        if (initialData?.club) {
+          const riderClubFull = initialData.club.trim().toUpperCase();
+          if (riderClubFull !== 'INDEPENDIENTE / LIBRE' && !sorted.includes(riderClubFull)) {
+            setIsManualClub(true);
+            setClub(riderClubFull);
+          }
         }
       }
     };
     fetchClubs();
   }, [initialData]); 
+
+  const [rutError, setRutError] = useState<string | null>(null);
+
+  // EFECTO: Validación de RUT duplicado en tiempo real
+  useEffect(() => {
+    const checkDuplicateRut = async () => {
+      // Solo chequeamos si el RUT está completo (mínimo 8 caracteres formateados)
+      if (rut.length < 8) {
+        setRutError(null);
+        return;
+      }
+      
+      // Si estamos editando y el RUT no ha cambiado, no avisar
+      if (initialData?.id && rut === initialData.rut) {
+        setRutError(null);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('riders')
+        .select('id, full_name')
+        .eq('rut', rut)
+        .maybeSingle();
+
+      if (data) {
+        setRutError(`⚠️ RUT registrado a: ${data.full_name}`);
+      } else {
+        setRutError(null);
+      }
+    };
+
+    const timer = setTimeout(checkDuplicateRut, 500);
+    return () => clearTimeout(timer);
+  }, [rut, initialData]);
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/[^0-9kK]/g, '');
@@ -58,6 +113,7 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
       setRut(value);
     }
   };
+    
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
@@ -93,7 +149,8 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>RUT *</label>
-                <input name="rut" value={rut} onChange={handleRutChange} required className={`${inputClass} font-mono`} />
+                <input name="rut" value={rut} onChange={handleRutChange} required className={`${inputClass} font-mono ${rutError ? 'border-orange-500 bg-orange-50' : ''}`} />
+                {rutError && <p className="text-[10px] font-black text-orange-600 mt-1 animate-pulse tracking-tight">{rutError}</p>}
               </div>
               <div className="relative">
                 <label className={labelClass}>Nacimiento *</label>
@@ -125,24 +182,19 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
               <select name="category" defaultValue={initialData?.category || ''} required className={inputClass}>
                 <option value="" disabled>SELECCIONAR CATEGORÍA</option>
                 <optgroup label="VARONES">
-                  <option value="Novicios Open">Novicios Open</option>
-                  <option value="Elite Open">Elite Open</option>
-                  <option value="Pre Master">Pre Master (16-29)</option>
-                  <option value="Master A">Master A (30-39)</option>
-                  <option value="Master B">Master B (40-49)</option>
-                  <option value="Master C">Master C (50-59)</option>
-                  <option value="Master D">Master D (60+)</option>
+                  {OFFICIAL_CATEGORIES.filter(c => c.group === 'VARONES').map(c => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
                 </optgroup>
                 <optgroup label="DAMAS">
-                  <option value="Novicias Open">Novicias Open</option>
-                  <option value="Damas Pre Master">Damas Pre Master (15-29)</option>
-                  <option value="Damas Master A">Damas Master A (30-39)</option>
-                  <option value="Damas Master B">Damas Master B (40-49)</option>
-                  <option value="Damas Master C">Damas Master C (50+)</option>
+                  {OFFICIAL_CATEGORIES.filter(c => c.group === 'DAMAS').map(c => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
                 </optgroup>
                 <optgroup label="MIXTAS">
-                  <option value="Enduro Mixto Open">Enduro Open Mixto</option>
-                  <option value="EBike Mixto Open">E-Bike Open Mixto</option>
+                  {OFFICIAL_CATEGORIES.filter(c => c.group === 'MIXTAS').map(c => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
                 </optgroup>
               </select>
             </div>
@@ -205,7 +257,8 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
             </div>
             <div>
               <label className={labelClass}>Teléfono</label>
-              <input name="phone" defaultValue={initialData?.phone || ''} className={inputClass} placeholder="TELÉFONO" />
+              <input name="phone" defaultValue={initialData?.phone || ''} className={inputClass} placeholder="9 1234 5678" />
+              <p className="text-[9px] text-slate-400 mt-1 font-bold italic">Se normaliza automáticamente a +56 9...</p>
             </div>
             <div>
               <label className={labelClass}>Email</label>

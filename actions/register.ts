@@ -1,9 +1,9 @@
-// actions/register.ts
 'use server'
 
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
-import nodemailer from 'nodemailer';
+import { formatChileanPhone, cleanInstagramHandle } from '@/lib/utils';
+import { sendEmail } from '@/lib/email-service';
 
 export type RegisterState = {
   message: string | null;
@@ -12,20 +12,11 @@ export type RegisterState = {
   timestamp?: number;
 }
 
-// Interfaz para leer el JSON de configuración de forma segura
 interface EventFormConfig {
   categories?: string[];
   payment_contact?: string;
   poster_url?: string;
 }
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export async function submitRegistration(prevState: RegisterState, formData: FormData): Promise<RegisterState> {
   const timestamp = Date.now();
@@ -65,11 +56,11 @@ export async function submitRegistration(prevState: RegisterState, formData: For
         full_name,
         rut,
         category,
-        phone: rawData.phone || null,
+        phone: formatChileanPhone(rawData.phone),
         birth_date: rawData.birth_date || null,
         ciudad: rawData.ciudad?.toUpperCase() || null,
         club: rawData.club?.toUpperCase() || null,
-        instagram: rawData.instagram || null,
+        instagram: cleanInstagramHandle(rawData.instagram),
         additional_data,
         status: 'pending',
         terms_accepted: true
@@ -80,11 +71,10 @@ export async function submitRegistration(prevState: RegisterState, formData: For
       return { success: false, message: msg, fields: rawData, timestamp };
     }
 
+    // ENVIAR EMAIL DE PAGO PENDIENTE
     try {
       const { data: eventInfo } = await supabase.from('events').select('*').eq('id', event_id).single();
-      
       const config = eventInfo?.form_config as EventFormConfig | null;
-      // Usamos el contacto del admin o el oficial del sistema
       const paymentContact = config?.payment_contact || process.env.EMAIL_USER;
 
       const emailHtml = `
@@ -126,9 +116,7 @@ export async function submitRegistration(prevState: RegisterState, formData: For
       </div>
       `;
 
-      await transporter.sendMail({
-        // ✅ REMITENTE ACTUALIZADO
-        from: `"Campeonato MTB Tarapacá" <${process.env.EMAIL_USER}>`,
+      await sendEmail({
         to: email,
         subject: `Pago pendiente: ${eventInfo?.name || 'Inscripción MTB'}`,
         html: emailHtml

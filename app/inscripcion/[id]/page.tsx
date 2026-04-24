@@ -1,33 +1,17 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef } from 'react';
+import { useActionState, useState, useEffect, useRef, use } from 'react';
 import { submitRegistration, type RegisterState } from '@/actions/register';
 import { Teko, Montserrat } from "next/font/google";
 import { supabase } from '@/lib/supabase';
 import { Event } from '@/lib/definitions';
 import Link from 'next/link';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-montserrat' });
 
 const initialState: RegisterState = { message: null, success: false, fields: {} };
-
-const BACKUP_CATEGORIES = [
-  "Elite Open", 
-  "Pre Master (16 a 29 Años)", 
-  "Master A (30 a 39 Años)", 
-  "Master B (40 a 49 Años)", 
-  "Master C (50 a 59 Años)", 
-  "Master D (60 Años y Más)", 
-  "Novicios Open (Recién empezando)", 
-  "Damas Pre Master (15 a 29 Años)", 
-  "Damas Master A (30 a 39 Años)", 
-  "Damas Master B (40 a 49 Años)", 
-  "Damas Master C (50 Años y más)", 
-  "Novicias Open (Recién empezando)", 
-  "E-Bike Open Mixto (Sin restricciones)", 
-  "Enduro Open Mixto (Horquilla 140mm+)"
-];
 
 interface EventFormConfig {
   categories?: string[];
@@ -39,9 +23,10 @@ interface CustomEvent extends Omit<Event, 'form_config'> {
   form_config: EventFormConfig | null;
 }
 
-export default function InscripcionPage() {
+export default function InscripcionPage({ params }: { params: Promise<{ id: string }> }) {
   const [state, formAction, isPending] = useActionState(submitRegistration, initialState);
-  
+  const { id: eventIdFromUrl } = use(params);
+
   const [formValues, setFormValues] = useState({
     email: '', full_name: '', rut: '', club: 'INDEPENDIENTE / LIBRE',
     ciudad: '', phone: '', birth_date: '', category_selected: '', instagram: ''
@@ -64,13 +49,40 @@ export default function InscripcionPage() {
   useEffect(() => {
     const fetchData = async () => {
       const hoy = new Date().toISOString().split('T')[0];
-      const { data: eventData } = await supabase
-        .from('events').select('*').eq('status', 'pending').gte('date', hoy).order('date', { ascending: true }).limit(1).single();
 
-      if (eventData) setEvent(eventData as CustomEvent);
+      // Búsqueda inteligente: Por ID de URL o por el próximo evento pendiente
+      let eventQuery = supabase.from('events').select('*');
       
-      const { data: clubsData } = await supabase.from('clubs').select('name').order('name');
-      if (clubsData) setClubsList(clubsData.map(c => c.name));
+      if (eventIdFromUrl) {
+        eventQuery = eventQuery.eq('id', eventIdFromUrl);
+      } else {
+        eventQuery = eventQuery.eq('status', 'pending').order('date', { ascending: true }).limit(1);
+      }
+
+      const [evtData, clubsData, ridersData] = await Promise.all([
+        eventQuery.single(),
+        supabase.from('clubs').select('name'),
+        supabase.from('riders').select('club')
+      ]);
+
+      if (evtData.data) setEvent(evtData.data as CustomEvent);
+      
+      // Calcular popularidad para ordenar los clubes (Normalizado a Mayúsculas)
+      const counts: Record<string, number> = {};
+      ridersData.data?.forEach(r => {
+        if (r.club) {
+          const name = r.club.trim().toUpperCase();
+          counts[name] = (counts[name] || 0) + 1;
+        }
+      });
+
+      // 3. Procesar lista de clubes única y ordenada por popularidad
+      const rawClubNames = (clubsData.data || []).map(c => c.name.trim().toUpperCase());
+      const uniqueClubs = Array.from(new Set(rawClubNames));
+      
+      const sorted = uniqueClubs.sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+
+      setClubsList(sorted);
       setLoading(false);
     };
     fetchData();
@@ -162,7 +174,6 @@ export default function InscripcionPage() {
     );
   }
 
-  const categories = event.form_config?.categories ?? BACKUP_CATEGORIES;
   const contactInfo = event.form_config?.payment_contact ?? 'No especificado (Consulta a la organización)';
   const posterUrl = event.form_config?.poster_url;
 
@@ -201,6 +212,7 @@ export default function InscripcionPage() {
         </div>
 
         <form action={handleSubmitWrapper} ref={formRef} noValidate className="space-y-8">
+            <input type="hidden" name="event_id" value={event.id || ''} />
             
             {/* 1. INFORMACIÓN DE PAGO (DISEÑO TIPO TICKET LIMPIO) */}
             <div className="bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
@@ -320,7 +332,11 @@ export default function InscripcionPage() {
                         <label className={labelClass}>Categoría Oficial *</label>
                         <select name="category_selected" value={formValues.category_selected} onChange={handleChange} className={inputClass('category_selected')} required>
                             <option value="" disabled>-- Selecciona tu categoría --</option>
-                            {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
+                            {OFFICIAL_CATEGORIES.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.label} {c.description ? `(${c.description})` : ''}
+                              </option>
+                            ))}
                         </select>
                     </div>
                 </div>

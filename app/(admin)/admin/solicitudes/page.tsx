@@ -11,7 +11,7 @@ import { Montserrat, Roboto_Mono, Teko } from "next/font/google";
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
-import { OFFICIAL_CATEGORIES } from '@/lib/definitions';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "900"], variable: '--font-montserrat' });
 const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: '--font-mono' });
@@ -60,13 +60,28 @@ export default function AdminSolicitudes() {
     try {
       const [reqData, clubData, riderData, eventsData] = await Promise.all([
         getPendingRequests(),
-        supabase.from('clubs').select('name').order('name'),
-        supabase.from('riders').select('rut, email'),
+        supabase.from('clubs').select('name'),
+        supabase.from('riders').select('rut, email, club'),
         supabase.from('events').select('id, name')
       ]);
 
       setRequests(reqData);
-      setClubs(clubData.data ? clubData.data.map(c => c.name) : []);
+      
+      // Calcular popularidad de los clubs basado en los riders actuales (Mayúsculas)
+      const counts: Record<string, number> = {};
+      riderData.data?.forEach(r => {
+        if (r.club) {
+          const name = r.club.trim().toUpperCase();
+          counts[name] = (counts[name] || 0) + 1;
+        }
+      });
+
+      const rawClubNames = (clubData.data || []).map(c => c.name.trim().toUpperCase());
+      const uniqueClubs = Array.from(new Set(rawClubNames));
+
+      const sortedClubs = uniqueClubs.sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+
+      setClubs(sortedClubs);
       setExistingRiders(riderData.data ? riderData.data as ExistingRider[] : []);
       setEvents(eventsData.data ? eventsData.data as {id: string, name: string}[] : []);
     } catch (error) {
@@ -150,16 +165,29 @@ export default function AdminSolicitudes() {
     
     const eventName = events.find(e => e.id.toString() === req.event_id?.toString())?.name || 'Evento Desconocido';
 
+    // Limpieza de RUT
+    const cleanRut = (currentData.rut || '').replace(/\./g, '').replace(/-/g, '').toUpperCase();
+    let formattedRut = cleanRut;
+    if (cleanRut.length > 1) {
+      const body = cleanRut.slice(0, -1);
+      const dv = cleanRut.slice(-1);
+      formattedRut = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + dv;
+    }
+
+    // Limpieza de Teléfono
+    const cleanPhone = (currentData.phone || '').replace(/\D/g, '');
+    const formattedPhone = cleanPhone ? (cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`) : '-';
+
     return {
-      'RUT': currentData.rut,
-      'Corredor': currentData.full_name,
-      'Evento': eventName,
-      'Categoría': currentData.category,
-      'Club / Team': currentData.club || 'INDEPENDIENTE',
+      'RUT': formattedRut,
+      'Corredor': (currentData.full_name || '').toUpperCase(),
+      'Evento': eventName.toUpperCase(),
+      'Categoría': (currentData.category || '').toUpperCase(),
+      'Club / Team': (currentData.club || 'INDEPENDIENTE').toUpperCase(),
       'Edad de Carrera': racingAge ? `${racingAge} años` : '-',
       'F. Nacimiento': formatDate(currentData.birth_date),
-      'Teléfono': currentData.phone || '-',
-      'Email': currentData.email || '-',
+      'Teléfono': formattedPhone,
+      'Email': (currentData.email || '-').toLowerCase(),
       'Instagram': currentData.instagram ? `@${currentData.instagram.replace('@', '')}` : '-',
       'Estado': isDuplicate ? 'Rider Frecuente (Ya existe)' : 'Nuevo Registro',
       'Fecha Solicitud': formatDate(currentData.created_at)
@@ -194,7 +222,7 @@ export default function AdminSolicitudes() {
         </div>
       </header>
 
-      <div className="max-w-[95rem] mx-auto px-4 -mt-12 relative z-20">
+      <div className="max-w-[95rem] mx-auto px-4 -mt-12 relative">
         
         {requests.length > 0 && (
           <div className="space-y-3 mb-6">
@@ -306,25 +334,39 @@ export default function AdminSolicitudes() {
 
                         <td className="p-5 align-top pt-6">
                           {isManual ? (
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="text"
-                                className="w-full p-3 bg-white border-2 border-[#C64928] rounded-xl font-black text-[#C64928] uppercase outline-none text-xs transition-all shadow-sm"
-                                value={currentClub}
-                                onChange={(e) => handleEdit(req.id, 'club', e.target.value)}
-                                placeholder="Escribe el Club..."
-                              />
-                              <button onClick={() => revertToListMode(req.id)} className="p-3 bg-slate-200 hover:bg-[#1A1816] hover:text-white text-slate-600 rounded-xl font-black text-xs transition-colors" title="Cancelar Entrada Manual">X</button>
+                            <div className="flex flex-col gap-1 pr-2 animate-in fade-in slide-in-from-right-2 duration-300">
+                              <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
+                                  <input 
+                                    type="text"
+                                    className="w-full p-3 bg-white border-2 border-emerald-400 focus:border-emerald-500 rounded-xl font-black text-emerald-700 uppercase outline-none text-[11px] transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                                    value={currentClub}
+                                    onChange={(e) => handleEdit(req.id, 'club', e.target.value)}
+                                    placeholder="Escribe el Club..."
+                                  />
+                                  <div className="absolute -right-1 -top-1">
+                                    <span className="flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                    </span>
+                                  </div>
+                                </div>
+                                <button onClick={() => revertToListMode(req.id)} className="p-3 bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-400 rounded-xl font-black text-xs transition-colors shadow-sm" title="Regresar a la lista">X</button>
+                              </div>
+                              <div className="flex items-center justify-between px-1 mt-1">
+                                <span className="text-emerald-600 font-black text-[9px] uppercase tracking-tighter">✨ Nuevo Club Detectado</span>
+                                <span className="text-[8px] text-slate-400 font-bold italic">Se autoguardará al aprobar</span>
+                              </div>
                             </div>
                           ) : (
                             <select 
-                              className="w-full p-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-[#C64928] rounded-xl font-black text-[#1A1816] outline-none cursor-pointer uppercase text-xs transition-colors shadow-sm"
+                              className="w-full p-3 bg-slate-50 border-2 border-slate-200 hover:border-slate-300 focus:border-emerald-500 rounded-xl font-black text-[#1A1816] outline-none cursor-pointer uppercase text-xs transition-colors shadow-sm"
                               value={currentClub}
                               onChange={(e) => handleClubChange(req.id, e.target.value)}
                             >
                               <option value="INDEPENDIENTE / LIBRE">INDEPENDIENTE / LIBRE</option>
                               {clubs.map(c => <option key={c} value={c}>{c}</option>)}
-                              <option value="__MANUAL_MODE__" className="font-black text-[#C64928]">➕ INGRESAR NUEVO CLUB...</option>
+                              <option value="__MANUAL_MODE__" className="font-black text-emerald-600">➕ REGISTRAR NUEVO CLUB...</option>
                             </select>
                           )}
                         </td>
@@ -335,8 +377,9 @@ export default function AdminSolicitudes() {
                             value={changes.category ?? req.category}
                             onChange={(e) => handleEdit(req.id, 'category', e.target.value)}
                           >
-                            <option value={req.category} className="hidden">{req.category}</option>
-                            {OFFICIAL_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                            {OFFICIAL_CATEGORIES.map(c => (
+                              <option key={c.id} value={c.id}>{c.label}</option>
+                            ))}
                           </select>
                         </td>
 

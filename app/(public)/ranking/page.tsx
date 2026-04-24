@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Teko, Montserrat } from "next/font/google";
 import { Event } from '@/lib/definitions';
+import { normalizeCategory } from '@/lib/utils';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
@@ -102,7 +104,7 @@ export default async function RankingFull(props: Props) {
     rankingData = data?.map(item => ({
       rider_id: item.rider_id,
       full_name: item.full_name,
-      category_shown: item.category, 
+      category_shown: normalizeCategory(item.category), 
       club: item.club,
       city: item.ciudad,
       club_logo: item.club_logo || null,
@@ -153,7 +155,7 @@ export default async function RankingFull(props: Props) {
     rankingData = typedData?.map((item) => ({
       rider_id: item.rider_id,
       full_name: item.riders?.full_name || 'Corredor Desconocido',
-      category_shown: item.category_played,
+      category_shown: normalizeCategory(item.category_played),
       club: item.riders?.club || null,
       city: item.riders?.ciudad || null,
       club_logo: null,
@@ -166,24 +168,8 @@ export default async function RankingFull(props: Props) {
     })) || [];
   }
 
-  // --- AQUÍ ESTÁN LAS CORRECCIONES ---
-  const categories = [
-    'Todas',
-    'Novicios Open', 
-    'Elite Open', 
-    'Pre Master', 
-    'Master A', 
-    'Master B', 
-    'Master C', 
-    'Master D',
-    'Novicias Open',
-    'Damas Pre Master', 
-    'Damas Master A', 
-    'Damas Master B',
-    'Damas Master C', 
-    'Enduro Mixto Open', 
-    'EBike Mixto Open'
-  ];
+  // --- CATEGORÍAS UNIFICADAS ---
+  const categories = ['Todas', ...OFFICIAL_CATEGORIES.map(c => c.id)];
 
   const buildUrl = (newCategory?: string, newEventId?: string) => {
       const cat = newCategory || categoryFilter;
@@ -298,13 +284,7 @@ export default async function RankingFull(props: Props) {
         {/* FILTROS DE CATEGORÍA */}
         <div className="flex justify-center gap-2 flex-wrap px-2 pt-2">
             {categories.map((cat) => {
-                let displayName = cat;
-                if (cat === 'Novicios Open') displayName = 'Novicios';
-                if (cat === 'Novicias Open') displayName = 'Novicias';
-                if (cat === 'Elite Open') displayName = 'Elite';
-                if (cat === 'Enduro Mixto Open') displayName = 'Enduro';
-                if (cat === 'EBike Mixto Open') displayName = 'E-Bike';
-                displayName = displayName.replace('Damas', 'D.');
+                const displayName = cat.replace('Damas', 'D.');
 
                 return (
                     <Link key={cat} href={buildUrl(cat, undefined)} scroll={false} className={`px-5 py-1.5 rounded-sm font-bold uppercase text-[10px] md:text-xs tracking-wider shadow-sm transition-all transform -skew-x-12 border ${categoryFilter === cat ? 'bg-[#292725] text-white border-[#C64928] border-b-4 scale-105 shadow-md' : 'bg-white text-[#1A1816] border-white hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5'}`}>

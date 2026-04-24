@@ -1,10 +1,9 @@
 'use client';
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
-import { CATEGORY_GROUPS } from '@/lib/definitions';
+import { CATEGORY_GROUPS } from '@/lib/categories';
 
-function FiltersContent({
+export default function RiderFilters({
   events = []
 }: {
   events?: { id: string | number; name: string; date?: string }[]
@@ -16,40 +15,29 @@ function FiltersContent({
   // Función para actualizar la URL (Buscador)
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
-    if (term) {
-      params.set('query', term);
-    } else {
-      params.delete('query');
-    }
+    if (term) params.set('query', term);
+    else params.delete('query');
     replace(`${pathname}?${params.toString()}`);
   };
 
   // Función para actualizar la URL (Evento)
   const handleEvent = (eventId: string) => {
     const params = new URLSearchParams(searchParams);
-    if (eventId && eventId !== 'all') {
-      params.set('eventId', eventId);
-    } else {
-      params.delete('eventId');
-    }
+    if (eventId && eventId !== 'all') params.set('eventId', eventId);
+    else params.delete('eventId');
     replace(`${pathname}?${params.toString()}`);
   };
 
   // Función para actualizar la URL (Categoría)
   const handleCategory = (category: string) => {
     const params = new URLSearchParams(searchParams);
-    if (category && category !== 'Todas') {
-      params.set('category', category);
-    } else {
-      params.delete('category');
-    }
+    if (category && category !== 'Todas') params.set('category', category);
+    else params.delete('category');
     replace(`${pathname}?${params.toString()}`);
   };
 
   return (
     <div className="flex flex-col md:flex-row gap-4 items-center w-full">
-      
-      {/* BUSCADOR DE TEXTO */}
       <div className="flex-1">
         <input
           type="text"
@@ -60,7 +48,6 @@ function FiltersContent({
         />
       </div>
 
-      {/* FILTRO DE EVENTO */}
       <div className="w-full md:w-1/4">
         <select
           className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-[#C64928] shadow-sm appearance-none cursor-pointer"
@@ -69,14 +56,11 @@ function FiltersContent({
         >
           <option value="all">Todos los Eventos</option>
           {events.map((event) => (
-            <option key={event.id} value={event.id}>
-              {event.name}
-            </option>
+            <option key={event.id} value={event.id}>{event.name}</option>
           ))}
         </select>
       </div>
 
-      {/* FILTRO DE CATEGORÍA - CORREGIDO */}
       <div className="w-full md:w-1/4">
         <select
           className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-[#C64928] shadow-sm appearance-none cursor-pointer"
@@ -84,28 +68,15 @@ function FiltersContent({
           defaultValue={searchParams.get('category')?.toString() || 'Todas'}
         >
           <option value="Todas">Todas las Categorías</option>
-          
           {Object.entries(CATEGORY_GROUPS).map(([groupName, categories]) => (
-            <optgroup key={groupName} label={groupName}>
+            <optgroup key={groupName} label={groupName.toUpperCase()}>
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat.id} value={cat.id}>{cat.label}</option>
               ))}
             </optgroup>
           ))}
         </select>
       </div>
     </div>
-  );
-}
-
-export default function RiderFilters({
-  events = []
-}: {
-  events?: { id: string | number; name: string; date?: string }[]
-}) {
-  return (
-    <Suspense fallback={<div className="animate-pulse h-14 bg-slate-100 rounded-xl w-full"></div>}>
-      <FiltersContent events={events} />
-    </Suspense>
   );
 }

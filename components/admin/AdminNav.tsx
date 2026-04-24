@@ -1,10 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminNav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    if (confirm('¿Cerrar sesión administrativa?')) {
+      await supabase.auth.signOut();
+      router.push('/login');
+    }
+  };
 
   const isActive = (path: string) => {
     if (path === '/admin' && pathname === '/admin') return true;
@@ -88,15 +97,17 @@ export default function AdminNav() {
 
             <div className="w-[1px] h-8 md:h-10 bg-white/10 mx-1 md:mx-2 flex-shrink-0"></div>
             
-            <Link href="/" className="flex flex-col items-center justify-center text-[#C64928] hover:text-red-500 transition-all px-2 md:px-4 group flex-shrink-0">
+            <button 
+                onClick={handleLogout}
+                className="flex flex-col items-center justify-center text-[#C64928] hover:text-red-500 transition-all px-2 md:px-4 group flex-shrink-0"
+            >
                 <div className="p-2 md:p-2.5 group-active:scale-90 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                 </div>
-                {/* Ocultamos "Salir" en móvil a menos que pasen el dedo, en PC se ve opaco */}
                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest mt-1 opacity-0 max-h-0 md:max-h-4 md:opacity-30 md:group-hover:opacity-100 transition-all overflow-hidden">
                     Salir
                 </span>
-            </Link>
+            </button>
 
         </div>
       </div>
