@@ -1,39 +1,64 @@
 # 🚵‍♂️ Campeonato MTB Tarapacá - Plataforma de Gestión y Leaderboard
 
-Plataforma integral desarrollada para la gestión de inscripciones, administración de eventos y visualización en tiempo real del ranking del Campeonato MTB Tarapacá. Construida con tecnologías modernas para asegurar escalabilidad, seguridad y una experiencia de usuario premium (tanto para corredores como para administradores).
+Plataforma integral desarrollada para la gestión de inscripciones, administración de eventos y visualización en tiempo real del ranking del Campeonato MTB Tarapacá. 
 
 ## 🚀 Tecnologías Principales (Tech Stack)
 
-* **Framework Frontend/Backend:** [Next.js 15](https://nextjs.org/) (App Router)
-* **Lenguaje:** [TypeScript](https://www.typescriptlang.org/) (Estricto tipado en todo el proyecto)
-* **Base de Datos & Auth:** [Supabase](https://supabase.com/) (PostgreSQL)
-* **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
-* **Manejo de Formularios/Acciones:** React Server Actions (`'use server'`)
-* **Correos Transaccionales:** [Nodemailer](https://nodemailer.com/) (Envío de correos automáticos al inscribirse)
-* **Tipografía:** Google Fonts (`Teko` para encabezados racing, `Montserrat` para lectura clara)
+* **Framework:** [Next.js 15](https://nextjs.org/) (App Router & Server Actions)
+* **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
+* **Base de Datos:** [Supabase](https://supabase.com/) (PostgreSQL)
+* **Estilos:** Tailwind CSS 
+* **Correos:** Nodemailer (Gmail App Passwords)
 
 ---
 
-## 📂 Estructura del Proyecto
+## 📂 Estructura y Flujo de Datos
 
-El proyecto sigue la estructura recomendada del App Router de Next.js:
+### 1. Inscripción y Validación
+*   **Público:** Los corredores se inscriben en el formulario dinámico.
+*   **Bandeja de Entrada:** Las solicitudes llegan a "Solicitudes Pendientes".
+*   **Aprobación:** Al aprobar, se crea/actualiza el registro en la tabla `riders` (histórico) y se crea un ticket en `event_riders` (participación actual).
 
-```bash
-├── actions/             # Lógica de servidor (Server Actions). El "Backend" de la app.
-│   ├── admin.ts         # Acciones de administrador (Aprobar, rechazar, exportar)
-│   ├── events.ts        # Gestión de las carreras (Crear, editar, subir afiches)
-│   └── register.ts      # Procesamiento de inscripciones públicas y envío de correos
-├── app/                 # Rutas de la aplicación (Frontend)
-│   ├── admin/           # Zona segura (Panel de control del administrador)
-│   │   ├── events/      # Creador/Editor de fechas de campeonato
-│   │   ├── resultados/  # Panel de carga de tiempos para el juez
-│   │   ├── riders/      # Base de datos histórica de corredores
-│   │   └── solicitudes/ # Bandeja de entrada de inscripciones (Para validar pagos)
-│   ├── inscripcion/[id]/# Formulario público de inscripción por evento
-│   ├── login/           # Acceso de administrador
-│   └── page.tsx         # Landing Page: Ranking Oficial en Vivo
-├── components/          # Componentes de React reutilizables (Botones, Modales, Tablas)
-├── lib/                 # Utilidades y configuración
-│   ├── definitions.ts   # Interfaces y Tipos de TypeScript (Modelos de BD)
-│   └── supabase.ts      # Cliente de conexión a Supabase
-└── public/              # Archivos estáticos (Imágenes, logos)
+### 2. Gestión de Dorsales
+*   **Dorsal por Evento:** El sistema permite asignar números de placa específicos para cada carrera.
+*   **Asignación Masiva:** Herramienta que ordena por nombre y asigna correlativos saltando números ya ocupados automáticamente.
+
+### 3. Cronometraje y Resultados
+*   **Importación RaceTime:** El sistema procesa texto copiado desde RaceTime o PDFs escaneados.
+*   **Cruce de Datos:** Vincula automáticamente `Dorsal -> Corredor` usando la base de datos de inscritos.
+*   **Ranking:** Calcula puntos por posición (100, 90, 80...) y actualiza el Ranking Global instantáneamente.
+
+---
+
+## 🛠️ Instalación y Desarrollo
+
+1.  **Clonar el repo e instalar dependencias:**
+    ```bash
+    npm install
+    ```
+2.  **Configurar Variables de Entorno:**
+    Crea un archivo `.env.local` con las siguientes llaves:
+    *   `NEXT_PUBLIC_SUPABASE_URL`
+    *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    *   `SUPABASE_SERVICE_ROLE_KEY`
+    *   `EMAIL_USER` (Cuenta Gmail para envíos)
+    *   `EMAIL_PASS` (App Password de Gmail)
+
+3.  **Ejecutar en desarrollo:**
+    ```bash
+    npm run dev
+    ```
+
+---
+
+## 🧪 Herramientas de Mantenimiento
+
+He incluido scripts robustos para asegurar la salud del sistema:
+*   `npm run build`: Verifica que el código esté listo para producción sin errores.
+*   `node scripts/verify-integrity.js`: Chequea que no existan datos huérfanos en la base de datos.
+*   `tsx scripts/full-race-simulation.ts`: Simula una carrera completa para probar la lógica de puntos.
+
+---
+
+## 📖 Manual de Usuario
+Para instrucciones detalladas sobre el uso del panel administrativo, consulta el [Manual del Administrador](MANUAL_ADMIN.md).
