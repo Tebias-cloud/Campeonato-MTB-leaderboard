@@ -37,6 +37,10 @@ export async function getPendingRequests(): Promise<RegistrationRequest[]> {
   return data as RegistrationRequest[];
 }
 
+import { normalizeCategory } from '@/lib/utils';
+
+// ... (existing interfaces)
+
 // Función principal de Aprobación Mejorada (Ahora acepta TODOS los campos)
 export async function approveRequest(
   requestId: string, 
@@ -48,43 +52,41 @@ export async function approveRequest(
     club?: string, 
     category?: string, 
     phone?: string, 
-    instagram?: string 
+    instagram?: string,
+    ciudad?: string 
   }
 ) {
   try {
-    // 1. Buscar la solicitud original usando maybeSingle para ser más flexible
+    // 1. Buscar la solicitud original
     const { data: request, error: fetchError } = await supabase
       .from('registration_requests')
       .select('*')
       .eq('id', requestId)
       .maybeSingle();
 
-    if (fetchError) {
-      console.error('FALLO BUSQUEDA SUPABASE:', fetchError);
-      return { success: false, message: 'Error de conexión con la base de datos.' };
+    if (fetchError || !request) {
+      console.error('ERROR AL BUSCAR SOLICITUD:', fetchError);
+      return { success: false, message: 'Solicitud no encontrada o error de base de datos.' };
     }
 
-    if (!request) {
-      console.warn(`Solicitud con ID ${requestId} no encontrada en la DB.`);
-      return { success: false, message: 'Solicitud no encontrada o ya procesada.' };
-    }
-
-    // 2. Determinar los valores finales (Fusionar originales con las ediciones del Admin) y Normalizar
-    const finalRut = (overrides?.rut || request.rut).trim().toUpperCase();
-    const finalFullName = (overrides?.full_name || request.full_name).trim().toUpperCase();
+    // 2. Determinar los valores finales y Normalizar
+    const finalRut = (overrides?.rut || request.rut)?.trim().toUpperCase();
+    const finalFullName = (overrides?.full_name || request.full_name)?.trim().toUpperCase();
     const finalEmail = (overrides?.email || request.email)?.toLowerCase().trim();
     const finalBirthDate = overrides?.birth_date || request.birth_date;
     const finalClub = (overrides?.club || request.club || 'INDEPENDIENTE / LIBRE').trim().toUpperCase();
-    const finalCiudad = (request.ciudad || 'IQUIQUE').trim().toUpperCase();
+    const finalCiudad = (overrides?.ciudad || request.ciudad || 'IQUIQUE').trim().toUpperCase() || 'IQUIQUE';
+    
+    // Normalizar Categoría para evitar inconsistencias de nombres largos o viejos
+    const rawCategory = overrides?.category || request.category || 'Novicios Varones';
+    const finalCategory = normalizeCategory(rawCategory);
 
-    // 2.5. TAREA: Si el club es nuevo, agregarlo a la lista oficial
+    // 2.5. Asegurar existencia del Club
     if (finalClub !== 'INDEPENDIENTE / LIBRE') {
-      // El upsert fallará silenciosamente si ya existe por el UNIQUE del nombre
       await supabase.from('clubs').upsert({ name: finalClub }, { onConflict: 'name' });
     }
 
-    // 3. Lógica UPSERT: Si el RUT existe, actualiza; si no, inserta.
-    // Usamos .select('id') para obtener el ID generado u original para vincular con event_riders
+    // 3. UPSERT Rider
     const { data: riderData, error: upsertError } = await supabase
       .from('riders')
       .upsert({
@@ -93,7 +95,7 @@ export async function approveRequest(
         email: finalEmail,
         birth_date: finalBirthDate,
         ciudad: finalCiudad,
-        category: overrides?.category || request.category,
+        category: finalCategory,
         club: finalClub,
         phone: overrides?.phone || request.phone,
         instagram: overrides?.instagram || request.instagram,
@@ -104,77 +106,75 @@ export async function approveRequest(
       .single();
 
     if (upsertError || !riderData) {
-      console.error('Error en UPSERT Rider:', upsertError);
-      return { success: false, message: 'Error al registrar al corredor.' };
+      console.error('ERROR UPSERT RIDER:', upsertError);
+      return { success: false, message: `Error al registrar corredor: ${upsertError?.message}` };
     }
 
     const riderId = riderData.id;
 
-    // 3.5. DETERMINAR EVENT_ID (Siempre buscamos la fecha más próxima para asegurar inscripción activa)
+    // 3.5. DETERMINAR EVENT_ID
     let finalEventId = request.event_id;
-    
-    // Buscamos el evento más cercano (hoy o futuro)
-    const { data: upcomingEvent } = await supabase
-      .from('events')
-      .select('id, date')
-      .gte('date', new Date().toISOString().split('T')[0]) // Fecha >= hoy
-      .order('date', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (!finalEventId && upcomingEvent) {
-      console.log(`Asignando automáticamente al próximo evento [${upcomingEvent.id}]`);
-      finalEventId = upcomingEvent.id;
-    } else if (!finalEventId) {
-       // Si no hay futuros, buscamos el último creado por si acaso
-       const { data: lastEvent } = await supabase.from('events').select('id').order('date', { ascending: false }).limit(1).maybeSingle();
-       finalEventId = lastEvent?.id;
+    if (!finalEventId) {
+      const { data: upcomingEvent } = await supabase
+        .from('events')
+        .select('id')
+        .gte('date', new Date().toISOString().split('T')[0])
+        .order('date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      finalEventId = upcomingEvent?.id;
     }
 
-    // 3.6. Insertar ticket en event_riders (LA VERDADERA PARTICIPACION)
-    if (finalEventId) {
-      const { error: eventRiderError } = await supabase
-        .from('event_riders')
-        .upsert({
-          event_id: finalEventId,
-          rider_id: riderId,
-          category_at_event: overrides?.category || request.category,
-          club_at_event: finalClub,
-        }, {
-          onConflict: 'event_id,rider_id'
-        });
-
-      if (eventRiderError) {
-        console.error('Error al insertar en event_riders:', eventRiderError);
-      }
-
-      // También mantenemos registrations para compatibilidad con el sistema de correos/vistas antiguas
-      const { error: insertRegistrationError } = await supabase
-        .from('registrations')
-        .upsert({
-          event_id: finalEventId,
-          rut: finalRut,
-          full_name: finalFullName,
-          email: finalEmail || 'sin@correo.cl',
-          category_selected: overrides?.category || request.category,
-          status: 'approved'
-        }, {
-          onConflict: 'event_id,rut'
-        });
-
-      if (insertRegistrationError) {
-        console.error('Error al insertar en registrations:', insertRegistrationError);
-      }
+    if (!finalEventId) {
+      return { success: false, message: 'No se pudo determinar el evento para la inscripción.' };
     }
 
-    // 4. Limpiar la solicitud: La borramos físicamente de las pendientes
+    // 3.6. Insertar en event_riders (Competición)
+    const { error: eventRiderError } = await supabase
+      .from('event_riders')
+      .upsert({
+        event_id: finalEventId,
+        rider_id: riderId,
+        category_at_event: finalCategory,
+        club_at_event: finalClub,
+      }, {
+        onConflict: 'event_id,rider_id'
+      });
+
+    if (eventRiderError) {
+      console.error('ERROR EVENT_RIDERS:', eventRiderError);
+      return { success: false, message: `Error al inscribir en el evento: ${eventRiderError.message}` };
+    }
+
+    // 3.7. Insertar en registrations (Respaldo)
+    const { error: insertRegistrationError } = await supabase
+      .from('registrations')
+      .upsert({
+        event_id: finalEventId,
+        rut: finalRut,
+        full_name: finalFullName,
+        email: finalEmail || 'sin@correo.cl',
+        category_selected: finalCategory,
+        status: 'approved'
+      }, {
+        onConflict: 'event_id,rut'
+      });
+
+    if (insertRegistrationError) {
+      console.error('ERROR REGISTRATIONS:', insertRegistrationError);
+      // No bloqueamos aquí porque ya está en event_riders, pero avisamos en consola
+    }
+
+    // 4. SOLO SI TODO LO ANTERIOR FUNCIONÓ, BORRAMOS LA SOLICITUD
     const { error: deleteError } = await supabase
         .from('registration_requests')
         .delete()
         .eq('id', requestId);
 
     if (deleteError) {
-      console.error('Error al eliminar solicitud aprobada:', deleteError);
+      console.error('ERROR AL ELIMINAR SOLICITUD:', deleteError);
+      // Ojo: Aquí el rider ya está creado, pero la solicitud sigue ahí.
+      // Podría causar que el admin intente aprobarla de nuevo.
     }
 
     // 5. ENVIAR CORREO DE APROBACIÓN (Background task)
