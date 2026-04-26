@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { formatChileanPhone, cleanInstagramHandle } from '@/lib/utils';
+import { formatChileanPhone, cleanInstagramHandle, normalizeCategory } from '@/lib/utils';
 
 export type RiderState = {
   message?: string | null;
@@ -28,9 +28,9 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
 
   // --- 2. PREPARAR DATOS DEL RIDER ---
   const dataToSave = {
-    full_name: (formData.get('full_name') as string)?.toUpperCase(),
-    rut: formData.get('rut') as string,
-    category: formData.get('category') as string,
+    full_name: (formData.get('full_name') as string)?.toUpperCase().trim(),
+    rut: (formData.get('rut') as string)?.trim(),
+    category: normalizeCategory(formData.get('category') as string),
     club: finalClub, 
     ciudad: (formData.get('ciudad') as string)?.toUpperCase(),
     email: (formData.get('email') as string)?.toLowerCase() || null,
