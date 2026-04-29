@@ -83,7 +83,6 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
         <form action={formAction} className="space-y-6 relative z-0">
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="form_config" value={updatedFormConfig} />
-            <input type="hidden" name="status" value="pending" />
             <input type="hidden" name="bank_account" value={`${accountType} - ${accountNumber}`} />
 
             <div className="bg-[#1A1816] text-white p-6 md:p-12 rounded-t-[2.5rem] rounded-b-3xl shadow-2xl text-center border-b-[8px] border-[#C64928]">
@@ -93,7 +92,21 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                     
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
                         <textarea name="description" defaultValue={eventData.description} rows={4} className="w-full bg-black/20 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 outline-none focus:border-[#C64928] mt-4" placeholder="Descripción..."></textarea>
-                        <input type="date" name="date" defaultValue={eventData.date} required className="w-full bg-black/20 border border-slate-700 rounded-lg p-2 text-center text-white outline-none focus:border-[#C64928] font-bold mt-4" />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-left">Fecha del Evento</label>
+                            <input type="date" name="date" defaultValue={eventData.date} required className="w-full bg-black/20 border border-slate-700 rounded-lg p-3 text-center text-white outline-none focus:border-[#C64928] font-bold" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-left">Estado Inscripciones</label>
+                            <select name="status" defaultValue={eventData.status || 'pending'} className="w-full bg-black/20 border border-slate-700 rounded-lg p-3 text-center text-white outline-none focus:border-[#C64928] font-bold cursor-pointer appearance-none">
+                              <option value="pending" className="bg-slate-900 text-green-400">🟢 ACTIVA (Abierta)</option>
+                              <option value="scheduled" className="bg-slate-900 text-yellow-400">🟡 PROGRAMADA (Cerrada)</option>
+                              <option value="completed" className="bg-slate-900 text-slate-400">⚫ FINALIZADA (Cerrada)</option>
+                            </select>
+                          </div>
+                        </div>
                     </div>
                 </div>
             </div>

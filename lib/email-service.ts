@@ -1,7 +1,13 @@
 import nodemailer from 'nodemailer';
 
+import dns from 'dns';
+// Forzar a Node.js a preferir IPv4 para evitar el error ENETUNREACH con IPv6 (común en redes de VTR/Movistar)
+dns.setDefaultResultOrder('ipv4first');
+
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,

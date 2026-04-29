@@ -43,6 +43,12 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
   if (!dataToSave.full_name) return { message: 'El nombre es obligatorio.', success: false, timestamp: Date.now() };
   if (!dataToSave.rut) return { message: 'El RUT es obligatorio.', success: false, timestamp: Date.now() };
 
+  // Validación de nombre completo (al menos 2 palabras y 5 caracteres en total)
+  const nameParts = dataToSave.full_name.trim().split(/\s+/);
+  if (nameParts.length < 2 || dataToSave.full_name.trim().length < 5) {
+    return { message: 'Por favor ingresa al menos un nombre y un apellido.', success: false, timestamp: Date.now() };
+  }
+
   try {
     let error;
     if (id) {

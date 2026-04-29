@@ -22,8 +22,9 @@ export default async function EventsAdminPage() {
   // Lógica inteligente de fechas
   const todayStr = new Date().toISOString().split('T')[0]; 
   
-  const upcomingEvents = events.filter(e => e.date >= todayStr && e.status === 'pending');
-  const pastEvents = events.filter(e => e.date < todayStr || e.status !== 'pending');
+  const activeEvents = events.filter(e => e.status === 'pending');
+  const scheduledEvents = events.filter(e => e.status === 'scheduled');
+  const pastEvents = events.filter(e => e.status === 'completed' || (!['pending', 'scheduled'].includes(e.status)));
 
   const formatDateShort = (dateStr: string) => {
     const date = new Date(`${dateStr}T12:00:00`);
@@ -57,26 +58,26 @@ export default async function EventsAdminPage() {
       {/* CONTENEDOR PRINCIPAL (Se quitó el margen negativo para que baje al fondo claro) */}
       <div className="max-w-5xl mx-auto px-3 md:px-4 pt-8 md:pt-10 relative z-20 space-y-12">
         
-        {/* SECCIÓN 1: ACTIVOS Y PRÓXIMOS */}
+        {/* SECCIÓN 1: ACTIVAS (INSCRIPCIONES ABIERTAS) */}
         <div>
           <div className="mb-6">
             <h2 className="text-xs font-black uppercase text-slate-500 tracking-[0.2em] ml-2 flex items-center gap-2">
                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
-               En Curso / Próximas
+               En Curso (Inscripciones Abiertas)
             </h2>
             <p className="text-[10px] text-slate-400 ml-6 mt-1.5 font-bold uppercase tracking-wider leading-relaxed">
-              Estas carreras están habilitadas para recibir inscripciones. El evento más próximo aparecerá automáticamente en el botón de la página de inicio.
+              Estas carreras están habilitadas para recibir inscripciones. El evento más próximo aparecerá automáticamente en la página principal.
             </p>
           </div>
           
           <div className="space-y-4">
-            {upcomingEvents.length === 0 ? (
+            {activeEvents.length === 0 ? (
                <div className="bg-white p-8 rounded-3xl border-2 border-dashed border-slate-200 text-center shadow-sm">
-                 <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No hay carreras próximas</p>
-                 <p className="text-slate-600 text-sm mt-1">Crea un evento nuevo para comenzar a recibir inscripciones.</p>
+                 <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No hay eventos activos</p>
+                 <p className="text-slate-600 text-sm mt-1">Cambia el estado de una carrera a "Activa" para abrir inscripciones.</p>
                </div>
             ) : (
-              upcomingEvents.map((ev: Event) => {
+              activeEvents.map((ev: Event) => {
                 const dateObj = formatDateShort(ev.date);
                 return (
                   <div key={ev.id} className="bg-white rounded-3xl p-4 md:p-5 shadow-lg border-2 border-green-500/20 hover:border-[#C64928]/50 transition-colors flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 group">
@@ -124,6 +125,47 @@ export default async function EventsAdminPage() {
             )}
           </div>
         </div>
+
+        {/* SECCIÓN 1.5: PROGRAMADAS (CERRADAS POR AHORA) */}
+        {scheduledEvents.length > 0 && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xs font-black uppercase text-slate-500 tracking-[0.2em] ml-2 flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]"></span>
+                 Próximas Fechas (Cerradas)
+              </h2>
+              <p className="text-[10px] text-slate-400 ml-6 mt-1.5 font-bold uppercase tracking-wider leading-relaxed">
+                Eventos creados pero inactivos. El formulario público no está disponible. Entra a Ajustes y pásalas a "Activa" cuando quieras abrir inscripciones.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {scheduledEvents.map((ev: Event) => {
+                const dateObj = formatDateShort(ev.date);
+                return (
+                  <div key={ev.id} className="bg-white rounded-3xl p-4 shadow-md border border-slate-200 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 opacity-90">
+                    <div className="bg-slate-100 border border-slate-200 rounded-2xl w-full md:w-20 flex flex-row md:flex-col items-center justify-center py-2 shrink-0">
+                      <span className="font-heading text-3xl text-slate-600 leading-none">{dateObj.day}</span>
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-2 md:ml-0 md:mt-1">{dateObj.month}</span>
+                    </div>
+                    <div className="flex-1 w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div>
+                        <h3 className="font-black text-slate-700 text-lg uppercase leading-tight">{ev.name}</h3>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded mt-1 inline-block border border-yellow-200">Programada</span>
+                      </div>
+                      <div className="flex gap-2 w-full md:w-auto">
+                        <Link href={`/admin/events/${ev.id}`} className="flex-1 md:flex-none p-3 px-6 bg-slate-800 text-white hover:bg-slate-700 rounded-xl transition-colors flex justify-center items-center shadow-md font-bold text-[10px] uppercase tracking-wider">
+                           Ajustes / Abrir
+                        </Link>
+                        <DeleteEventButton id={ev.id} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* SECCIÓN 2: HISTORIAL / CERRADAS */}
         {pastEvents.length > 0 && (

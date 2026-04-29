@@ -38,6 +38,12 @@ export async function submitRegistration(prevState: RegisterState, formData: For
     return { success: false, message: 'Faltan campos obligatorios.', fields: rawData, timestamp };
   }
 
+  // Validación de nombre completo (al menos 2 palabras y 5 caracteres en total)
+  const nameParts = full_name.trim().split(/\s+/);
+  if (nameParts.length < 2 || full_name.trim().length < 5) {
+    return { success: false, message: 'Por favor ingresa tu nombre y al menos un apellido.', fields: rawData, timestamp };
+  }
+
   const fixedKeys = ['event_id', 'full_name', 'rut', 'email', 'category_selected', 'phone', 'birth_date', 'ciudad', 'club', 'instagram', 'terms_accepted'];
   const additional_data: Record<string, string> = {};
   

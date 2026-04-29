@@ -17,7 +17,7 @@ const supabase = createClient(
 
 async function fixAndInvestigate() {
   console.log('--- RECUPERANDO A ANDREA Y REVISANDO COLUMNAS ---');
-  
+
   // Recuperar a Andrea
   await supabase.from('riders').update({ category: 'Damas Pre Master' }).ilike('full_name', '%ANDREA RAMIREZ%');
   console.log('✅ Andrea Ramirez restaurada a Damas Pre Master.');
