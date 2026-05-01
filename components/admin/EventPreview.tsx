@@ -69,8 +69,10 @@ export default function EventPreview({ name, subtitle, description, price, date,
            <div className="absolute top-0 right-0 p-4 opacity-10">
              <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
            </div>
-           <h5 className="font-heading text-3xl text-[#1A1816] uppercase italic mb-4 border-b border-[#1A1816]/10 pb-2">Información de Pago</h5>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+           <div className="flex items-center gap-3 mb-4 border-b border-[#1A1816]/10 pb-2">
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#C64928]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+             <h5 className="font-heading text-3xl text-[#1A1816] uppercase italic">Información de Pago</h5>
+           </div>
              <div><span className="block text-[10px] font-black text-[#1A1816]/40 uppercase">Valor Inscripción</span><span className="text-2xl font-black text-[#C64928]">${price || '0'}</span></div>
              <div><span className="block text-[10px] font-black text-[#1A1816]/40 uppercase">Titular</span><span className="font-bold">{bankInfo.owner || '-'}</span></div>
              <div><span className="block text-[10px] font-black text-[#1A1816]/40 uppercase">Banco / Cuenta</span><span className="font-bold">{bankInfo.bank} - {bankInfo.account}</span></div>
@@ -81,7 +83,9 @@ export default function EventPreview({ name, subtitle, description, price, date,
         {/* REGLAMENTO SIMULADO */}
         <div className="space-y-3">
           <h5 className="font-heading text-2xl text-slate-800 uppercase italic flex items-center gap-2">
-            <span className="w-6 h-6 bg-[#1A1816] text-white rounded-md flex items-center justify-center text-xs not-italic">!</span>
+            <span className="w-6 h-6 bg-[#1A1816] text-white rounded-md flex items-center justify-center text-xs not-italic">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </span>
             Reglamento del Evento
           </h5>
           <div className="h-40 overflow-y-auto bg-slate-50 border border-slate-200 rounded-2xl p-5 text-[11px] text-slate-500 leading-relaxed whitespace-pre-wrap font-mono">

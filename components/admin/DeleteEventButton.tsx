@@ -8,7 +8,7 @@ export default function DeleteEventButton({ id }: { id: string }) {
 
   const handleDelete = () => {
     // Alerta nativa del navegador para evitar borrados accidentales
-    if (window.confirm('⚠️ ¿Estás completamente seguro de eliminar esta carrera? Esta acción borrará el evento y todas las inscripciones asociadas para siempre.')) {
+    if (window.confirm('¿Estás completamente seguro de eliminar esta carrera? Esta acción borrará el evento y todas las inscripciones asociadas para siempre.')) {
       startTransition(async () => {
         try {
           await deleteEvent(id);

@@ -100,61 +100,65 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
   );
 
   return (
-    <div className={`min-h-screen bg-[#F8FAFC] py-6 px-3 md:py-12 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans text-slate-800`}>
+    <div className={`min-h-screen bg-[#F8FAFC] py-6 px-3 md:py-8 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans text-slate-800 pb-40`}>
       <div className="max-w-5xl mx-auto">
         
         {/* TOP BAR */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
-           <Link href="/admin/events" className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-2 border border-slate-200">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+           <Link href="/admin/events" className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-2 border border-slate-200">
              ← Volver a Eventos
            </Link>
            
            <div className="flex bg-slate-200/50 p-1 rounded-2xl border border-slate-200 w-full md:w-auto">
               <button 
                 onClick={() => setActiveTab('edit')}
-                className={`flex-1 md:w-32 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'edit' ? 'bg-[#1A1816] text-white shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`flex-1 md:w-32 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'edit' ? 'bg-[#1A1816] text-white shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Configuración
               </button>
               <button 
                 onClick={() => setActiveTab('preview')}
-                className={`flex-1 md:w-32 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'preview' ? 'bg-[#1A1816] text-white shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`flex-1 md:w-32 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'preview' ? 'bg-[#1A1816] text-white shadow-lg' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Vista Previa
               </button>
            </div>
 
-           <div className="hidden md:block">
-             <span className="bg-[#C64928] text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-md italic">
-               {isNew ? 'Nueva Carrera' : 'Editando Fecha'}
-             </span>
+           <div className="w-full md:w-48">
+              {!isNew && (
+                <button 
+                  onClick={handleCopy}
+                  className={`inline-block text-[10px] font-black uppercase px-4 py-2.5 rounded-xl border transition-all w-full text-center shadow-sm active:scale-95 flex items-center justify-center gap-2 ${
+                    copied 
+                      ? 'bg-green-100 text-green-800 border-green-300' 
+                      : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                  {copied ? 'LINK COPIADO' : 'COPIAR LINK'}
+                </button>
+              )}
            </div>
         </div>
 
         {activeTab === 'edit' ? (
-          <form action={formAction} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <form action={formAction} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <input type="hidden" name="id" value={id} />
               <input type="hidden" name="form_config" value={updatedFormConfig} />
               <input type="hidden" name="bank_account" value={`${formData.bank_account_type} - ${formData.bank_account_number}`} />
 
-              {/* HEADER SECTION */}
-              <div className="bg-[#1A1816] p-8 md:p-14 rounded-[3rem] shadow-2xl border-b-[10px] border-[#C64928] relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#C64928]/10 to-transparent pointer-events-none"></div>
-                  <div className="max-w-3xl mx-auto space-y-6 relative z-10 text-center">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-[#C64928] uppercase tracking-[0.4em] block">Título del Evento</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C64928] text-center font-heading text-5xl md:text-8xl uppercase italic outline-none text-white py-2 transition-all" placeholder="NOMBRE DE LA CARRERA" />
-                      </div>
+              <div className="bg-[#1A1816] p-6 md:p-8 rounded-[2rem] shadow-2xl border-b-[6px] border-[#C64928] relative overflow-hidden">
+                  <div className="max-w-3xl mx-auto space-y-4 relative z-10 text-center">
+                      <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-transparent border-b-2 border-white/10 focus:border-[#C64928] text-center font-heading text-4xl md:text-5xl uppercase italic outline-none text-white py-1 transition-all" placeholder="NOMBRE DE LA CARRERA" />
+                      <input type="text" name="subtitle" value={formData.subtitle} onChange={handleChange} className="w-full bg-transparent border-b-2 border-white/5 focus:border-[#C64928] text-center font-heading text-lg md:text-xl text-slate-400 uppercase tracking-[0.2em] outline-none py-1" placeholder="Slogan o subtítulo..." />
                       
-                      <input type="text" name="subtitle" value={formData.subtitle} onChange={handleChange} className="w-full bg-transparent border-b-2 border-white/5 focus:border-[#C64928] text-center font-heading text-xl md:text-3xl text-slate-400 uppercase tracking-[0.3em] outline-none py-2" placeholder="Slogan o subtítulo..." />
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-left">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left">
                           <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Fecha Oficial</label>
-                          <input type="date" name="date" value={formData.date} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-[#C64928] font-bold text-lg" />
+                          <input type="date" name="date" value={formData.date} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white outline-none focus:border-[#C64928] font-bold text-sm" />
                         </div>
-                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-left">
-                          <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Estado de Inscripción</label>
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left">
+                          <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Estado</label>
                           <div className="grid grid-cols-3 gap-2 mt-1">
                             {[
                               { id: 'pending', label: 'Abierta', color: 'bg-green-500' },
@@ -165,9 +169,9 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                                 key={st.id} 
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, status: st.id }))}
-                                className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${formData.status === st.id ? 'border-white bg-white/10' : 'border-transparent bg-white/5 grayscale opacity-40 hover:opacity-70'}`}
+                                className={`flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${formData.status === st.id ? 'border-white bg-white/10' : 'border-transparent bg-white/5 opacity-50'}`}
                               >
-                                <span className={`w-2 h-2 rounded-full ${st.color} mb-1.5 shadow-[0_0_8px_currentColor]`}></span>
+                                <span className={`w-2 h-2 rounded-full ${st.color} mb-1`}></span>
                                 <span className="text-[8px] font-black uppercase text-white tracking-tighter">{st.label}</span>
                               </button>
                             ))}
@@ -175,100 +179,79 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                           </div>
                         </div>
                       </div>
-
-                      <div className="mt-8 text-left">
-                        <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Descripción Breve</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-sm text-slate-300 outline-none focus:border-[#C64928] transition-all" placeholder="Detalles rápidos del evento..."></textarea>
-                      </div>
                   </div>
               </div>
 
-              {/* PAYMENT SECTION */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border-b-4 border-slate-200">
-                      <div className="flex items-center gap-4 mb-8">
-                         <div className="w-12 h-12 bg-[#EFE6D5] rounded-2xl flex items-center justify-center text-2xl">💰</div>
-                         <h3 className="font-heading text-4xl uppercase text-slate-800 italic">Datos Bancarios</h3>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
+                      <h3 className="font-heading text-2xl uppercase text-slate-800 mb-4 italic">Datos Bancarios</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
-                           <label className={labelClass}>Titular de la Cuenta</label>
-                           <input type="text" name="bank_owner" value={formData.bank_owner} onChange={handleChange} className={editableInputClass} placeholder="Ej: Club Deportivo MTB" />
+                           <label className={labelClass}>Titular</label>
+                           <input type="text" name="bank_owner" value={formData.bank_owner} onChange={handleChange} className={editableInputClass} />
                         </div>
                         <div>
-                           <label className={labelClass}>RUT del Titular</label>
-                           <input type="text" name="bank_rut" value={formData.bank_rut} onChange={handleChange} className={editableInputClass} placeholder="12.345.678-9" />
+                           <label className={labelClass}>RUT</label>
+                           <input type="text" name="bank_rut" value={formData.bank_rut} onChange={handleChange} className={editableInputClass} />
                         </div>
                         <div>
                            <label className={labelClass}>Banco</label>
-                           <input type="text" name="bank_name" value={formData.bank_name} onChange={handleChange} className={editableInputClass} placeholder="Banco Estado, Santander, etc" />
+                           <input type="text" name="bank_name" value={formData.bank_name} onChange={handleChange} className={editableInputClass} />
                         </div>
                         <div>
                            <label className={labelClass}>Tipo de Cuenta</label>
-                           <input type="text" name="bank_account_type" value={formData.bank_account_type} onChange={handleChange} className={editableInputClass} placeholder="Cuenta Rut, Vista, Corriente..." />
+                           <input type="text" name="bank_account_type" value={formData.bank_account_type} onChange={handleChange} className={editableInputClass} />
                         </div>
                         <div>
-                           <label className={labelClass}>N° de Cuenta</label>
-                           <input type="text" name="bank_account_number" value={formData.bank_account_number} onChange={handleChange} className={editableInputClass} placeholder="0000000000" />
+                           <label className={labelClass}>Número</label>
+                           <input type="text" name="bank_account_number" value={formData.bank_account_number} onChange={handleChange} className={editableInputClass} />
                         </div>
-                        <div className="md:col-span-2 mt-4 pt-6 border-t-2 border-dashed border-slate-100">
-                            <label className={labelClass}>Contacto para Comprobantes (WhatsApp o Email)</label>
-                            <input 
-                              type="text" 
-                              name="payment_contact"
-                              value={formData.payment_contact} 
-                              onChange={handleChange} 
-                              className={`${editableInputClass} border-[#C64928]/30 bg-orange-50/20 text-[#C64928]`} 
-                              placeholder="Ej: +56912345678 o tesoreria@club.cl" 
-                              required 
-                            />
-                            <p className="text-[9px] text-slate-400 font-bold uppercase mt-2 ml-1 tracking-widest">Este dato aparecerá destacado en el formulario público.</p>
+                        <div className="md:col-span-2">
+                            <label className={labelClass}>Contacto de Pago</label>
+                            <input type="text" name="payment_contact" value={formData.payment_contact} onChange={handleChange} className={editableInputClass} required />
                         </div>
                       </div>
                   </div>
                 </div>
 
-                <div className="space-y-8">
-                  <div className="bg-white p-8 rounded-[3rem] shadow-xl border-b-4 border-slate-200 flex flex-col items-center justify-center text-center py-14">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Precio Inscripción</label>
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col items-center justify-center text-center">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Precio</label>
                       <div className="flex items-center gap-1">
-                        <span className="font-heading text-4xl text-[#C64928] italic mt-2">$</span>
-                        <input type="text" name="price" value={formData.price} onChange={handleChange} required className="bg-transparent border-b-4 border-slate-200 focus:border-[#C64928] text-center w-40 outline-none font-heading text-7xl text-slate-900 transition-all" />
+                        <span className="text-2xl font-black text-[#C64928]">$</span>
+                        <input type="text" name="price" value={formData.price} onChange={handleChange} required className="bg-transparent border-b-2 border-slate-200 text-center w-32 outline-none font-heading text-5xl text-slate-900" />
                       </div>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-4 tracking-widest">Valor único por participante</p>
                   </div>
 
-                  <div className="bg-orange-600 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
-                      <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-all"></div>
-                      <h4 className="font-heading text-2xl uppercase italic mb-2">Categorías</h4>
-                      <p className="text-xs text-orange-100 leading-relaxed font-medium">Se utilizará la lista oficial de categorías del campeonato para este evento.</p>
+                  <div className="bg-orange-600 p-6 rounded-[2rem] shadow-lg text-white">
+                      <h4 className="font-heading text-xl uppercase italic mb-2">Categorías</h4>
+                      <p className="text-[10px] text-orange-100 leading-relaxed font-bold uppercase">Se utiliza la lista oficial de categorías.</p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {['Elite', 'Master A', 'Novicios'].map(c => (
-                          <span key={c} className="bg-white/20 px-3 py-1 rounded-full text-[9px] font-black uppercase">{c}</span>
+                          <span key={c} className="bg-white/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase">{c}</span>
                         ))}
-                        <span className="bg-white/20 px-3 py-1 rounded-full text-[9px] font-black uppercase">+ {OFFICIAL_CATEGORIES.length - 3} más</span>
-                      </div>
                   </div>
                 </div>
               </div>
 
               {/* TERMS SECTION */}
-              <div className="bg-white p-8 md:p-14 rounded-[3.5rem] shadow-2xl border-b-[10px] border-slate-200">
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xl font-black">!</div>
-                    <h3 className="font-heading text-4xl uppercase text-slate-800 italic">Reglamento y Términos</h3>
+              <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl border-b-[10px] border-slate-200">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
+                    <h3 className="font-heading text-3xl uppercase text-slate-800 italic">Reglamento y Términos</h3>
                   </div>
                   <textarea 
                     name="terms_conditions" 
                     value={formData.terms_conditions} 
                     onChange={handleChange} 
-                    rows={15} 
-                    className="w-full p-8 bg-slate-50 border-2 border-slate-200 rounded-[2rem] text-slate-600 text-sm outline-none focus:border-[#C64928] focus:bg-white font-mono transition-all leading-relaxed shadow-inner"
+                    rows={12} 
+                    className="w-full p-6 bg-slate-50 border-2 border-slate-200 rounded-[1.5rem] text-slate-600 text-sm outline-none focus:border-[#C64928] focus:bg-white font-mono transition-all leading-relaxed shadow-inner"
                     placeholder="Escribe aquí las reglas, condiciones y deslindes de responsabilidad..."
                   ></textarea>
-                  <div className="mt-4 flex items-center gap-2 text-slate-400">
+                  <div className="mt-3 flex items-center gap-2 text-slate-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span className="text-[10px] font-bold uppercase tracking-wider">Puedes usar saltos de línea para separar párrafos.</span>
                   </div>
