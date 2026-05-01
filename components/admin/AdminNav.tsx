@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AdminNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
     if (confirm('¿Cerrar sesión administrativa?')) {
       await supabase.auth.signOut();
+      router.refresh();
       router.push('/login');
     }
   };

@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
+import { supabase as supabaseAnon } from '@/lib/supabase';
 import ResultManager from '@/components/admin/ResultManager';
 import Link from 'next/link';
 import { Teko, Montserrat } from "next/font/google";
@@ -20,7 +21,7 @@ export default async function ResultsPage({
   const { data: events } = await supabase.from('events').select('*').order('date', { ascending: true }).returns<Event[]>();
   const { data: riders } = await supabase.from('riders').select('*').order('full_name', { ascending: true }).returns<Rider[]>();
   const { data: results, error } = await supabase.from('results').select('*').order('created_at', { ascending: false }).returns<RawResult[]>();
-  const { data: eventRiders } = await supabase.from('event_riders').select('*, riders(full_name)');
+  const { data: eventRiders } = await supabase.from('event_riders').select('*, riders!rider_id(full_name)');
 
   if (error) console.error("Error fetching results:", error);
 

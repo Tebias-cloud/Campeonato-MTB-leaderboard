@@ -65,7 +65,10 @@ export default async function EditRiderPage({ params }: { params: Promise<{ id: 
 
       {/* CONTENEDOR DEL FORMULARIO */}
       <div className="max-w-5xl mx-auto px-4 -mt-20 relative z-20 space-y-8">
-          <RiderForm initialData={rider as Rider} />
+          <RiderForm 
+            initialData={rider as Rider} 
+            inscribedEvents={events?.filter(e => dorsals?.some(d => d.event_id === e.id)) || []} 
+          />
 
           {/* GESTIÓN DE DORSALES POR EVENTO */}
           <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-2 border-slate-200">

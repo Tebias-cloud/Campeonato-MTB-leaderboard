@@ -76,12 +76,13 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
         
       error = insertError;
 
-      // ✅ AUTO-REGISTRAR AL PRÓXIMO EVENTO (Para que no quede "en el aire")
+      // ✅ AUTO-REGISTRAR AL PRÓXIMO EVENTO ACTIVO O PROGRAMADO
       if (!error && newRider) {
         const { data: upcomingEvent } = await supabase
           .from('events')
           .select('id')
           .gte('date', new Date().toISOString().split('T')[0])
+          .in('status', ['active', 'scheduled'])
           .order('date', { ascending: true })
           .limit(1)
           .maybeSingle();
@@ -153,5 +154,29 @@ export async function deleteRider(id: string) {
   
   if (isDeleted) {
     redirect('/admin/riders');
+  }
+}
+
+export async function deleteRiderFromEvent(riderId: string, eventId: string) {
+  try {
+    const { error } = await supabase
+      .from('event_riders')
+      .delete()
+      .eq('rider_id', riderId)
+      .eq('event_id', eventId);
+
+    if (error) {
+      console.error('Error eliminando inscripción:', error);
+      return { message: 'Error al eliminar inscripción.', success: false };
+    }
+
+    revalidatePath('/admin/riders');
+    revalidatePath(`/admin/riders/${riderId}`);
+    revalidatePath('/ranking');
+    revalidatePath('/');
+    return { message: 'Inscripción eliminada.', success: true };
+  } catch (error) {
+    console.error('Error inesperado en deleteRiderFromEvent:', error);
+    return { message: 'Error de servidor.', success: false };
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState, useEffect } from 'react';
-import { saveRider, deleteRider } from '@/actions/riders';
+import { saveRider, deleteRider, deleteRiderFromEvent } from '@/actions/riders';
 import { Rider } from '@/lib/definitions';
 import { supabase } from '@/lib/supabase';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
@@ -14,13 +14,22 @@ const calculateRacingAge2026 = (birthDateStr?: string) => {
   return 2026 - birthYear;
 };
 
-export default function RiderForm({ initialData }: { initialData?: Rider }) {
+export default function RiderForm({ 
+  initialData, 
+  inscribedEvents = [] 
+}: { 
+  initialData?: Rider;
+  inscribedEvents?: {id: string, name: string}[];
+}) {
   const [state, formAction, isPending] = useActionState(saveRider, { message: null, success: false });
   const [isDeleting, setIsDeleting] = useState(false);
   const [clubsList, setClubsList] = useState<string[]>([]);
   const [rut, setRut] = useState(initialData?.rut || '');
   const [club, setClub] = useState(initialData?.club || 'INDEPENDIENTE / LIBRE');
+  const [category, setCategory] = useState(initialData?.category || OFFICIAL_CATEGORIES[0].id);
   const [isManualClub, setIsManualClub] = useState(false);
+  const [showDeleteOptions, setShowDeleteOptions] = useState(false);
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
   
   // Estado para la fecha de nacimiento (para poder calcular la edad en tiempo real)
   const [birthDate, setBirthDate] = useState(
@@ -127,6 +136,27 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
     }
   };
 
+  const handleDeleteClick = () => {
+    if (inscribedEvents.length > 0) {
+      setShowDeleteOptions(!showDeleteOptions);
+    } else {
+      handleDelete();
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, eventName: string) => {
+    if (confirm(`⚠️ ¿ELIMINAR INSCRIPCIÓN DE "${eventName}"?\nEsta acción no borrará el corredor, solo su registro en esta fecha.`)) {
+      setIsDeletingEvent(true);
+      const res = await deleteRiderFromEvent(initialData!.id, eventId);
+      if (!res?.success) {
+        alert(res?.message || "Error al eliminar inscripción");
+      } else {
+        setShowDeleteOptions(false);
+      }
+      setIsDeletingEvent(false);
+    }
+  };
+
   const inputClass = "w-full h-12 px-4 bg-slate-50 text-[#1A1816] rounded-xl border-2 border-slate-200 focus:border-[#C64928] focus:bg-white outline-none font-bold text-sm uppercase transition-all placeholder:text-slate-400";
   const labelClass = "block text-[10px] font-black uppercase text-slate-500 mb-1 ml-1 tracking-wider";
 
@@ -179,8 +209,13 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
           <div className="space-y-4">
             <div>
               <label className={labelClass}>Categoría Oficial *</label>
-              <select name="category" defaultValue={initialData?.category || ''} required className={inputClass}>
-                <option value="" disabled>SELECCIONAR CATEGORÍA</option>
+              <select 
+                name="category" 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required 
+                className={inputClass}
+              >
                 <optgroup label="VARONES">
                   {OFFICIAL_CATEGORIES.filter(c => c.group === 'VARONES').map(c => (
                     <option key={c.id} value={c.id}>{c.label}</option>
@@ -282,14 +317,41 @@ export default function RiderForm({ initialData }: { initialData?: Rider }) {
         </button>
 
         {initialData && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isPending || isDeleting}
-            className="flex-1 h-16 bg-white text-red-600 font-black border-2 border-red-100 rounded-2xl hover:bg-red-600 hover:text-white transition-all text-xs uppercase tracking-widest"
-          >
-            {isDeleting ? '...' : 'ELIMINAR'}
-          </button>
+          <div className="flex-1 relative">
+            <button
+              type="button"
+              onClick={handleDeleteClick}
+              disabled={isPending || isDeleting || isDeletingEvent}
+              className="w-full h-16 bg-white text-red-600 font-black border-2 border-red-100 rounded-2xl hover:bg-red-600 hover:text-white transition-all text-xs uppercase tracking-widest"
+            >
+              {isDeleting || isDeletingEvent ? '...' : 'ELIMINAR'}
+            </button>
+
+            {showDeleteOptions && (
+              <div className="absolute bottom-full left-0 w-full mb-2 bg-white rounded-xl shadow-xl border-2 border-red-100 overflow-hidden z-50">
+                <div className="p-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest text-center">Opciones de Eliminación</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="w-full p-4 text-left hover:bg-red-50 text-red-600 font-bold text-xs uppercase transition-colors border-b border-slate-100"
+                >
+                  ⚠️ BORRAR CORREDOR COMPLETAMENTE
+                </button>
+                {inscribedEvents.map(event => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    onClick={() => handleDeleteEvent(event.id, event.name)}
+                    className="w-full p-4 text-left hover:bg-orange-50 text-orange-600 font-bold text-[11px] uppercase transition-colors border-b border-slate-100 last:border-0"
+                  >
+                    Quitar inscripción: {event.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

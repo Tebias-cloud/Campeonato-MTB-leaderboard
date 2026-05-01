@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function RiderDorsalCell({ riderId, eventId, initialDorsal }: Props) {
+  const router = useRouter();
   const [dorsal, setDorsal] = useState<string>(initialDorsal?.toString() || '');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(initialDorsal?.toString() || null);
@@ -20,33 +22,34 @@ export default function RiderDorsalCell({ riderId, eventId, initialDorsal }: Pro
     setIsSaving(true);
     try {
       if (dorsal === '') {
-        // Eliminar si se deja vacío
-        await supabase
+        // Poner a null si se deja vacío (NO borrar la fila, solo el dorsal)
+        const { error } = await supabase
           .from('event_riders')
-          .delete()
+          .update({ dorsal: null })
           .eq('event_id', eventId)
           .eq('rider_id', riderId);
+        
+        if (error) throw error;
+        setLastSaved(null);
+        window.location.reload();
       } else {
         const dorsalNum = parseInt(dorsal);
         if (isNaN(dorsalNum)) return;
 
-        // Upsert dorsal
+        // Update SOLO el dorsal para no perder el resto de la info (categoría, club congelado, etc)
         const { error } = await supabase
           .from('event_riders')
-          .upsert({
-            event_id: eventId,
-            rider_id: riderId,
-            dorsal: dorsalNum
-          }, { 
-            onConflict: 'event_id,rider_id' 
-          });
+          .update({ dorsal: dorsalNum })
+          .eq('event_id', eventId)
+          .eq('rider_id', riderId);
 
         if (error) {
-            if (error.code === '23505') alert('Este dorsal ya está ocupado por otro corredor en este evento.');
+            if (error.code === '23505') alert('Este dorsal ya está ocupado en este evento.');
             else console.error(error);
             setDorsal(lastSaved || '');
         } else {
             setLastSaved(dorsal);
+            window.location.reload();
         }
       }
     } catch (err) {

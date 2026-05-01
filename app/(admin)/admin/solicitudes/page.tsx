@@ -139,11 +139,19 @@ export default function AdminSolicitudes() {
     }
   };
 
-  const onReject = async (req: RegistrationRequest) => {
-    if (!confirm(`ADVERTENCIA: ¿Eliminar solicitud definitivamente? Los datos serán borrados.`)) return;
+  const onReject = async (req: RegistrationRequest, isDuplicate: boolean) => {
+    let deleteInscription = false;
+    
+    if (isDuplicate) {
+      if (!confirm(`¿Deseas eliminar la solicitud de ${req.full_name}?`)) return;
+      deleteInscription = confirm(`⚠️ Es un Rider Frecuente. ¿Deseas también ELIMINAR SU INSCRIPCIÓN en este evento (si ya estaba inscrito)?\n\nAceptar = Borrar solicitud + inscripción\nCancelar = Solo borrar solicitud`);
+    } else {
+      if (!confirm(`ADVERTENCIA: ¿Eliminar solicitud definitivamente? Los datos serán borrados.`)) return;
+    }
+
     setProcessing(req.id);
     try {
-      const res = await rejectRequest(req.id);
+      const res = await rejectRequest(req.id, deleteInscription, req.rut, req.event_id);
       if (res.success) {
         setRequests(prev => prev.filter(r => r.id !== req.id));
       } else {
@@ -258,6 +266,7 @@ export default function AdminSolicitudes() {
                 <thead className="bg-[#1A1816] border-b-4 border-[#C64928] text-[10px] uppercase font-black tracking-widest text-[#EFE6D5]">
                   <tr>
                     <th className="p-5 w-16 text-center">#</th>
+                    <th className="p-5 min-w-[200px]">SOLICITUD & EVENTO</th>
                     <th className="p-5 min-w-[200px]">IDENTIDAD & EDAD</th>
                     <th className="p-5 min-w-[300px]">CORREDOR</th>
                     <th className="p-5 min-w-[280px]">CLUB / TEAM</th>
@@ -281,6 +290,23 @@ export default function AdminSolicitudes() {
                     return (
                       <tr key={`${req.id}-${idx}`} className={`group transition-all ${isDuplicate ? 'bg-blue-50/60 hover:bg-blue-100/60' : 'bg-white hover:bg-slate-50'}`}>
                         <td className="p-5 text-center font-mono text-slate-400 font-bold text-sm align-top pt-8">{idx + 1}</td>
+
+                        <td className="p-5 align-top">
+                          <div className="flex flex-col gap-1.5 pt-2">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                              {formatDate(req.created_at)}
+                            </span>
+                            <div className="bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-1.5 rounded-xl uppercase tracking-tighter shadow-sm leading-tight">
+                              {events.find(e => e.id.toString() === req.event_id?.toString())?.name || 'PRÓXIMA FECHA'}
+                            </div>
+                            {requests.filter(r => r.rut === (changes.rut ?? req.rut) && r.id !== req.id).length > 0 && (
+                              <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-1 rounded-lg border border-amber-200 animate-pulse mt-1 w-fit">
+                                ⚠️ OTRA SOLICITUD PENDIENTE
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
                         <td className="p-5 align-top">
                           <div className="flex flex-col gap-2">
@@ -414,7 +440,7 @@ export default function AdminSolicitudes() {
                                {processing === req.id ? '...' : '✓'}
                             </button>
                             <button 
-                              onClick={() => onReject(req)} 
+                              onClick={() => onReject(req, isDuplicate)} 
                               disabled={!!processing} 
                               title="Rechazar/Eliminar"
                               className="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 hover:bg-red-50 flex items-center justify-center transition-all font-black text-lg"

@@ -12,7 +12,10 @@ export default function RiderFilters({
   const pathname = usePathname();
   const { replace } = useRouter();
 
-  // Función para actualizar la URL (Buscador)
+  const currentEventId = searchParams.get('eventId') || 'all';
+  const currentCategory = searchParams.get('category') || 'Todas';
+  const currentQuery = searchParams.get('query') || '';
+
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     if (term) params.set('query', term);
@@ -20,7 +23,6 @@ export default function RiderFilters({
     replace(`${pathname}?${params.toString()}`);
   };
 
-  // Función para actualizar la URL (Evento)
   const handleEvent = (eventId: string) => {
     const params = new URLSearchParams(searchParams);
     if (eventId && eventId !== 'all') params.set('eventId', eventId);
@@ -28,7 +30,6 @@ export default function RiderFilters({
     replace(`${pathname}?${params.toString()}`);
   };
 
-  // Función para actualizar la URL (Categoría)
   const handleCategory = (category: string) => {
     const params = new URLSearchParams(searchParams);
     if (category && category !== 'Todas') params.set('category', category);
@@ -41,31 +42,51 @@ export default function RiderFilters({
       <div className="flex-1">
         <input
           type="text"
-          placeholder="Buscar por Nombre o Club..."
+          placeholder="Buscar por Nombre, RUT o Club..."
           className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold placeholder:text-gray-400 focus:outline-none focus:border-[#C64928] shadow-sm"
           onChange={(e) => handleSearch(e.target.value)}
-          defaultValue={searchParams.get('query')?.toString()}
+          defaultValue={currentQuery}
         />
       </div>
 
-      <div className="w-full md:w-1/4">
+      {/* Selector de Evento — controlado para reflejar URL */}
+      <div className="w-full md:w-1/4 flex items-center gap-2">
         <select
-          className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-[#C64928] shadow-sm appearance-none cursor-pointer"
+          className={`flex-1 p-4 rounded-xl border-2 font-bold focus:outline-none shadow-sm appearance-none cursor-pointer transition-colors ${
+            currentEventId !== 'all'
+              ? 'border-[#C64928] bg-orange-50 text-[#C64928]'
+              : 'border-gray-200 bg-white text-gray-900 focus:border-[#C64928]'
+          }`}
+          value={currentEventId}
           onChange={(e) => handleEvent(e.target.value)}
-          defaultValue={searchParams.get('eventId')?.toString() || 'all'}
         >
           <option value="all">Todos los Eventos</option>
           {events.map((event) => (
             <option key={event.id} value={event.id}>{event.name}</option>
           ))}
         </select>
+        {currentEventId !== 'all' && (
+          <button
+            type="button"
+            onClick={() => handleEvent('all')}
+            className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-100 hover:bg-red-100 text-[#C64928] hover:text-red-600 font-black text-sm transition-colors flex items-center justify-center border border-orange-200"
+            title="Quitar filtro"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
+      {/* Selector de Categoría — controlado */}
       <div className="w-full md:w-1/4">
         <select
-          className="w-full p-4 rounded-xl border border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-[#C64928] shadow-sm appearance-none cursor-pointer"
+          className={`w-full p-4 rounded-xl border-2 font-bold focus:outline-none shadow-sm appearance-none cursor-pointer transition-colors ${
+            currentCategory !== 'Todas'
+              ? 'border-slate-600 bg-slate-50 text-slate-700'
+              : 'border-gray-200 bg-white text-gray-900 focus:border-[#C64928]'
+          }`}
+          value={currentCategory}
           onChange={(e) => handleCategory(e.target.value)}
-          defaultValue={searchParams.get('category')?.toString() || 'Todas'}
         >
           <option value="Todas">Todas las Categorías</option>
           {Object.entries(CATEGORY_GROUPS).map(([groupName, categories]) => (

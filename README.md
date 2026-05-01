@@ -22,11 +22,15 @@ Plataforma integral desarrollada para la gestión de inscripciones, administraci
 ### 2. Gestión de Dorsales
 *   **Dorsal por Evento:** El sistema permite asignar números de placa específicos para cada carrera.
 *   **Asignación Masiva:** Herramienta que ordena por nombre y asigna correlativos saltando números ya ocupados automáticamente.
+*   **Arquitectura Robusta:** Consultas desacopladas (no-joins) para eliminar errores de "schema cache" y asegurar integridad de datos.
 
 ### 3. Cronometraje y Resultados
 *   **Importación RaceTime:** El sistema procesa texto copiado desde RaceTime o PDFs escaneados.
-*   **Cruce de Datos:** Vincula automáticamente `Dorsal -> Corredor` usando la base de datos de inscritos.
 *   **Ranking:** Calcula puntos por posición (100, 90, 80...) y actualiza el Ranking Global instantáneamente.
+
+### 4. Seguimiento de Solicitudes
+*   **Trazabilidad:** Registro de fecha de solicitud y evento objetivo.
+*   **Detección de Duplicados:** Alertas visuales si un mismo RUT tiene varias solicitudes pendientes.
 
 ---
 

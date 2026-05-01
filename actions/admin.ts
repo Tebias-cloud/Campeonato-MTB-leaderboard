@@ -206,8 +206,15 @@ export async function approveRequest(
 }
 
 // Función para Eliminar/Rechazar solicitud
-export async function rejectRequest(requestId: string) {
+export async function rejectRequest(requestId: string, deleteInscription?: boolean, rut?: string, eventId?: string) {
   try {
+    if (deleteInscription && rut && eventId) {
+      const { data: rider } = await supabase.from('riders').select('id').eq('rut', rut).maybeSingle();
+      if (rider) {
+        await supabase.from('event_riders').delete().eq('rider_id', rider.id).eq('event_id', eventId);
+      }
+    }
+
     const { error } = await supabase
         .from('registration_requests')
         .delete()
@@ -217,8 +224,11 @@ export async function rejectRequest(requestId: string) {
 
     revalidatePath('/admin/solicitudes');
     revalidatePath('/admin');
+    revalidatePath('/admin/riders');
+    revalidatePath('/ranking');
+    revalidatePath('/');
     
-    return { success: true, message: 'Solicitud eliminada.' };
+    return { success: true, message: deleteInscription ? 'Solicitud e inscripción eliminadas.' : 'Solicitud eliminada.' };
   } catch (error) {
     console.error('Error en rejectRequest:', error);
     return { success: false, message: 'Error al borrar la solicitud.' };
