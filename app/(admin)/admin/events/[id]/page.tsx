@@ -232,15 +232,22 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                       </div>
                   </div>
 
-                  <div className="bg-orange-600 p-6 rounded-[2rem] shadow-lg text-white">
-                      <h4 className="font-heading text-xl uppercase italic mb-2">Categorías</h4>
-                      <p className="text-[10px] text-orange-100 leading-relaxed font-bold uppercase">Se utiliza la lista oficial de categorías.</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {['Elite', 'Master A', 'Novicios'].map(c => (
-                          <span key={c} className="bg-white/20 px-2 py-1 rounded-lg text-[8px] font-black uppercase">{c}</span>
+                  <div className="bg-[#1A1816] p-6 rounded-[2rem] shadow-xl text-white relative overflow-hidden group border-b-4 border-orange-800">
+                      <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-all"></div>
+                      <h4 className="font-heading text-2xl uppercase italic mb-1">Categorías Oficiales</h4>
+                      <p className="text-[9px] text-orange-200/60 leading-relaxed font-bold uppercase tracking-widest mb-4">Se aplicarán automáticamente</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {OFFICIAL_CATEGORIES.slice(0, 8).map(c => (
+                          <div key={c.id} className="bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-2 border border-white/5">
+                            <span className="w-1 h-1 rounded-full bg-orange-500"></span>
+                            {c.label}
+                          </div>
                         ))}
+                        <div className="col-span-2 text-center pt-2">
+                          <span className="text-[8px] font-black text-orange-200/40 uppercase tracking-[0.2em]">+ {OFFICIAL_CATEGORIES.length - 8} categorías adicionales</span>
+                        </div>
+                      </div>
                   </div>
-                </div>
               </div>
             </div>
 
