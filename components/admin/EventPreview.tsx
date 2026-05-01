@@ -78,7 +78,6 @@ export default function EventPreview({ name, subtitle, description, price, date,
              <div><span className="block text-[10px] font-black text-[#1A1816]/40 uppercase">Banco / Cuenta</span><span className="font-bold">{bankInfo.bank} - {bankInfo.account}</span></div>
              <div><span className="block text-[10px] font-black text-[#1A1816]/40 uppercase">Enviar Comprobante a:</span><span className="font-black text-[#C64928]">{bankInfo.contact || '-'}</span></div>
            </div>
-        </div>
 
         {/* REGLAMENTO SIMULADO */}
         <div className="space-y-3">

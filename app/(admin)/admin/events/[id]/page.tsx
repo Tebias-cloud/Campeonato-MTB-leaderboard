@@ -43,6 +43,14 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
   });
 
   const [loading, setLoading] = useState(!isNew);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const fullUrl = `${window.location.origin}/inscripcion/${id}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (!isNew) {
