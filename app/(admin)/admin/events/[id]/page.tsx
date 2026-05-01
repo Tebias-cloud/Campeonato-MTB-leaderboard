@@ -234,6 +234,7 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                   </div>
                 </div>
               </div>
+            </div>
 
               {/* TERMS SECTION */}
               <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl border-b-[10px] border-slate-200">
@@ -260,7 +261,7 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
               {/* SAVE BUTTON */}
               <div className="sticky bottom-6 z-40">
                 <button type="submit" disabled={isPending} className="w-full bg-[#1A1816] hover:bg-[#C64928] text-white font-heading text-4xl py-6 rounded-3xl shadow-2xl transition-all italic border-b-[8px] border-black hover:border-orange-950 active:translate-y-1 active:border-b-0">
-                    {isPending ? 'GUARDANDO CAMBIOS...' : '💾 PUBLICAR CAMBIOS'}
+                    {isPending ? 'GUARDANDO CAMBIOS...' : 'PUBLICAR CAMBIOS'}
                 </button>
               </div>
           </form>
