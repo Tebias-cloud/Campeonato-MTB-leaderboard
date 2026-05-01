@@ -9,12 +9,11 @@ import { revalidatePath } from 'next/cache';
  */
 export async function clearEventDorsals(eventId: string) {
   try {
-    const { error, count } = await supabase
+    const { error } = await supabase
       .from('event_riders')
       .update({ dorsal: null })
       .eq('event_id', eventId)
-      .not('dorsal', 'is', null)
-      .select('*', { count: 'exact', head: true });
+      .not('dorsal', 'is', null);
 
     if (error) throw error;
     revalidatePath('/admin/riders');
