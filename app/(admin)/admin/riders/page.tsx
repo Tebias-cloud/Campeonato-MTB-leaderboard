@@ -54,7 +54,7 @@ export default async function RidersListPage({
   // Manual join para eventos para evitar errores de cache
   const eventIds = Array.from(new Set((participations || []).map(p => p.event_id)));
   const { data: eventsData } = eventIds.length > 0 ? 
-    await supabase.from('events').select('id, name').in('id', eventIds) : 
+    await supabase.from('events').select('id, name, date').in('id', eventIds).order('date', { ascending: true }) : 
     { data: [] };
   const eventNamesMap = new Map((eventsData || []).map(e => [e.id, e.name]));
 
@@ -79,10 +79,10 @@ export default async function RidersListPage({
   });
 
   const getEventsDisplay = (riderId: string, participations: any[]) => {
-    return participations
-      .filter(p => p.rider_id === riderId)
-      .map(p => eventNamesMap.get(p.event_id))
-      .filter(Boolean);
+    const riderEventIds = new Set(participations.filter(p => p.rider_id === riderId).map(p => p.event_id));
+    return (eventsData || [])
+      .filter(e => riderEventIds.has(e.id))
+      .map(e => e.name);
   };
 
   // --- LÓGICA DE EXPORTACIÓN ---
