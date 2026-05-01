@@ -46,7 +46,23 @@ Una vez terminada la competencia, el "Juez Virtual" procesa los tiempos.
 
 ---
 
+## 4. Configuración de Nuevas Carreras
+El sistema ahora incluye un editor profesional para que cada organizador gestione su propia fecha.
+
+1.  Entra a **Eventos** y selecciona **Ajustes** (o "+ Nueva Carrera").
+2.  **Pestaña Configuración:**
+    *   **Título y Slogan:** Escribe el nombre de la carrera. La última palabra aparecerá automáticamente en naranja en la web.
+    *   **Estado:** Cambia a "Abierta" para permitir inscripciones, o "Programada" para que solo aparezca el anuncio.
+    *   **Datos Bancarios:** Asegúrate de que el "Contacto para Comprobantes" sea correcto (WhatsApp o Email), ya que ahí llegará el dinero.
+3.  **Pestaña Vista Previa:**
+    *   Antes de publicar, haz clic en "Vista Previa". Verás **exactamente** cómo le aparecerá el formulario a los corredores.
+    *   Revisa que el precio y los datos de transferencia sean los correctos.
+4.  **Publicar:** Haz clic en el botón negro gigante **"PUBLICAR CAMBIOS"**.
+
+---
+
 ## 💡 Consejos de Oro
+*   **Seguridad visual:** Si algo se ve mal en el celular, revisa la "Vista Previa" en el editor. El sistema está diseñado para que lo que ves ahí sea lo que se publica.
 *   **Limpieza de Datos:** Si un corredor se inscribió mal (ej: nombre en minúsculas), puedes editarlo en el botón "EDITAR" de la lista de Riders.
 *   **Actualización en Vivo:** Si la página no muestra un cambio reciente, usa `Ctrl + F5` para refrescar el caché del navegador.
 *   **Inscripciones Nuevas:** Si llega un corredor de último minuto, regístralo primero en **"+ Nuevo Rider"** y asegúrate de inscribirlo en el evento actual para que aparezca en el Juez Virtual.
