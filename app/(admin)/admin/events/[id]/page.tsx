@@ -108,9 +108,11 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
   );
 
   return (
-    <div className={`min-h-screen bg-[#F8FAFC] py-6 px-3 md:py-8 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans text-slate-800 pb-40`}>
+    <main className={`min-h-screen bg-[#F8FAFC] py-6 px-3 md:py-8 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans pb-60`}>
       <div className="max-w-5xl mx-auto">
         
+
+
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
            <Link href="/admin/events" className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-2 border border-slate-200">
@@ -313,6 +315,6 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

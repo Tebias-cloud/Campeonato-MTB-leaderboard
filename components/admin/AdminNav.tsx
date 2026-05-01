@@ -64,7 +64,7 @@ export default function AdminNav() {
   return (
     <>
       {/* Reserva de espacio inferior dinámica */}
-      <div className="h-28 md:h-0"></div>
+      <div className="h-32 md:h-40"></div>
 
       <div className="fixed bottom-0 left-0 w-full z-50 px-2 pb-4 pt-2 md:px-4 md:pb-8">
         <div className="max-w-2xl mx-auto bg-[#1A1816] rounded-full md:rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 flex justify-between items-center py-3 px-2 md:py-5 md:px-3 backdrop-blur-2xl bg-opacity-95 overflow-x-auto overflow-y-hidden no-scrollbar">

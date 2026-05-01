@@ -34,7 +34,7 @@ export default async function EventsAdminPage() {
   };
 
   return (
-    <main className={`min-h-screen bg-[#F8FAFC] text-slate-800 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans pb-32`}>
+    <main className={`min-h-screen bg-[#F8FAFC] text-slate-800 ${montserrat.variable} ${teko.variable} ${robotoMono.variable} font-sans pb-60`}>
       
       {/* HEADER AJUSTADO (Menos padding abajo para que no quede vacío) */}
       <header className="bg-[#1A1816] pt-10 pb-12 md:pb-16 px-4 md:px-6 rounded-b-[2.5rem] shadow-xl relative border-b-[6px] border-[#C64928]">
