@@ -5,7 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { saveEvent, type EventSaveState } from '@/actions/events';
 import Link from 'next/link';
 import { Teko, Montserrat, Roboto_Mono } from "next/font/google";
-import { Event, OFFICIAL_CATEGORIES } from '@/lib/definitions';
+import { Event } from '@/lib/definitions';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 import EventPreview from '@/components/admin/EventPreview';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
