@@ -262,12 +262,11 @@ export default function AdminSolicitudes() {
           <div className="bg-white rounded-[2rem] shadow-2xl border-2 border-slate-200 overflow-hidden">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#C64928] scrollbar-track-slate-100">
               
-              <table className="w-full text-left border-collapse min-w-[1350px]">
+              <table className="w-full text-left border-collapse">
                 <thead className="bg-[#1A1816] border-b-4 border-[#C64928] text-[10px] uppercase font-black tracking-widest text-[#EFE6D5]">
                   <tr>
                     <th className="p-5 w-16 text-center">#</th>
-                    <th className="p-5 min-w-[200px]">SOLICITUD & EVENTO</th>
-                    <th className="p-5 min-w-[200px]">IDENTIDAD & EDAD</th>
+                    <th className="p-5 min-w-[240px]">IDENTIDAD & EVENTO</th>
                     <th className="p-5 min-w-[300px]">CORREDOR</th>
                     <th className="p-5 min-w-[280px]">CLUB / TEAM</th>
                     <th className="p-5 min-w-[200px]">CATEGORÍA</th>
@@ -292,24 +291,21 @@ export default function AdminSolicitudes() {
                         <td className="p-5 text-center font-mono text-slate-400 font-bold text-sm align-top pt-8">{idx + 1}</td>
 
                         <td className="p-5 align-top">
-                          <div className="flex flex-col gap-1.5 pt-2">
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                              {formatDate(req.created_at)}
-                            </span>
-                            <div className="bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-1.5 rounded-xl uppercase tracking-tighter shadow-sm leading-tight">
-                              {events.find(e => e.id.toString() === req.event_id?.toString())?.name || 'PRÓXIMA FECHA'}
-                            </div>
-                            {requests.filter(r => r.rut === (changes.rut ?? req.rut) && r.id !== req.id).length > 0 && (
-                              <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-1 rounded-lg border border-amber-200 animate-pulse mt-1 w-fit">
-                                ⚠️ OTRA SOLICITUD PENDIENTE
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="p-5 align-top">
                           <div className="flex flex-col gap-2">
+                            {/* INFO DE LA SOLICITUD COMPACTA */}
+                            <div className="flex items-center justify-between bg-slate-100/80 p-1.5 rounded-lg border border-slate-200/50 mb-1">
+                               <div className="flex flex-col">
+                                 <span className="text-[8px] font-black text-slate-400 uppercase leading-none">Solicitud:</span>
+                                 <span className="text-[10px] font-bold text-slate-600 leading-tight">{formatDate(req.created_at)}</span>
+                               </div>
+                               <div className="flex flex-col items-end">
+                                 <span className="text-[8px] font-black text-slate-400 uppercase leading-none text-right">Destino:</span>
+                                 <span className="text-[9px] font-black text-[#C64928] uppercase truncate max-w-[100px] text-right">
+                                   {events.find(e => e.id.toString() === req.event_id?.toString())?.name || 'PRÓXIMA FECHA'}
+                                 </span>
+                               </div>
+                            </div>
+
                             <div className="relative">
                               <input 
                                 type="text"
@@ -319,6 +315,7 @@ export default function AdminSolicitudes() {
                                 placeholder="RUT"
                               />
                             </div>
+                            
                             <div className="flex items-center gap-3 px-2">
                               <input 
                                 type="date"
@@ -332,6 +329,13 @@ export default function AdminSolicitudes() {
                                 </span>
                               )}
                             </div>
+
+                            {requests.filter(r => r.rut === (changes.rut ?? req.rut) && r.id !== req.id).length > 0 && (
+                              <div className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-1.5 rounded-lg border border-amber-200 animate-pulse flex items-center gap-1.5">
+                                <span>⚠️ OTRA SOLICITUD PENDIENTE</span>
+                              </div>
+                            )}
+
                             {isDuplicate && (
                               <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-2 flex items-center gap-1.5 mt-1 bg-blue-100 w-fit py-0.5 rounded-md">
                                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Rider Frecuente
