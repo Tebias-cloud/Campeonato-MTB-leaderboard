@@ -1,13 +1,13 @@
-# 📖 Manual Completo del Sistema: Campeonato MTB Leaderboard
+# 📖 Manual Completo: Plataforma de Campeonato MTB
 
-Bienvenido a la plataforma integral de gestión del campeonato. Este documento cubre todas las funciones del sistema, desde la inscripción inicial hasta la premiación final.
+Este manual explica cómo usar todas las herramientas del sistema para gestionar el campeonato de forma profesional y sin errores.
 
 ---
 
-## 🏗️ 1. Arquitectura del Sistema
-El programa se divide en dos mundos que trabajan juntos:
-1.  **Página Pública:** Donde los corredores ven el ranking, sus perfiles y se inscriben a las carreras.
-2.  **Panel Administrativo:** Donde tú controlas todo. Se accede vía `/admin`.
+## 🏗️ 1. ¿Cómo funciona el sistema?
+El programa tiene dos partes principales:
+1.  **Página para el Público:** Es lo que ven los corredores (Ranking, Perfiles e Inscripciones).
+2.  **Panel de Control (Admin):** Es tu oficina virtual. Se accede entrando a la dirección de la web y agregando `/admin` al final.
 
 ---
 
@@ -40,11 +40,29 @@ Esta sección controla el calendario del campeonato.
 
 ---
 
-## ⏱️ 5. El Juez Virtual (Resultados)
-Es el motor que calcula el ranking. Funciona mediante la integración con **RaceTime**.
-*   **Importación Inteligente:** Puedes subir el PDF de resultados o pegar el texto directamente.
-*   **Asignación de Puntos:** El sistema asigna puntos automáticamente según la posición (100 al 1°, 90 al 2°, etc.).
-*   **Dorsales:** Es CRÍTICO que el dorsal en RaceTime coincida con el asignado en el panel de Riders para esa fecha.
+## ⏱️ 5. El "Puente" con RaceTime (Cronometraje)
+Esta es la parte más importante para el día de la carrera. El sistema y el programa de cronometraje (RaceTime) deben hablar el mismo idioma.
+
+### Paso A: Enviar los datos a RaceTime (Antes de la carrera)
+Para que el juez sepa quién es quién, debes pasarle la lista de inscritos:
+1.  En el panel, ve a **Riders**.
+2.  Filtra por tu **Evento** (ej: 2ª Fecha).
+3.  Asegúrate de que todos tengan su **Dorsal** (número de placa) asignado.
+4.  Haz clic en el botón azul **"PARA RACETIME"**.
+5.  Se descargará un archivo `.csv`. **No lo abras**. Envíalo por correo o pendrive al encargado del cronometraje para que lo cargue en su programa.
+
+### Paso B: Traer los resultados a la Web (Después de la carrera)
+Cuando termine la carrera, el juez te dará los resultados. Así los subes:
+1.  En el panel, ve a **Juez**.
+2.  Selecciona el **Evento** y la **Categoría** (ej: Elite).
+3.  Haz clic en **"⚡ IMPORTAR RACETIME"**.
+4.  **Cómo cargar los datos:**
+    *   **Opción 1 (Archivo):** Sube el PDF que te dio el juez.
+    *   **Opción 2 (Copiar/Pegar):** Abre el archivo de resultados, selecciona el texto (Dorsal y Tiempo), cópialo y pégalo en el cuadro negro.
+5.  Haz clic en **"Verificar Datos"**:
+    *   Si sale en **VERDE**, el sistema reconoció al corredor.
+    *   Si sale en **ROJO**, es porque ese número de placa no estaba inscrito en esa fecha. Revisa si el juez escribió bien el número.
+6.  Haz clic en **"Guardar Resultados"**. En ese instante, el ranking se actualiza solo.
 
 ---
 
