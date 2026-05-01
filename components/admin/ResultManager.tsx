@@ -265,11 +265,13 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     if (!importText.trim()) return;
     const preview: any[] = [];
     
-    // 1. Detectar categorías presentes en el texto
-    // Esto lo seguimos haciendo para intentar asignar categoría a los que no encontramos en la DB
+    // 1. Detectar categorías presentes en el texto (Solo como fallback)
     let currentCategoryFromText: string | null = null;
+    const upperText = importText.toUpperCase();
+    
+    // Buscamos la categoría más probable mirando cuál aparece más cerca del inicio o más veces
     OFFICIAL_CATEGORIES.forEach(c => {
-      if (importText.toUpperCase().includes(c.id.toUpperCase())) {
+      if (upperText.includes(c.id.toUpperCase())) {
         currentCategoryFromText = c.id;
       }
     });
@@ -294,7 +296,8 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         dorsal,
         time,
         rider: entry ? entry.riders?.full_name : nameInText,
-        category: currentCategoryFromText || (entry ? entry.category_at_event : null) || selectedCategory,
+        // PRIORIDAD: 1. DB (Inscripción) -> 2. Texto PDF -> 3. Selector Manual
+        category: (entry ? entry.category_at_event : null) || currentCategoryFromText || selectedCategory,
         found: !!entry,
         rider_id: entry?.rider_id
       });
