@@ -110,7 +110,8 @@ export default async function RidersListPage({
       'Teléfono': r.phone || '-',
       'Ubicación': r.ciudad || '-',
       'F. Nacimiento': r.birth_date || '-',
-      'Instagram': r.instagram || '-'
+      'Instagram': r.instagram || '-',
+      'Eventos': getEventsDisplay(r.id, participations || []).join(', ')
     };
   });
 
