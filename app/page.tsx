@@ -5,6 +5,7 @@ import { Teko, Montserrat } from "next/font/google";
 import Link from 'next/link';
 import { Event } from '@/lib/definitions';
 import { useEffect, useState } from 'react';
+import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
@@ -56,7 +57,22 @@ export default function Home() {
       if (eventResponse.data) setNextEvent(eventResponse.data as Event);
       
       if (categoriesResponse.data) {
-        const uniqueCategories = Array.from(new Set(categoriesResponse.data.map(r => r.category).filter(Boolean))).sort();
+        const uniqueCategories = Array.from(new Set(categoriesResponse.data.map(r => r.category).filter(Boolean)));
+        
+        // Ordenar según el orden oficial definido en lib/categories.ts
+        const officialOrder = OFFICIAL_CATEGORIES.map(c => c.id);
+        uniqueCategories.sort((a, b) => {
+          const indexA = officialOrder.indexOf(a);
+          const indexB = officialOrder.indexOf(b);
+          
+          // Si una categoría no está en la lista oficial, la mandamos al final
+          if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          
+          return indexA - indexB;
+        });
+
         setCategorias(['General', ...uniqueCategories]);
       }
     }

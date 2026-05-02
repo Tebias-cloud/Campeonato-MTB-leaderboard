@@ -1,4 +1,5 @@
 // lib/definitions.ts
+import { CATEGORY_GROUPS as CAT_GROUPS_OBJ, OFFICIAL_CATEGORIES as OFF_CATS_OBJ } from './categories';
 
 export interface FormField {
   id: string;
@@ -74,26 +75,9 @@ export type RankingDisplayData = {
 };
 
 // CATEGORÍAS GLOBALES CENTRALIZADAS
-export const CATEGORY_GROUPS = {
-  "Varones": [
-    "Novicios Varones",
-    "Master A",
-    "Master B",
-    "Master C",
-    "Master D",
-    "Elite"
-  ],
-  "Damas": [
-    "Novicias Damas",
-    "Damas Master A",
-    "Damas Master B",
-    "Damas Master C"
-  ],
-  "Mixtas": [
-    "Pre Master Mixto",
-    "Enduro Mixto",
-    "EBike Mixto"
-  ]
-};
+export const CATEGORY_GROUPS = Object.entries(CAT_GROUPS_OBJ).reduce((acc, [group, cats]) => {
+  acc[group] = cats.map(c => c.id);
+  return acc;
+}, {} as Record<string, string[]>);
 
-export const OFFICIAL_CATEGORIES = Object.values(CATEGORY_GROUPS).flat();
+export const OFFICIAL_CATEGORIES = OFF_CATS_OBJ.map(c => c.id);
