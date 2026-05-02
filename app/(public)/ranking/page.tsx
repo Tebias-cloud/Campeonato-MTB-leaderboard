@@ -101,7 +101,23 @@ export default async function RankingFull(props: Props) {
     
     const { data } = await query.returns<GlobalRankingRow[]>();
     
-    rankingData = data?.map(item => ({
+    // Desempate manual para el Ranking General: Puntos -> Prioridad de Categoría
+    const officialOrder = OFFICIAL_CATEGORIES.map(c => c.id);
+    
+    const sortedData = data?.sort((a, b) => {
+      if (b.total_points !== a.total_points) return b.total_points - a.total_points;
+      
+      const indexA = officialOrder.indexOf(a.category);
+      const indexB = officialOrder.indexOf(b.category);
+      
+      if (indexA === -1 && indexB === -1) return a.full_name.localeCompare(b.full_name);
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      
+      return indexA - indexB; // Menor índice (Elite) va primero
+    });
+
+    rankingData = sortedData?.map(item => ({
       rider_id: item.rider_id,
       full_name: item.full_name,
       category_shown: normalizeCategory(item.category), 
@@ -136,7 +152,8 @@ export default async function RankingFull(props: Props) {
         riders ( full_name, club, ciudad, instagram ) 
       `)
       .eq('event_id', eventIdFilter)
-      .order('points', { ascending: false });
+      .order('points', { ascending: false })
+      .order('race_time', { ascending: true, nullsFirst: false });
 
     if (categoryFilter !== 'Todas') {
       query = query.ilike('category_played', categoryFilter);
