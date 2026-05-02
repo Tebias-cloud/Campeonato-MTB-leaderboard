@@ -10,6 +10,7 @@ export const normalizeCategory = (cat: string | null | undefined): string => {
   // Mapeos de compatibilidad con nombres viejos o variaciones
   if (clean.includes('Novicios Open') || clean.includes('Novicios Varones')) return 'Novicios Varones';
   if (clean.includes('Novicias Open') || clean.includes('Novicias Damas')) return 'Novicias Damas';
+  if (clean.includes('Pre Master')) return 'Pre Master Mixto';
   if (clean.includes('Enduro')) return 'Enduro Mixto';
   if (clean.includes('E-Bike') || clean.includes('EBike')) return 'EBike Mixto';
   

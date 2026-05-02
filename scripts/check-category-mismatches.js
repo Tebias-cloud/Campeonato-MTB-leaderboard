@@ -30,8 +30,9 @@ function normalizeExpected(cat) {
     if (cat.includes('Master A')) return 'Damas Master A';
     if (cat.includes('Master B')) return 'Damas Master B';
     if (cat.includes('Master C')) return 'Damas Master C';
-    if (cat.includes('Pre Master')) return 'Damas Pre Master';
   }
+
+  if (cat.includes('Pre Master')) return 'Pre Master Mixto';
 
   // General mappings
   if (clean === 'Varones Master A') return 'Master A';
@@ -88,7 +89,7 @@ async function findMismatches() {
   }
 
   // Also check for women in Men's categories manually just in case
-  const menCats = ['Master A', 'Master B', 'Master C', 'Master D', 'Pre Master', 'Elite', 'Novicios Varones'];
+  const menCats = ['Master A', 'Master B', 'Master C', 'Master D', 'Elite', 'Novicios Varones'];
   const femaleNameRegex = /(MARIA|CLAUDIA|ANDREA|PATRICIA|ANA|PAULA|ESTER|CONSTANZA|NINET|LAURA|MONICA|SANDRA|SILVIA|KARINA|YESSICA|MARCELA|VANESSA|LORENA|DANIELA|CAMILA|VALENTINA|JAVIERA|CAROLINA|FRANCISCA|ISIDORA|SOFIA|MARTINA|ANTONIA|FERNANDA|JOHELY|EMILY|ERNA|GINA|LETY|SHIRLEY)/i;
   
   let suspiciousWomen = [];

@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect } from 'react';
 import { saveRider, type RiderState } from '@/actions/riders';
-import { Rider } from '@/lib/definitions';
+import { Rider, CATEGORY_GROUPS } from '@/lib/definitions';
 
 interface Props {
   rider: Rider;
@@ -90,16 +90,13 @@ export default function EditRiderCard({ rider, clubs }: Props) {
                 className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-3 font-bold uppercase focus:bg-[#C64928] focus:border-[#C64928] outline-none transition-all cursor-pointer"
                 required
               >
-                 <optgroup label="VARONES">
-                    {["Elite Open", "Pre Master", "Master A", "Master B", "Master C", "Master D", "Novicios Open"].map(c => <option key={c} value={c}>{c}</option>)}
-                 </optgroup>
-                 <optgroup label="DAMAS">
-                    {["Damas Pre Master", "Damas Master A", "Damas Master B", "Damas Master C", "Novicias Open"].map(c => <option key={c} value={c}>{c}</option>)}
-                 </optgroup>
-                 <optgroup label="MIXTAS">
-                    <option value="EBike Mixto Open">EBike Mixto Open</option>
-                    <option value="Enduro Mixto Open">Enduro Mixto Open</option>
-                 </optgroup>
+                 {Object.entries(CATEGORY_GROUPS).map(([groupName, categoryList]) => (
+                    <optgroup key={groupName} label={groupName.toUpperCase()}>
+                        {categoryList.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </optgroup>
+                 ))}
               </select>
             </div>
 

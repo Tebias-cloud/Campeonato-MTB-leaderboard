@@ -77,7 +77,6 @@ export type RankingDisplayData = {
 export const CATEGORY_GROUPS = {
   "Varones": [
     "Novicios Varones",
-    "Pre Master",
     "Master A",
     "Master B",
     "Master C",
@@ -86,12 +85,12 @@ export const CATEGORY_GROUPS = {
   ],
   "Damas": [
     "Novicias Damas",
-    "Damas Pre Master",
     "Damas Master A",
     "Damas Master B",
     "Damas Master C"
   ],
   "Mixtas": [
+    "Pre Master Mixto",
     "Enduro Mixto",
     "EBike Mixto"
   ]
