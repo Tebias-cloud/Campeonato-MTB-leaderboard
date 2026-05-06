@@ -1,12 +1,17 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { createResult, deleteResult } from '@/actions/results';
+import { assignSingleDorsal } from '@/actions/dorsals'; 
 import { Event, Rider, RawResult } from '@/lib/definitions';
-import ExportExcelButton from '@/components/admin/ExportExcelButton'; // ✅ IMPORTAMOS EL BOTÓN AQUÍ
+import ExportExcelButton from '@/components/admin/ExportExcelButton'; 
 
 import { normalizeCategory } from '@/lib/utils';
 import { OFFICIAL_CATEGORIES, CATEGORY_GROUPS } from '@/lib/categories';
+
+// Regex ultra-precisa fuera del componente para evitar errores de compilación
+// [Puesto?] [Dorsal] [Nombre] [Tiempo]
+const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑ\\s()\\.#&\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
 
 // --- UTILITIES ---
 const formatRut = (rut: string | null | undefined) => {
@@ -20,7 +25,7 @@ const formatRut = (rut: string | null | undefined) => {
 
 const normalize = (str: string | null | undefined) => {
     if (!str) return '';
-    return str.trim().toUpperCase();
+    return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
 
 interface Props {
@@ -49,13 +54,11 @@ export default function ResultManager({ events, riders, existingResults, eventRi
 
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [importStep, setImportStep] = useState<'paste' | 'review'>('paste');
-  const [previewResults, setPreviewResults] = useState<any[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // 1. SUGERENCIAS (Filtradas por categoría para mantener el orden solicitado)
+  // 1. SUGERENCIAS
   const suggestions = useMemo(() => {
     const targetCat = normalize(selectedCategory);
-    // Filtramos para que solo aparezcan los de la categoría seleccionada
     const categoryRiders = riders.filter(r => 
         normalize(normalizeCategory(r.category)) === targetCat
     );
@@ -68,7 +71,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     ).slice(0, 15);
   }, [riders, searchTerm, selectedCategory]);
 
-  // 2. RESULTADOS ACTUALES (FILTRADOS POR CATEGORÍA Y EVENTO)
+  // 2. RESULTADOS ACTUALES
   const currentViewResults = useMemo(() => {
     const targetCat = normalize(selectedCategory);
     let filtered = existingResults.filter(r => 
@@ -85,10 +88,9 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     return filtered.sort((a, b) => a.position - b.position);
   }, [existingResults, selectedEventId, selectedCategory, filterTable, riders]);
 
-  // ✅ PREPARAR DATOS PARA EL EXCEL BASADOS EN LA VISTA ACTUAL
   const fechaHoy = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
-  const nombreArchivoExcel = `Resultados_${selectedCategory.replace(/ /g, '_')}_${fechaHoy}`;
-  
+  const currentEventName = events.find(e => e.id === selectedEventId)?.name || 'Evento';
+  const nombreArchivoExcel = `Resultados_${(selectedCategory || 'Cat').replace(/ /g, '_')}_${fechaHoy}`;
   const datosParaExcel = currentViewResults.map(res => {
     const rider = riders.find(r => r.id === res.rider_id);
     return {
@@ -103,7 +105,6 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     };
   });
 
-  // 3. AUTO-EDICIÓN
   useEffect(() => {
     if (!selectedRiderId || !selectedEventId) {
         setIsEditing(false);
@@ -145,32 +146,40 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   const handleSelectRider = (rider: Rider) => { 
       setSelectedRiderId(rider.id); 
       setSearchTerm(rider.full_name);
-      
-      // AUTO-SELECCIÓN DE CATEGORÍA
-      // Si el rider ya tiene una categoría, la seleccionamos automáticamente en el dropdown
-      if (rider.category) {
-          setSelectedCategory(rider.category);
-      }
-
+      if (rider.category) setSelectedCategory(rider.category);
       setShowDropdown(false); 
   };
 
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
+      const val = e.target.value.toUpperCase();
       setPosition(val);
+      
+      if (val === 'DQ') {
+          setPoints('0');
+          return;
+      }
+
       const pos = parseInt(val);
       if (!isNaN(pos) && pos > 0) {
-          let calcPoints = 0;
-          if (pos === 1) calcPoints = 100;
-          else if (pos <= 10) calcPoints = 110 - (pos * 10);
-          else if (pos < 20) calcPoints = 20 - pos;
-          else calcPoints = 1;
-          setPoints(calcPoints.toString());
+          setPoints(calculatePoints(pos).toString());
       } else setPoints('');
   };
 
+  const calculatePoints = (pos: number, isDQ: boolean = false) => {
+    if (isDQ || pos === 999) return 0;
+    if (pos === 1) return 100;
+    if (pos <= 10) return 110 - (pos * 10);
+    if (pos < 20) return 20 - pos;
+    return 1;
+  };
+
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '');
+    const val = e.target.value.toUpperCase();
+    if (val === 'DQ') {
+        setRaceTime('DQ');
+        return;
+    }
+    const raw = val.replace(/\D/g, '');
     if (raw.length > 6) return; 
     let formatted = raw;
     if (raw.length > 2) formatted = `${raw.slice(0, 2)}:${raw.slice(2)}`;
@@ -181,33 +190,23 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId || !selectedRiderId || !position || !points) {
-        alert("Faltan datos obligatorios (Corredor, Posición o Puntos)");
+        alert("Faltan datos obligatorios");
         return;
     }
     setLoading(true);
     try {
-      const finalPosition = parseInt(position, 10);
-      const finalPoints = parseInt(points, 10);
-      const finalAvgSpeed = avgSpeed ? parseFloat(avgSpeed) : null;
-      const finalRaceTime = raceTime.trim() !== '' ? raceTime : null;
-
+      const finalPos = position.toUpperCase() === 'DQ' ? 999 : parseInt(position, 10);
       await createResult({
         event_id: selectedEventId, 
         rider_id: selectedRiderId, 
-        position: finalPosition,
-        points: finalPoints, 
+        position: finalPos,
+        points: parseInt(points, 10), 
         category_played: selectedCategory, 
-        race_time: finalRaceTime, 
-        avg_speed: finalAvgSpeed
+        race_time: raceTime.trim() !== '' ? raceTime : null, 
+        avg_speed: avgSpeed ? parseFloat(avgSpeed) : null
       });
-      
       resetFormFull(); 
-    } catch (error) { 
-        console.error("Error completo:", error); 
-        alert("Ocurrió un error al guardar el resultado."); 
-    } finally { 
-        setLoading(false); 
-    }
+    } catch (error) { alert("Error al guardar."); } finally { setLoading(false); }
   };
 
   const handleDelete = async (resultId: string) => {
@@ -216,155 +215,208 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     try {
         await deleteResult(resultId);
         if (isEditing) resetFormFull();
-    } catch (error) {
-        alert("Error al borrar el resultado.");
-    } finally {
-        setLoading(false);
-    }
+    } catch (error) { alert("Error al borrar."); } finally { setLoading(false); }
   };
 
-  const calculatePoints = (pos: number) => {
-    if (pos === 1) return 100;
-    if (pos <= 10) return 110 - (pos * 10);
-    if (pos < 20) return 20 - pos;
-    return 1;
-  };
-
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // --- LÓGICA DE PDF MEJORADA (MÁS INTUITIVA) ---
+  const processPdfFile = async (file: File) => {
     setLoading(true);
     try {
-      // Importación dinámica para evitar errores de SSR
-      const pdfjs = await import('pdfjs-dist');
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.mjs`;
+      await new Promise<void>((resolve, reject) => {
+        if ((window as any).pdfjsLib) return resolve();
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("No se pudo cargar el motor PDF."));
+        document.body.appendChild(script);
+      });
+
+      const pdfjsLib = (window as any)['pdfjsLib'];
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
       let fullText = "";
-
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(" ");
-        fullText += pageText + "\n";
+        fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
       }
-
       setImportText(fullText);
-      alert("✅ PDF leído con éxito. Ahora verifica los datos detectados.");
-    } catch (error) {
-      console.error("Error leyendo PDF:", error);
-      alert("Hubo un error al leer el PDF. Asegúrate que no esté protegido con contraseña.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    } catch (error: any) { alert(`Error: ${error.message}`); } finally { setLoading(false); }
+  }  
+  
+  const detectedResults = useMemo(() => {
+    if (!importText || !importText.trim()) return [];
+    
+    const results: any[] = [];
+    const lines = importText.split(/\r?\n/);
+    let currentCategory = "DESCONOCIDA";
 
-  const generatePreview = () => {
-    if (!importText.trim()) return;
-    const preview: any[] = [];
-    
-    // 1. Detectar categorías presentes en el texto (Solo como fallback)
-    let currentCategoryFromText: string | null = null;
-    const upperText = importText.toUpperCase();
-    
-    // Buscamos la categoría más probable mirando cuál aparece más cerca del inicio o más veces
-    OFFICIAL_CATEGORIES.forEach(c => {
-      if (upperText.includes(c.id.toUpperCase())) {
-        currentCategoryFromText = c.id;
+    // Usamos la regex definida fuera del componente
+
+    lines.forEach(line => {
+      const cleanLine = line.trim();
+      if (!cleanLine || cleanLine.length < 2) return;
+
+      // 1. ¿ES UNA CATEGORÍA?
+      const upper = cleanLine.toUpperCase();
+      const catKeywords = ["MASTER", "ELITE", "NOVICIO", "DAMAS", "VARONES", "MIXTO", "PRO", "INFANTIL", "JUVENIL", "CADETE", "SUB", "EBIKE", "ENDURO"];
+      const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO") || upper.includes("/");
+      
+      if (catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/)) {
+        let detected = upper;
+        // Unificación de Pre Master según reglamento:
+        if (detected.includes("PRE MASTER") || detected.includes("PREMASTER")) {
+          detected = "PRE MASTER MIXTO";
+        }
+        currentCategory = detected;
+        return;
       }
+
+      // 2. BUSCAR CORREDORES
+      const riderMatches = Array.from(cleanLine.matchAll(RIDER_REGEX));
+      riderMatches.forEach(match => {
+        const puesto = match[1];
+        const dorsal = match[2];
+        const rawName = match[3].trim().toUpperCase();
+        const time = match[4].toUpperCase();
+
+        if (dorsal.length === 4 && dorsal.startsWith("20")) return;
+        if (rawName.includes("PUESTO") || rawName.includes("DORSAL")) return;
+
+        const isDQ = time === 'DQ';
+        const nameInText = rawName.split('(')[0].trim();
+
+        // Identificación por Dorsal en este Evento
+        const entryByDorsal = eventRiders.find(er => 
+          er.event_id === selectedEventId && 
+          er.dorsal?.toString() === dorsal.toString()
+        );
+        
+        const riderByName = !entryByDorsal ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
+        const identifiedRiderId = entryByDorsal?.rider_id || riderByName?.id || null;
+        const identifiedName = entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
+        const riderProfile = riders.find(r => r.id === identifiedRiderId);
+        
+        // TRIPLE SEGURIDAD EN CATEGORÍA:
+        // 1. Categoría de Inscripción (Evento)
+        // 2. Categoría de Perfil (Ficha del Corredor)
+        // 3. Categoría del PDF (Título actual)
+        let finalCategory = entryByDorsal?.category_at_event || 
+                            riderProfile?.category || 
+                            currentCategory || 
+                            "DESCONOCIDA";
+
+        // NORMALIZACIÓN AGRESIVA: Si dice Pre Master en cualquier lado, unificar a MIXTO
+        if (finalCategory.toUpperCase().includes("PRE MASTER") || finalCategory.toUpperCase().includes("PREMASTER")) {
+          finalCategory = "PRE MASTER MIXTO";
+        }
+
+        let status = "✅ LISTO";
+        let canAutoLink = false;
+
+        if (!entryByDorsal && riderByName) {
+          status = "💡 RECONOCIDO";
+          canAutoLink = true;
+        } else if (!entryByDorsal) {
+          status = "❌ NO ENCONTRADO";
+        }
+        // if (isDQ) status = "ℹ️ INFORMATIVO"; // Removido para que muestre Vinculado/Sugerencia correctamente
+
+        const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
+        let changeType = "NUEVO";
+        let updateDetail = "";
+        
+        const normalizeTime = (t: string | null | undefined) => {
+          if (!t) return '';
+          let clean = t.trim().toUpperCase();
+          if (clean.startsWith('0') && clean.includes(':')) clean = clean.substring(1);
+          return clean;
+        };
+
+        if (alreadySaved) {
+          const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
+          const posMatches = alreadySaved.position === (puesto ? parseInt(puesto) : 999);
+          changeType = (timeMatches && posMatches) ? "SIN CAMBIOS" : "ACTUALIZAR";
+          if (changeType === "ACTUALIZAR") {
+            const timeDiff = !timeMatches ? `T: ${alreadySaved.race_time} → ${time}` : "";
+            const posDiff = !posMatches ? `P: ${alreadySaved.position} → ${puesto || 'DQ'}` : "";
+            updateDetail = [timeDiff, posDiff].filter(Boolean).join(" | ");
+          }
+        }
+
+        results.push({
+          dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
+          category: finalCategory, time, isDQ, riderId: identifiedRiderId,
+          exists: !!entryByDorsal, canAutoLink, status, changeType, updateDetail
+        });
+      });
     });
 
-    // 2. Escáner Global de Resultados
-    // Buscamos: Lugar(D) -> Espacios -> Dorsal(D) -> Espacios -> Nombre(T) -> Espacios -> Tiempo(XX:XX)
-    const globalRegex = /(\d+)\s+(\d+)\s+([A-Za-zÁ-ÿ\s\(\)._-]+?)\s+(\d{1,2}:[\d:.]+)/g;
-    
-    let match;
-    while ((match = globalRegex.exec(importText)) !== null) {
-      const dorsal = match[2];
-      const time = match[4];
-      const nameInText = match[3].trim();
+    return results;
+  }, [importText, selectedEventId, eventRiders, riders, existingResults]);
 
-      // Buscar al rider en la base de datos de inscritos para este evento
-      const entry = eventRiders.find(er => 
-        er.event_id === selectedEventId && 
-        er.dorsal?.toString() === dorsal.toString()
-      );
+  // Identificar quiénes están inscritos pero no aparecen en el PDF
+  const missingFromPdf = useMemo(() => {
+    return eventRiders.filter(er => 
+      er.event_id === selectedEventId && 
+      !detectedResults.some(dr => dr.riderId === er.rider_id)
+    );
+  }, [eventRiders, selectedEventId, detectedResults]);
 
-      preview.push({
-        dorsal,
-        time,
-        rider: entry ? entry.riders?.full_name : nameInText,
-        // PRIORIDAD: 1. DB (Inscripción) -> 2. Texto PDF -> 3. Selector Manual
-        category: (entry ? entry.category_at_event : null) || currentCategoryFromText || selectedCategory,
-        found: !!entry,
-        rider_id: entry?.rider_id
-      });
-    }
+  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.status !== "⚠️ DORSAL SOSPECHOSO").length;
 
-    if (preview.length === 0) {
-      // Fallback extremo si el regex anterior falló por carácteres especiales
-      const lines = importText.split('\n').filter(l => l.trim());
-      for (const line of lines) {
-        const parts = line.split(/\s{2,}/).filter(p => p.trim());
-        if (parts.length >= 2) {
-           const d = parts[0].match(/\d+/);
-           if (d) {
-             preview.push({
-               dorsal: d[0],
-               time: parts[parts.length-1],
-               rider: 'Detectado (verificar)',
-               category: selectedCategory,
-               found: false
-             });
-           }
-        }
-      }
-    }
-
-    setPreviewResults(preview);
-    setImportStep('review');
+  const timeToSeconds = (timeStr: string) => {
+    if (timeStr.toUpperCase() === 'DQ') return 999999;
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parts[0] || 999999;
   };
 
-  const processImport = async () => {
-    const validOnes = previewResults.filter(p => p.found);
-    if (validOnes.length === 0) return;
-    
+  const handleSaveResults = async () => {
+    if (readyToSaveCount === 0) return;
     setLoading(true);
     try {
-      const byCategory: Record<string, any[]> = {};
-      validOnes.forEach(r => {
-        if (!byCategory[r.category]) byCategory[r.category] = [];
-        byCategory[r.category].push(r);
-      });
+      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId);
+      
+      let totalProcessed = 0;
 
-      let processedCount = 0;
-      for (const catName in byCategory) {
-        const sorted = byCategory[catName].sort((a,b) => a.time.localeCompare(b.time));
-        for (let i = 0; i < sorted.length; i++) {
-          const item = sorted[i];
-          const pos = i + 1;
+      // GUARDADO: Procesar todos los resultados válidos, incluyendo DQ
+      for (const item of toSave) {
+          const finalPos = item.isDQ ? 999 : (parseInt(item.puesto) || 999);
+          
+          if (item.canAutoLink) {
+             await assignSingleDorsal(selectedEventId, item.riderId, item.dorsal, item.category);
+          }
+
           await createResult({
             event_id: selectedEventId,
-            rider_id: item.rider_id,
-            position: pos,
-            points: calculatePoints(pos),
-            category_played: catName,
+            rider_id: item.riderId,
+            position: finalPos,
+            points: calculatePoints(finalPos, false),
+            category_played: item.category,
             race_time: item.time
           });
-          processedCount++;
-        }
+          totalProcessed++;
       }
-      alert(`✅ Éxito: ${processedCount} resultados guardados.`);
+      alert(`✅ Sincronización completa: Se guardaron ${totalProcessed} resultados (incluyendo DQ) correctamente.`);
       setShowImportModal(false);
       setImportText('');
-      setImportStep('paste');
-    } catch (e) {
-      alert("Error al guardar.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { alert("Error al guardar resultados."); } finally { setLoading(false); }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!confirm(`⚠️ ¿Borrar TODOS los resultados de la categoría ${selectedCategory}?`)) return;
+    setLoading(true);
+    try {
+        for (const res of currentViewResults) {
+            await deleteResult(res.id);
+        }
+        alert("✅ Lista limpiada.");
+    } catch (e) { alert("Error al limpiar."); } finally { setLoading(false); }
   };
 
   const inputClass = "w-full p-3 bg-white text-gray-900 rounded-lg border border-gray-300 outline-none focus:border-[#C64928] font-semibold text-sm";
@@ -373,18 +425,18 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   return (
     <div className="p-2 sm:p-4 space-y-6">
       
-      {/* 1. CONFIGURACIÓN */}
+      {/* CABECERA */}
       <div className="bg-[#1A1816] p-6 rounded-2xl shadow-lg border-b-4 border-[#C64928]">
         <div className="flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div className="space-y-1">
-                    <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">1. Selecciona el Evento</label>
+                    <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Seleccionar Evento</label>
                     <select value={selectedEventId} onChange={(e) => { setSelectedEventId(e.target.value); resetFormFull(); }} className="w-full p-3 rounded-lg bg-[#2A221B] text-white border border-white/10 font-bold text-sm">
                         {events.map(ev => <option key={ev.id} value={ev.id} className="text-black bg-white">{ev.name}</option>)}
                     </select>
                 </div>
                 <div className="space-y-1">
-                    <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">2. Revisa o Agrega</label>
+                    <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Categoría y Carga</label>
                     <div className="flex gap-2">
                       <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); resetFormFull(); }} className="flex-1 p-3 rounded-lg bg-[#C64928] text-white font-bold text-sm appearance-none cursor-pointer">
                           {Object.entries(CATEGORY_GROUPS).map(([groupName, categoryList]) => (
@@ -395,149 +447,178 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                             </optgroup>
                           ))}
                       </select>
-                      <button 
-                        onClick={() => setShowImportModal(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg font-bold text-[11px] uppercase tracking-tighter flex items-center gap-2 shadow-lg transition-transform hover:scale-105 active:scale-95"
-                      >
-                        ⚡ IMPORTAR RACETIME
+                      <button onClick={() => setShowImportModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold text-[11px] uppercase tracking-widest shadow-lg transition-all hover:scale-105">
+                        IMPORTAR PDF
                       </button>
+                      <div className="scale-100 origin-right ml-2">
+                        <ExportExcelButton 
+                          label="EXPORTAR RANKING"
+                          data={existingResults
+                            .filter(r => r.event_id === selectedEventId)
+                            .sort((a, b) => a.category_played.localeCompare(b.category_played) || a.position - b.position)
+                            .map(res => {
+                              const rider = riders.find(r => r.id === res.rider_id);
+                              return {
+                                'Categoría': res.category_played,
+                                'Posición': res.position === 999 ? 'DQ' : res.position,
+                                'Corredor': rider?.full_name || 'Desconocido',
+                                'RUT': rider?.rut ? formatRut(rider.rut) : '-',
+                                'Club / Team': rider?.club || 'Independiente',
+                                'Tiempo': res.race_time || '-',
+                                'Puntos': res.points
+                              };
+                            })
+                          } 
+                          fileName={`Ranking_Completo_${currentEventName.replace(/\s+/g, '_')}`}
+                        />
+                      </div>
                     </div>
                 </div>
             </div>
         </div>
       </div>
 
-      {/* MODAL DE IMPORTACIÓN REDISEÑADO */}
+      {/* ASISTENTE DE IMPORTACIÓN */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/95 z-[999999] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 my-auto">
+        <div className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
             
-            {/* Cabecera del Modal */}
-            <div className="bg-[#1A1816] p-8 text-white relative">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-3xl font-heading uppercase italic tracking-tighter leading-none mb-2">Importar Tiempos</h3>
-                  <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${importStep === 'paste' ? 'text-emerald-400' : 'text-gray-500'}`}>
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center border ${importStep === 'paste' ? 'border-emerald-400' : 'border-gray-500'}`}>1</span> PEGAR DATOS
-                    </div>
-                    <div className="w-8 h-px bg-gray-700"></div>
-                    <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${importStep === 'review' ? 'text-emerald-400' : 'text-gray-500'}`}>
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center border ${importStep === 'review' ? 'border-emerald-400' : 'border-gray-500'}`}>2</span> REVISAR Y GUARDAR
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => { setShowImportModal(false); setImportStep('paste'); }} className="bg-white/10 hover:bg-red-500 w-10 h-10 rounded-full flex items-center justify-center transition-colors">✕</button>
+            <div className="p-8 bg-[#F8F5F0] border-b flex justify-between items-center">
+              <div>
+                <h2 className="font-heading text-4xl text-[#1A1816] uppercase italic leading-none">Asistente de <span className="text-[#C64928]">Importación PDF</span></h2>
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">Carga automática de resultados oficiales</p>
               </div>
+              <button onClick={() => { setShowImportModal(false); setImportText(''); }} className="w-10 h-10 rounded-full bg-white border flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-all">✕</button>
             </div>
 
-            <div className="p-8">
-              {importStep === 'paste' ? (
-                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h4 className="font-bold text-gray-900 border-b-2 border-slate-100 pb-2 flex items-center gap-2">
-                        <span className="bg-slate-900 text-white w-6 h-6 rounded-md flex items-center justify-center text-[10px]">?</span> 
-                        ¿Cómo importar?
-                      </h4>
-                      
-                      {/* BOTÓN SUBIR PDF */}
-                      <div className="bg-emerald-50 border-2 border-emerald-100 p-6 rounded-[1.5rem] space-y-3 shadow-sm">
-                        <p className="text-xs font-bold text-emerald-800">Opción 1: Directo desde el PDF</p>
-                        <p className="text-[10px] text-emerald-600 uppercase font-black leading-tight">Sube el archivo de RaceTime y el sistema leerá el texto por ti.</p>
-                        <label className="flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl cursor-pointer transition-all shadow-md group">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                          <span className="text-[11px] font-black uppercase tracking-widest">Seleccionar PDF</span>
-                          <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-                        </label>
-                      </div>
-
-                      <div className="bg-slate-50 p-6 rounded-[1.5rem] space-y-3">
-                        <p className="text-xs font-bold text-slate-800">Opción 2: Pegar Texto</p>
-                        <ul className="space-y-2">
-                          {[
-                            "Copia el texto del PDF o Excel.",
-                            "Pégalo en el cuadro de la derecha.",
-                            "El sistema detectará Dorsales y Tiempos."
-                          ].map((text, i) => (
-                            <li key={i} className="flex gap-2 text-[11px] text-slate-500 font-medium">
-                              <span className="text-emerald-500">✔</span> {text}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Pega aquí los datos:</label>
-                      <textarea 
-                        value={importText}
-                        onChange={(e) => setImportText(e.target.value)}
-                        placeholder="101  00:45:23&#10;115  00:48:10&#10;..."
-                        className="w-full h-64 p-5 font-mono text-sm border-2 border-slate-100 bg-slate-50 rounded-[1.5rem] outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none shadow-inner"
-                      />
-                    </div>
+            <div className="flex-1 overflow-y-auto p-8">
+              {!importText ? (
+                <div className="border-4 border-dashed border-slate-200 rounded-[32px] p-20 text-center space-y-6 bg-slate-50/50">
+                  <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mx-auto text-[#C64928]">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   </div>
-
-                  <div className="flex justify-end pt-4">
-                    <button 
-                      onClick={generatePreview}
-                      disabled={!importText.trim()}
-                      className="bg-[#1A1816] hover:bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-30 flex items-center gap-3"
-                    >
-                      Verificar Datos <span className="text-xl">→</span>
-                    </button>
+                  <div className="space-y-2">
+                    <p className="text-[#1A1816] font-black text-xl">Cargar Resultados desde PDF</p>
+                    <p className="text-slate-500 text-sm">Selecciona el archivo oficial de RaceTime para procesar la fecha.</p>
                   </div>
+                  <input type="file" accept=".pdf" onChange={(e) => { const file = e.target.files?.[0]; if (file) processPdfFile(file); }} className="hidden" id="pdf-input" disabled={loading} />
+                  <label htmlFor="pdf-input" className="inline-block bg-[#1A1816] text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#C64928] cursor-pointer shadow-lg transition-all active:scale-95">
+                    {loading ? 'Leyendo Archivo...' : 'Seleccionar PDF'}
+                  </label>
                 </div>
               ) : (
-                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                  <div className="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                    <p className="text-sm font-bold text-emerald-800">
-                      He detectado <span className="bg-emerald-200 px-2 py-0.5 rounded-md">{previewResults.length}</span> entradas. 
-                      Los que están en <span className="text-red-600 underline">rojo</span> no se guardarán (Dorsal no encontrado).
-                    </p>
-                    <button onClick={() => setImportStep('paste')} className="text-xs font-black uppercase text-emerald-600 hover:underline">Volver a editar</button>
+                <div className="space-y-6">
+                  {/* DASHBOARD SUMMARY */}
+                  <div className="bg-[#1A1816] p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden mb-8">
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-6">
+                        <span className="bg-[#C64928] text-white text-[10px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg shadow-[#C64928]/20">Importando resultados para:</span>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tight text-white border-b-2 border-[#C64928] pb-1">{currentEventName}</h3>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white/5 backdrop-blur-xl p-5 rounded-3xl border border-white/10">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Inscritos Web</p>
+                          <p className="text-3xl font-black text-white">{eventRiders.filter(er => er.event_id === selectedEventId).length}</p>
+                        </div>
+                        <div className="bg-emerald-500/10 backdrop-blur-xl p-5 rounded-3xl border border-emerald-500/20">
+                          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Listos</p>
+                          <p className="text-3xl font-black text-emerald-400">{readyToSaveCount}</p>
+                        </div>
+                        <div className="bg-blue-500/10 backdrop-blur-xl p-5 rounded-3xl border border-blue-500/20">
+                          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Desc. (DQ)</p>
+                          <p className="text-3xl font-black text-blue-400">{detectedResults.filter(r => r.isDQ).length}</p>
+                        </div>
+                        <div className={`backdrop-blur-xl p-5 rounded-3xl border ${detectedResults.length - readyToSaveCount > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+                          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Sin Vincular</p>
+                          <p className="text-3xl font-black text-red-400">{detectedResults.length - readyToSaveCount}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="max-h-72 overflow-y-auto border-2 border-slate-100 rounded-3xl scrollbar-thin scrollbar-thumb-emerald-500">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 sticky top-0 text-[10px] font-black uppercase text-slate-400 border-b-2 border-slate-100">
+                  {/* RESULTS TABLE */}
+                  <div className="border border-slate-200 rounded-[24px] overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-[#F8F5F0] text-[10px] font-black uppercase text-slate-400 border-b">
                         <tr>
-                          <th className="p-4">Dorsal</th>
-                          <th className="p-4">Corredor Identificado</th>
-                          <th className="p-4">Categoría</th>
-                          <th className="p-4">Tiempo</th>
+                          <th className="p-4 text-center w-[60px]">Pos</th>
+                          <th className="p-4 text-center w-[80px]">Dorsal</th>
+                          <th className="p-4 text-left">Corredor Identificado</th>
+                          <th className="p-4 text-center w-[120px]">Tiempo</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {previewResults.map((r, i) => (
-                          <tr key={i} className={`text-xs font-bold ${r.found ? 'text-slate-800' : 'bg-red-50 text-red-400'}`}>
-                            <td className="p-4 font-mono">{r.dorsal}</td>
-                            <td className="p-4">{r.rider || '❌ DORSAL DESCONOCIDO'}</td>
-                            <td className="p-4"><span className="bg-slate-100 px-2 py-0.5 rounded uppercase">{r.category || 'N/A'}</span></td>
-                            <td className="p-4 font-mono">{r.time}</td>
-                          </tr>
+                      <tbody className="divide-y divide-slate-100">
+                        {Object.entries(
+                          detectedResults.reduce<Record<string, any[]>>((acc, curr) => {
+                            const cat = curr.category || 'SIN CATEGORÍA';
+                            if (!acc[cat]) acc[cat] = [];
+                            acc[cat].push(curr);
+                            return acc;
+                          }, {})
+                        ).map(([category, categoryResults]) => (
+                          <Fragment key={category}>
+                            <tr className="bg-slate-50">
+                              <td colSpan={4} className="p-3 px-6 border-y border-slate-100">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{category}</span>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase">{categoryResults.length} en PDF</span>
+                                </div>
+                              </td>
+                            </tr>
+                            {categoryResults.map((r, i) => (
+                              <tr key={`${category}-${i}`} className={`group ${!r.riderId && !r.isDQ ? 'bg-red-50/50' : 'hover:bg-slate-50/50'} transition-colors`}> 
+                                <td className="p-4 text-center font-bold">{r.puesto}</td>
+                                <td className="p-4 text-center font-black text-lg">{r.dorsal}</td>
+                                <td className="p-4">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className={`font-black uppercase text-base ${!r.riderId && !r.isDQ ? 'text-red-600' : 'text-[#1A1816]'}`}>{r.identifiedName || r.nameInText}</p>
+                                      {r.status.includes('✅') && <span className="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-black uppercase tracking-tighter">Vinculado</span>}
+                                      {r.status.includes('💡') && <span className="text-[9px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-black uppercase tracking-tighter">Sugerencia</span>}
+                                      {!r.riderId && !r.isDQ && <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-black uppercase tracking-tighter italic">Revisar Nombre</span>}
+                                      {r.changeType === "NUEVO" && <span className="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-black border border-indigo-100 uppercase tracking-tighter">Nuevo</span>}
+                                      {r.changeType === "ACTUALIZAR" && <span className="text-[9px] px-2 py-0.5 bg-orange-50 text-orange-600 rounded font-black border border-orange-100 uppercase tracking-tighter">Actualizar</span>}
+                                    </div>
+                                    {r.updateDetail && <p className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded w-fit">{r.updateDetail}</p>}
+                                    {!r.identifiedName && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{r.nameInText}</p>}
+                                  </div>
+                                </td>
+                                <td className="p-4 text-center font-mono font-black text-[#C64928] text-lg">{r.time}</td>
+                              </tr>
+                            ))}
+                          </Fragment>
                         ))}
-                      </tbody>
+</tbody>
                     </table>
                   </div>
 
-                  <div className="flex gap-4 pt-4">
-                    <button 
-                      onClick={() => setImportStep('paste')} 
-                      className="flex-1 py-5 font-black uppercase text-[10px] tracking-widest text-gray-400"
-                    >
-                      Corregir Lista
-                    </button>
-                    <button 
-                      onClick={processImport}
-                      disabled={loading || !previewResults.some(p => p.found)}
-                      className="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl transition-all disabled:opacity-50"
-                    >
-                      {loading ? 'Sincronizando con el Ranking...' : `Guardar ${previewResults.filter(p => p.found).length} Resultados Ahora`}
-                    </button>
-                  </div>
+                  {/* MISSING FROM PDF */}
+                  {missingFromPdf.length > 0 && (
+                    <div className="mt-12 p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
+                      <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 text-center italic opacity-30">— Ausentes o Sin Registro ({missingFromPdf.length}) —</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {missingFromPdf.map((m, idx) => (
+                          <div key={idx} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col gap-2 hover:border-slate-300 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">#{m.dorsal || 'S/D'}</span>
+                            </div>
+                            <p className="text-sm font-black text-slate-700 uppercase leading-tight">{m.riders?.full_name}</p>
+                            <p className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded w-fit">{m.category_at_event || 'SIN CATEGORÍA'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+            </div>
+
+            <div className="p-8 bg-[#F8F5F0] border-t flex justify-end gap-4">
+              <button onClick={() => setImportText('')} className="px-6 py-3 font-black text-xs uppercase text-slate-400 hover:text-slate-600">{importText ? 'Volver a intentar' : 'Cerrar'}</button>
+              {importText && (
+                <button onClick={handleSaveResults} disabled={readyToSaveCount === 0 || loading} className={`px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all ${readyToSaveCount > 0 ? 'bg-[#C64928] text-white hover:scale-105' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                  {loading ? 'Guardando...' : `Guardar ${readyToSaveCount} Resultados`}
+                </button>
               )}
             </div>
           </div>
@@ -545,15 +626,15 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 2. FORMULARIO */}
+        {/* FORMULARIO */}
         <div className={`lg:col-span-5 p-6 rounded-2xl border ${isEditing ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'} shadow-sm h-fit`}>
-            <h2 className="text-xs font-black text-gray-900 uppercase mb-6 italic">Ingreso de Tiempos</h2>
+            <h2 className="text-xs font-black text-gray-900 uppercase mb-6 italic">Ingreso Manual</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="relative" ref={searchContainerRef}>
-                    <label className={labelClass}>Corredor</label>
+                    <label className={labelClass}>Buscar Corredor</label>
                     <input type="text" value={searchTerm} onFocus={() => setShowDropdown(true)} onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); setSelectedRiderId(''); }} placeholder="Nombre o RUT..." className={inputClass} />
                     {showDropdown && (
-                        <div className="absolute top-full left-0 w-full bg-white mt-1 rounded-lg shadow-2xl border border-gray-200 max-h-60 overflow-y-auto z-[999]">
+                        <div className="absolute top-full left-0 w-full bg-white mt-1 rounded-lg shadow-2xl border border-gray-200 max-h-60 overflow-y-auto z-[99]">
                             {suggestions.length > 0 ? (
                                 suggestions.map(r => (
                                     <div key={r.id} onClick={() => handleSelectRider(r)} className="p-3 border-b border-gray-50 hover:bg-orange-50 cursor-pointer flex justify-between items-center text-xs">
@@ -565,7 +646,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-3 text-center text-xs text-gray-500 italic">No hay corredores en esta categoría.</div>
+                                <div className="p-3 text-center text-xs text-gray-500 italic">No hay resultados.</div>
                             )}
                         </div>
                     )}
@@ -576,39 +657,42 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                         <input type="number" value={position} onChange={handlePositionChange} className={`${inputClass} text-center`} placeholder="0" required />
                     </div>
                     <div>
-                        <label className={labelClass}>Puntos (Editable)</label>
+                        <label className={labelClass}>Puntos</label>
                         <input type="number" value={points} onChange={(e) => setPoints(e.target.value)} className={`${inputClass} text-center font-bold text-[#C64928]`} required />
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelClass}>Tiempo Carrera</label><input type="text" value={raceTime} onChange={handleTimeChange} className={`${inputClass} text-center font-mono`} placeholder="00:00:00" /></div>
-                    <div><label className={labelClass}>Promedio Km/h</label><input type="number" step="0.1" value={avgSpeed} onChange={(e) => setAvgSpeed(e.target.value)} className={`${inputClass} text-center`} placeholder="0.0" /></div>
+                    <div><label className={labelClass}>Tiempo</label><input type="text" value={raceTime} onChange={handleTimeChange} className={`${inputClass} text-center font-mono`} placeholder="00:00:00" /></div>
+                    <div><label className={labelClass}>Km/h</label><input type="number" step="0.1" value={avgSpeed} onChange={(e) => setAvgSpeed(e.target.value)} className={`${inputClass} text-center`} placeholder="0.0" /></div>
                 </div>
                 <button disabled={loading || !selectedRiderId} className={`w-full py-4 rounded-xl text-white font-bold uppercase text-xs tracking-widest transition-all ${isEditing ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#1A1816] hover:bg-[#C64928] disabled:opacity-30'}`}>
-                    {loading ? 'Procesando...' : isEditing ? 'Actualizar Registro' : 'Guardar Resultado'}
+                    {loading ? 'Procesando...' : isEditing ? 'Actualizar' : 'Guardar'}
                 </button>
             </form>
         </div>
 
-        {/* 3. LISTADO CON FILTRO Y BOTÓN EXCEL */}
+        {/* LISTADO */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 bg-gray-50 border-b border-gray-200 space-y-4">
-                
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h3 className="text-xs font-black text-gray-900 uppercase">Ranking Provisional</h3>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">Categoría: {selectedCategory}</span>
+                        <h3 className="text-xs font-black text-gray-900 uppercase">Tabla de Resultados</h3>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">{selectedCategory}</span>
                     </div>
-                    
-                    {/* ✅ EL BOTÓN EXCEL AHORA VIVE AQUÍ Y DESCARGA SOLO LA CATEGORÍA VISIBLE */}
-                    {currentViewResults.length > 0 && (
-                        <div className="scale-75 origin-right">
-                           <ExportExcelButton data={datosParaExcel} fileName={nombreArchivoExcel} />
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {currentViewResults.length > 0 && (
+                          <div className="scale-75 origin-right">
+                             <ExportExcelButton data={datosParaExcel} fileName={nombreArchivoExcel} />
+                          </div>
+                      )}
+                      {currentViewResults.length > 0 && (
+                        <button onClick={handleDeleteAll} disabled={loading} className="p-2 text-red-400 hover:text-red-600 transition-colors" title="Borrar toda la categoría">
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
+                    </div>
                 </div>
-
-                <input type="text" value={filterTable} onChange={(e) => setFilterTable(e.target.value)} placeholder="Filtrar tabla por nombre o RUT..." className="w-full p-2 text-xs border rounded-md bg-white outline-none focus:border-[#C64928]" />
+                <input type="text" value={filterTable} onChange={(e) => setFilterTable(e.target.value)} placeholder="Buscar en tabla..." className="w-full p-2 text-xs border rounded-md bg-white outline-none focus:border-[#C64928]" />
             </div>
             
             <div className="overflow-x-auto">
@@ -619,9 +703,15 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                 const rider = riders.find(r => r.id === res.rider_id);
                                 return (
                                     <tr key={res.id} onClick={() => { setSelectedRiderId(res.rider_id); setSearchTerm(rider?.full_name || ''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:bg-gray-50 cursor-pointer transition-colors group">
-                                        <td className="p-4 text-center font-bold text-xl text-gray-900 italic w-16">{res.position}º</td>
+                                        <td className="p-4 text-center font-bold text-xl text-gray-900 italic w-16">
+                                            {res.position === 999 ? (
+                                                <span className="text-red-600 text-sm not-italic font-black bg-red-50 px-2 py-1 rounded">DQ</span>
+                                            ) : (
+                                                `${res.position}º`
+                                            )}
+                                        </td>
                                         <td className="p-4">
-                                            <div className="text-xs font-black text-gray-900 uppercase">{rider?.full_name || 'Corredor Desconocido'}</div>
+                                            <div className="text-xs font-black text-gray-900 uppercase">{rider?.full_name || 'Desconocido'}</div>
                                             <div className="text-[9px] text-[#C64928] font-bold uppercase">{rider?.club || 'Independiente'}</div>
                                         </td>
                                         <td className="p-4 text-center font-mono text-xs text-gray-500">{res.race_time || '--:--:--'}</td>
@@ -633,9 +723,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                 );
                             })
                         ) : (
-                            <tr>
-                                <td colSpan={5} className="p-8 text-center text-xs text-gray-400 italic">No hay resultados guardados en esta manga.</td>
-                            </tr>
+                            <tr><td colSpan={5} className="p-8 text-center text-xs text-gray-400 italic">Sin resultados.</td></tr>
                         )}
                     </tbody>
                 </table>

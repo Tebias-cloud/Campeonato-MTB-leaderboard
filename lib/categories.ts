@@ -9,6 +9,7 @@ export const OFFICIAL_CATEGORIES: Category[] = [
   // VARONES
   { id: 'Novicios Varones', label: 'Novicios Varones', group: 'VARONES' },
   { id: 'Elite', label: 'Elite', group: 'VARONES' },
+
   { id: 'Master A', label: 'Master A', group: 'VARONES' },
   { id: 'Master B', label: 'Master B', group: 'VARONES' },
   { id: 'Master C', label: 'Master C', group: 'VARONES' },

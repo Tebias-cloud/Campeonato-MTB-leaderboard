@@ -111,3 +111,32 @@ export async function assignMassiveDorsals(
     return { success: false, message: error.message || 'Error inesperado.' };
   }
 }
+
+/**
+ * Asigna o actualiza un dorsal específico para un corredor en un evento.
+ * Si no está inscrito, lo inscribe.
+ */
+export async function assignSingleDorsal(
+  eventId: string,
+  riderId: string,
+  dorsal: string | number,
+  category: string
+) {
+  try {
+    const { error } = await supabase
+      .from('event_riders')
+      .upsert({
+        event_id: eventId,
+        rider_id: riderId,
+        dorsal: dorsal.toString(),
+        category_at_event: category
+      }, { onConflict: 'event_id, rider_id' });
+
+    if (error) throw error;
+    revalidatePath('/admin/riders');
+    return { success: true };
+  } catch (e: any) {
+    console.error('Error en assignSingleDorsal:', e);
+    return { success: false, error: e.message };
+  }
+}
