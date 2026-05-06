@@ -323,7 +323,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         } else if (!entryByDorsal) {
           status = "❌ NO ENCONTRADO";
         }
-        // if (isDQ) status = "ℹ️ INFORMATIVO"; // Removido para que muestre Vinculado/Sugerencia correctamente
+        if (isDQ) status = "ℹ️ INFORMATIVO";
 
         const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
         let changeType = "NUEVO";
@@ -345,6 +345,8 @@ export default function ResultManager({ events, riders, existingResults, eventRi
             const posDiff = !posMatches ? `P: ${alreadySaved.position} → ${puesto || 'DQ'}` : "";
             updateDetail = [timeDiff, posDiff].filter(Boolean).join(" | ");
           }
+        } else if (isDQ) {
+          changeType = "DESCARTADO";
         }
 
         results.push({
@@ -366,7 +368,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     );
   }, [eventRiders, selectedEventId, detectedResults]);
 
-  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.status !== "⚠️ DORSAL SOSPECHOSO").length;
+  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && r.status !== "⚠️ DORSAL SOSPECHOSO").length;
 
   const timeToSeconds = (timeStr: string) => {
     if (timeStr.toUpperCase() === 'DQ') return 999999;
@@ -380,13 +382,25 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     if (readyToSaveCount === 0) return;
     setLoading(true);
     try {
-      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId);
+      const allDetected = importText ? detectedResults : []; 
+      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ);
+      const toDelete = allDetected.filter(r => r.riderId && r.isDQ);
       
       let totalProcessed = 0;
+      let totalDeleted = 0;
 
-      // GUARDADO: Procesar todos los resultados válidos, incluyendo DQ
+      // 1. LIMPIEZA: Borrar DQ si ya existían para dejar el ranking impecable
+      for (const dqRider of toDelete) {
+        const existing = existingResults.find(r => r.rider_id === dqRider.riderId && r.event_id === selectedEventId);
+        if (existing) {
+          await deleteResult(existing.id);
+          totalDeleted++;
+        }
+      }
+
+      // 2. GUARDADO: Procesar resultados válidos
       for (const item of toSave) {
-          const finalPos = item.isDQ ? 999 : (parseInt(item.puesto) || 999);
+          const finalPos = parseInt(item.puesto) || 999;
           
           if (item.canAutoLink) {
              await assignSingleDorsal(selectedEventId, item.riderId, item.dorsal, item.category);
@@ -402,7 +416,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
           });
           totalProcessed++;
       }
-      alert(`✅ Sincronización completa: Se guardaron ${totalProcessed} resultados (incluyendo DQ) correctamente.`);
+      alert(`✅ Sincronización completa: Se guardaron ${totalProcessed} resultados y se ignoraron/limpiaron ${toDelete.length} registros DQ.`);
       setShowImportModal(false);
       setImportText('');
     } catch (e) { alert("Error al guardar resultados."); } finally { setLoading(false); }
@@ -528,9 +542,9 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                           <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Desc. (DQ)</p>
                           <p className="text-3xl font-black text-blue-400">{detectedResults.filter(r => r.isDQ).length}</p>
                         </div>
-                        <div className={`backdrop-blur-xl p-5 rounded-3xl border ${detectedResults.length - readyToSaveCount > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+                        <div className={`backdrop-blur-xl p-5 rounded-3xl border ${detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length) > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
                           <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Sin Vincular</p>
-                          <p className="text-3xl font-black text-red-400">{detectedResults.length - readyToSaveCount}</p>
+                          <p className="text-3xl font-black text-red-400">{detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length)}</p>
                         </div>
                       </div>
                     </div>
@@ -578,6 +592,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                       {!r.riderId && !r.isDQ && <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-black uppercase tracking-tighter italic">Revisar Nombre</span>}
                                       {r.changeType === "NUEVO" && <span className="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-black border border-indigo-100 uppercase tracking-tighter">Nuevo</span>}
                                       {r.changeType === "ACTUALIZAR" && <span className="text-[9px] px-2 py-0.5 bg-orange-50 text-orange-600 rounded font-black border border-orange-100 uppercase tracking-tighter">Actualizar</span>}
+                                      {r.changeType === "DESCARTADO" && <span className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-black border border-gray-200 uppercase tracking-tighter">Descartado</span>}
                                     </div>
                                     {r.updateDetail && <p className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded w-fit">{r.updateDetail}</p>}
                                     {!r.identifiedName && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{r.nameInText}</p>}

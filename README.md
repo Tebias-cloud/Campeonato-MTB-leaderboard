@@ -27,7 +27,6 @@ Plataforma integral desarrollada para la gestión de inscripciones, administraci
 ### 3. Cronometraje y Resultados
 *   **Importación RaceTime:** El sistema procesa texto copiado desde RaceTime o PDFs escaneados.
 *   **Ranking:** Calcula puntos por posición (100, 90, 80...) y actualiza el Ranking Global instantáneamente.
-*   **Manejo de Descalificados (DQ):** Los resultados marcados como DQ se guardan para mantener el registro de participación, pero se les asigna la posición 999 y suman 0 puntos.
 
 ### 4. Seguimiento de Solicitudes
 *   **Trazabilidad:** Registro de fecha de solicitud y evento objetivo.
