@@ -11,7 +11,7 @@ import { OFFICIAL_CATEGORIES, CATEGORY_GROUPS } from '@/lib/categories';
 
 // Regex ultra-precisa fuera del componente para evitar errores de compilación
 // [Puesto?] [Dorsal] [Nombre] [Tiempo]
-const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑ\\s()\\.#&\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
+const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑÜÄËÏÖ\\s()\\.#&\\'\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
 
 // --- UTILITIES ---
 const formatRut = (rut: string | null | undefined) => {
@@ -263,10 +263,10 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       // 1. ¿ES UNA CATEGORÍA?
       const upper = cleanLine.toUpperCase();
       const catKeywords = ["MASTER", "ELITE", "NOVICIO", "DAMAS", "VARONES", "MIXTO", "PRO", "INFANTIL", "JUVENIL", "CADETE", "SUB", "EBIKE", "ENDURO"];
-      const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO") || upper.includes("/");
+      const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO");
       
       if (catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/)) {
-        let detected = upper;
+        let detected = upper.replace(/^(CATEGOR[IÍ]A|CATEGORIA|CAT\.|RANKING|RESULTADOS|FECHA)\s*[:\-]?\s*/i, "").trim();
         // Unificación de Pre Master según reglamento:
         if (detected.includes("PRE MASTER") || detected.includes("PREMASTER")) {
           detected = "PRE MASTER MIXTO";
@@ -367,6 +367,29 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       !detectedResults.some(dr => dr.riderId === er.rider_id)
     );
   }, [eventRiders, selectedEventId, detectedResults]);
+
+  // Identificar líneas que parecen datos pero no se pudieron procesar (Logs amigables)
+  const ignoredLines = useMemo(() => {
+    if (!importText || !importText.trim()) return [];
+    const ignored: string[] = [];
+    const lines = importText.split(/\r?\n/);
+    lines.forEach(line => {
+      const cleanLine = line.trim();
+      if (!cleanLine || cleanLine.length < 2) return;
+      
+      const upper = cleanLine.toUpperCase();
+      const catKeywords = ["MASTER", "ELITE", "NOVICIO", "DAMAS", "VARONES", "MIXTO", "PRO", "INFANTIL", "JUVENIL", "CADETE", "SUB", "EBIKE", "ENDURO"];
+      const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO");
+      const isCategory = catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/);
+      const riderMatches = Array.from(cleanLine.matchAll(RIDER_REGEX));
+      
+      // Si no es categoría, no es un corredor válido, no es ruido evidente, pero tiene números (como un tiempo o dorsal)
+      if (!isCategory && riderMatches.length === 0 && /\d/.test(cleanLine) && !isNoise && !upper.includes("CHASKI")) {
+        ignored.push(cleanLine);
+      }
+    });
+    return ignored;
+  }, [importText]);
 
   const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && r.status !== "⚠️ DORSAL SOSPECHOSO").length;
 
@@ -621,6 +644,24 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                             <p className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded w-fit">{m.category_at_event || 'SIN CATEGORÍA'}</p>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* IGNORED LINES (FRIENDLY LOGS) */}
+                  {ignoredLines.length > 0 && (
+                    <div className="mt-8 p-6 bg-orange-50 border border-orange-200 rounded-3xl">
+                      <h3 className="text-sm font-black text-orange-800 uppercase tracking-tight mb-2 flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Líneas Ignoradas ({ignoredLines.length})
+                      </h3>
+                      <p className="text-xs text-orange-600 mb-4 font-medium">Estas líneas tienen formato no reconocido o son encabezados del PDF. Revisa si falta algún corredor importante aquí.</p>
+                      <div className="bg-white rounded-xl border border-orange-100 max-h-40 overflow-y-auto p-3">
+                        <ul className="divide-y divide-orange-50">
+                          {ignoredLines.map((line, idx) => (
+                            <li key={idx} className="py-1.5 text-[11px] font-mono text-slate-600">{line}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   )}
