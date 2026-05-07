@@ -83,7 +83,7 @@ export default function Home() {
   useEffect(() => {
     async function loadRanking() {
       let query = supabase.from('ranking_global').select('*').order('total_points', { ascending: false }).limit(3);
-      if (categoriaActual !== 'General') query = query.eq('category', categoriaActual);
+      if (categoriaActual !== 'General') query = query.ilike('category', categoriaActual);
       
       const { data } = await query.returns<HomeRider[]>();
       if (data) setRiders(data);

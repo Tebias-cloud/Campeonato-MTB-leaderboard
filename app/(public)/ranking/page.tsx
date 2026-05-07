@@ -96,7 +96,7 @@ export default async function RankingFull(props: Props) {
       .order('total_points', { ascending: false });
 
     if (categoryFilter !== 'Todas') {
-      query = query.eq('category', categoryFilter); 
+      query = query.ilike('category', categoryFilter); 
     }
     
     const { data } = await query.returns<GlobalRankingRow[]>();
