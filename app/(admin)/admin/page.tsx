@@ -18,7 +18,7 @@ export default async function AdminDashboard() {
   ] = await Promise.all([
     supabase.from('riders').select('*', { count: 'exact', head: true }),
     supabase.from('registration_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('events').select('id, name, date, status').gte('date', today).in('status', ['active', 'scheduled']).order('date', { ascending: true }).limit(1).maybeSingle(),
+    supabase.from('events').select('id, name, date, status').gte('date', today).in('status', ['pending', 'active', 'scheduled']).order('date', { ascending: true }).limit(1).maybeSingle(),
     supabase.from('events').select('id, name, date, status').order('date', { ascending: true }),
   ]);
 
@@ -145,7 +145,7 @@ export default async function AdminDashboard() {
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                       event.status === 'completed' ? 'bg-slate-300' :
-                      event.status === 'active' ? 'bg-green-400 animate-pulse' :
+                      (event.status === 'active' || event.status === 'pending') ? 'bg-green-400 animate-pulse' :
                       isNext ? 'bg-[#C64928]' : 'bg-slate-200'
                     }`} />
                     <div>
@@ -155,10 +155,10 @@ export default async function AdminDashboard() {
                   </div>
                   <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     event.status === 'completed' ? 'bg-slate-100 text-slate-400' :
-                    event.status === 'active' ? 'bg-green-100 text-green-700' :
+                    (event.status === 'active' || event.status === 'pending') ? 'bg-green-100 text-green-700' :
                     isNext ? 'bg-[#C64928]/10 text-[#C64928]' : 'bg-slate-100 text-slate-400'
                   }`}>
-                    {event.status === 'completed' ? 'Finalizada' : event.status === 'active' ? 'Activa' : isNext ? 'Próxima' : 'Programada'}
+                    {event.status === 'completed' ? 'Finalizada' : (event.status === 'active' || event.status === 'pending') ? 'Activa' : isNext ? 'Próxima' : 'Programada'}
                   </span>
                 </div>
               );
