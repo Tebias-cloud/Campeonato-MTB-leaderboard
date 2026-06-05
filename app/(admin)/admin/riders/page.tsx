@@ -116,13 +116,19 @@ export default async function RidersListPage({
   });
 
   // 2. DATA PARA RACETIME (Basado en documentación oficial: RESERVED ENGLISH WORDS)
-  const raceTimeExportData = finalizedRiders.map(r => ({
-    'BIB': r.current_dorsal || '',
-    'NAME': r.full_name,
-    'CATEGORY': normalizeCategory(r.display_category),
-    'TEAM': r.display_club || 'INDEPENDIENTE',
-    'BIRTHDATE': r.birth_date ? r.birth_date.split('T')[0] : ''
-  }));
+  const raceTimeExportData = finalizedRiders
+    .map(r => ({
+      'BIB': r.current_dorsal || '',
+      'NAME': r.full_name,
+      'CATEGORY': normalizeCategory(r.display_category),
+      'TEAM': r.display_club || 'INDEPENDIENTE',
+      'BIRTHDATE': r.birth_date ? r.birth_date.split('T')[0] : ''
+    }))
+    .sort((a, b) => {
+      const bibA = a.BIB === '' ? Infinity : Number(a.BIB);
+      const bibB = b.BIB === '' ? Infinity : Number(b.BIB);
+      return bibA - bibB;
+    });
 
   const nombreGeneral = `Riders_${eventIdFilter !== 'all' ? matchingEvent?.name : 'General'}_${fechaHoy}`;
   const nombreRaceTime = `RaceTime_${eventIdFilter !== 'all' ? matchingEvent?.name : 'General'}_${fechaHoy}`;
@@ -215,7 +221,7 @@ export default async function RidersListPage({
                   <th className="px-6 py-5 min-w-[250px]">CORREDOR</th>
                   <th className="px-6 py-5">CATEGORÍA</th>
                   {eventIdFilter !== 'all' && <th className="px-6 py-5 text-center text-[#C64928]">DORSAL</th>}
-                  <th className="px-6 py-5">EVENTOS</th>
+                  {eventIdFilter !== 'all' && <th className="px-6 py-5">EVENTOS</th>}
                   <th className="px-6 py-5">CLUB / TEAM</th>
                   <th className="px-6 py-5">UBICACIÓN</th>
                   <th className="px-6 py-5">NACIMIENTO</th>
@@ -250,13 +256,15 @@ export default async function RidersListPage({
                         <RiderDorsalCell riderId={rider.id} eventId={eventIdFilter!} initialDorsal={rider.current_dorsal} />
                       </td>
                     )}
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {getEventsDisplay(rider.id, participations || []).map((name: string, i: number) => (
-                           <span key={i} className="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-slate-200">{name}</span>
-                        ))}
-                      </div>
-                    </td>
+                    {eventIdFilter !== 'all' && (
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {getEventsDisplay(rider.id, participations || []).map((name: string, i: number) => (
+                             <span key={i} className="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-slate-200">{name}</span>
+                          ))}
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 font-black italic uppercase text-[#C64928] text-xs">{rider.display_club || 'Independiente'}</td>
                     <td className="px-6 py-4 text-xs font-bold uppercase text-slate-700">{rider.ciudad || '-'}</td>
                     <td className="px-6 py-4 font-mono text-xs font-bold text-slate-400">
