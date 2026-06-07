@@ -111,6 +111,15 @@ export default function AdminSolicitudes() {
   };
 
   const onApprove = async (req: RegistrationRequest, isDuplicate: boolean) => {
+    const currentClub = edits[req.id]?.club !== undefined ? edits[req.id].club! : (req.club || '');
+    const isNewClub = !clubs.includes(currentClub) && currentClub !== "INDEPENDIENTE / LIBRE" && currentClub !== "";
+
+    if (isNewClub) {
+      if (!confirm(`⚠️ ALERTA DE CLUB NUEVO:\n\nEl corredor anotó "${currentClub}", que NO está en la lista oficial.\n\n- Dale a 'Aceptar' SOLO si quieres que se registre permanentemente como un CLUB NUEVO.\n- Dale a 'Cancelar' si fue un error de tipeo y asígnalo al correcto usando el botón [X].`)) {
+        return;
+      }
+    }
+
     const confirmMessage = isDuplicate 
       ? `Este rider ya existe en el sistema. ¿Confirmas su pago para esta nueva carrera y actualizas su ficha?`
       : `¿Confirmar aprobación de inscripción para ${req.full_name}?`;
