@@ -28,7 +28,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
   const { id: eventIdFromUrl } = use(params);
 
   const [formValues, setFormValues] = useState({
-    email: '', full_name: '', rut: '', club: 'INDEPENDIENTE / LIBRE',
+    email: '', full_name: '', rut: '', club: '',
     ciudad: '', phone: '', birth_date: '', category_selected: '', instagram: ''
   });
 
@@ -130,7 +130,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
 
   const handleSubmitWrapper = (formData: FormData) => {
     const newErrors: Record<string, string> = {};
-    const required = ['email', 'full_name', 'rut', 'club', 'ciudad', 'phone', 'birth_date', 'category_selected'];
+    const required = ['email', 'full_name', 'rut', 'ciudad', 'phone', 'birth_date', 'category_selected'];
     
     required.forEach(field => { if (!formData.get(field)) newErrors[field] = "Este campo es requerido"; });
     
@@ -292,7 +292,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                         <input type="text" name="rut" value={formValues.rut} onChange={handleChange} className={inputClass('rut')} placeholder="11.111.111-K" maxLength={12} required />
                     </div>
                     <div>
-                        <label className={labelClass}>Club / Team *</label>
+                        <label className={labelClass}>Club / Team <span className="text-slate-400 font-normal lowercase">(Opcional)</span></label>
                         <input 
                             list="clubs-list" 
                             name="club" 
@@ -300,13 +300,11 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                             onChange={handleChange} 
                             className={inputClass('club')} 
                             placeholder="Escribe para buscar tu club..." 
-                            required 
                         />
                         <datalist id="clubs-list">
-                            <option value="INDEPENDIENTE / LIBRE" />
                             {clubsList.map(c => <option key={c} value={c} />)}
                         </datalist>
-                        <p className="text-[10px] text-slate-400 mt-1 italic">Si tu club no aparece en la sugerencia, puedes escribirlo completo.</p>
+                        <p className="text-[10px] text-slate-400 mt-1 italic">Déjalo en blanco si corres de forma independiente.</p>
                     </div>
                     <div>
                         <label className={labelClass}>Ciudad de Residencia *</label>
