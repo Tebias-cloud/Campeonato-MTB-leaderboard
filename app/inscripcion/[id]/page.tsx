@@ -35,7 +35,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [accepted, setAccepted] = useState(false);
   const [clubsList, setClubsList] = useState<string[]>([]);
-  const [isManualClub, setIsManualClub] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [event, setEvent] = useState<CustomEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
@@ -293,17 +293,35 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div>
                         <label className={labelClass}>Club / Team <span className="text-slate-400 font-normal lowercase">(Opcional)</span></label>
-                        <input 
-                            list="clubs-list" 
-                            name="club" 
-                            value={formValues.club} 
-                            onChange={handleChange} 
-                            className={inputClass('club')} 
-                            placeholder="Escribe para buscar tu club..." 
-                        />
-                        <datalist id="clubs-list">
-                            {clubsList.map(c => <option key={c} value={c} />)}
-                        </datalist>
+                        <div className="relative">
+                            <input 
+                                type="text"
+                                name="club" 
+                                value={formValues.club} 
+                                onChange={(e) => { handleChange(e); setShowSuggestions(true); }} 
+                                onFocus={() => setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                className={inputClass('club')} 
+                                placeholder="Escribe para buscar tu club..." 
+                                autoComplete="off"
+                            />
+                            {showSuggestions && formValues.club.length > 0 && (
+                                <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-slate-100 max-h-48 overflow-y-auto z-50">
+                                    {clubsList.filter(c => c.toLowerCase().includes(formValues.club.toLowerCase()) && c !== formValues.club).map(c => (
+                                        <div 
+                                            key={c} 
+                                            onClick={() => { setFormValues(p => ({...p, club: c})); setShowSuggestions(false); }}
+                                            className="p-3 border-b border-slate-50 hover:bg-orange-50 cursor-pointer text-sm font-bold text-slate-700 transition-colors"
+                                        >
+                                            {c}
+                                        </div>
+                                    ))}
+                                    {clubsList.filter(c => c.toLowerCase().includes(formValues.club.toLowerCase())).length === 0 && (
+                                        <div className="p-3 text-xs text-slate-400 italic">No se encontró en la lista. Se registrará como club nuevo.</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         <p className="text-[10px] text-slate-400 mt-1 italic">Déjalo en blanco si corres de forma independiente.</p>
                     </div>
                     <div>
