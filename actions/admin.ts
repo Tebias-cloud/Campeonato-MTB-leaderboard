@@ -70,7 +70,7 @@ export async function approveRequest(
     }
 
     // 2. Determinar los valores finales y Normalizar
-    const finalRut = (overrides?.rut || request.rut)?.trim().toUpperCase();
+    const finalRut = (overrides?.rut || request.rut)?.replace(/\./g, '')?.trim().toUpperCase();
     const finalFullName = (overrides?.full_name || request.full_name)?.trim().toUpperCase();
     const finalEmail = (overrides?.email || request.email)?.toLowerCase().trim();
     const finalBirthDate = overrides?.birth_date || request.birth_date;

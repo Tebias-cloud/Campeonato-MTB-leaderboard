@@ -29,7 +29,7 @@ export async function saveRider(prevState: RiderState, formData: FormData): Prom
   // --- 2. PREPARAR DATOS DEL RIDER ---
   const dataToSave = {
     full_name: (formData.get('full_name') as string)?.toUpperCase().trim(),
-    rut: (formData.get('rut') as string)?.trim(),
+    rut: (formData.get('rut') as string)?.replace(/\./g, '')?.trim(),
     category: normalizeCategory(formData.get('category') as string),
     club: finalClub, 
     ciudad: (formData.get('ciudad') as string)?.toUpperCase(),
