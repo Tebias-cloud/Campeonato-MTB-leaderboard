@@ -293,18 +293,20 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div>
                         <label className={labelClass}>Club / Team *</label>
-                        {!isManualClub ? (
-                            <select name="club" value={formValues.club} onChange={(e) => e.target.value === 'OTHER_MANUAL_INPUT' ? (setIsManualClub(true), setFormValues(p=>({...p, club:''}))) : setFormValues(p=>({...p, club:e.target.value}))} className={inputClass('club')}>
-                                <option value="INDEPENDIENTE / LIBRE">INDEPENDIENTE / LIBRE</option>
-                                {clubsList.map(c => <option key={c} value={c}>{c}</option>)}
-                                <option value="OTHER_MANUAL_INPUT" className="font-bold text-[#C64928]">OTRO / NO LISTADO</option>
-                            </select>
-                        ) : (
-                            <div className="relative">
-                                <input type="text" name="club" value={formValues.club} onChange={handleChange} className={inputClass('club')} placeholder="Escribe el nombre de tu club" autoFocus required />
-                                <button type="button" onClick={() => (setIsManualClub(false), setFormValues(p=>({...p, club:'INDEPENDIENTE / LIBRE'})))} className="absolute right-2 top-2 bottom-2 px-3 bg-slate-200 text-[10px] font-bold uppercase rounded-lg hover:bg-slate-300 transition-colors">Volver</button>
-                            </div>
-                        )}
+                        <input 
+                            list="clubs-list" 
+                            name="club" 
+                            value={formValues.club} 
+                            onChange={handleChange} 
+                            className={inputClass('club')} 
+                            placeholder="Escribe para buscar tu club..." 
+                            required 
+                        />
+                        <datalist id="clubs-list">
+                            <option value="INDEPENDIENTE / LIBRE" />
+                            {clubsList.map(c => <option key={c} value={c} />)}
+                        </datalist>
+                        <p className="text-[10px] text-slate-400 mt-1 italic">Si tu club no aparece en la sugerencia, puedes escribirlo completo.</p>
                     </div>
                     <div>
                         <label className={labelClass}>Ciudad de Residencia *</label>
