@@ -473,8 +473,8 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                 </div>
                 <div className="space-y-1">
                     <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Categoría y Carga</label>
-                    <div className="flex gap-2">
-                      <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); resetFormFull(); }} className="flex-1 p-3 rounded-lg bg-[#C64928] text-white font-bold text-sm appearance-none cursor-pointer">
+                    <div className="flex flex-wrap xl:flex-nowrap gap-2">
+                      <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); resetFormFull(); }} className="flex-1 min-w-[200px] w-full p-3 rounded-lg bg-[#C64928] text-white font-bold text-sm appearance-none cursor-pointer">
                           {Object.entries(CATEGORY_GROUPS).map(([groupName, categoryList]) => (
                             <optgroup key={groupName} label={groupName.toUpperCase()} className="bg-white text-black">
                               {categoryList.map(c => (
@@ -483,10 +483,10 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                             </optgroup>
                           ))}
                       </select>
-                      <button onClick={() => setShowImportModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold text-[11px] uppercase tracking-widest shadow-lg transition-all hover:scale-105">
+                      <button onClick={() => setShowImportModal(true)} className="flex-1 min-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-bold text-[11px] uppercase tracking-widest shadow-lg transition-all hover:scale-105 whitespace-nowrap">
                         IMPORTAR PDF
                       </button>
-                      <div className="scale-100 origin-right ml-2">
+                      <div className="flex-1 min-w-[140px] scale-100 origin-center xl:origin-right flex justify-center">
                         <ExportExcelButton 
                           label="EXPORTAR RANKING"
                           data={existingResults
