@@ -12,15 +12,26 @@ const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "70
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "700", "800", "900"], variable: '--font-montserrat' });
 
 // --- CLUBES ORGANIZADORES ---
-const clubsLogos = [
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/Logo%20PNG-04.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png',
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebikepng.png', 
-  'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png'
+const organizers = [
+  { name: 'Team Franklin', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/Logo%20PNG-04.png' },
+  { name: 'Chaski', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png' },
+  { name: 'TMT', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png' },
+  { name: 'Cobra', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png' },
+  { name: 'Condores', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png' },
+  { name: 'Iquique Bike', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebikepng.png' },
+  { name: 'Camanchaca', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png' },
 ];
+const clubsLogos = organizers.map(o => o.logo);
+
+const getClubLogo = (clubName: string | null) => {
+    if (!clubName || clubName === 'INDEPENDIENTE / LIBRE') return null;
+    const cleanName = clubName.toLowerCase().replace('club', '').replace('team', '').trim();
+    const organizer = organizers.find(o => {
+        const orgClean = o.name.toLowerCase().replace('club', '').replace('team', '').trim();
+        return orgClean.length > 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
+    });
+    return organizer ? organizer.logo : null;
+};
 
 // --- TIPOS ---
 interface HomeRider {
@@ -73,7 +84,7 @@ export default function Home() {
           return indexA - indexB;
         });
 
-        setCategorias(['General', ...uniqueCategories]);
+        setCategorias(['General', 'Clubes', ...uniqueCategories]);
       }
     }
     loadInitialData();
@@ -82,11 +93,37 @@ export default function Home() {
   // 2. CARGAR RANKING SEGÚN CATEGORÍA
   useEffect(() => {
     async function loadRanking() {
-      let query = supabase.from('ranking_global').select('*').order('total_points', { ascending: false }).limit(3);
-      if (categoriaActual !== 'General') query = query.ilike('category', categoriaActual);
-      
-      const { data } = await query.returns<HomeRider[]>();
-      if (data) setRiders(data);
+      if (categoriaActual === 'Clubes') {
+          const { data } = await supabase.from('ranking_global').select('*');
+          if (data) {
+              const clubScores: Record<string, number> = {};
+              data.forEach(item => {
+                  if (item.club && item.club !== 'INDEPENDIENTE / LIBRE') {
+                      clubScores[item.club] = (clubScores[item.club] || 0) + item.total_points;
+                  }
+              });
+              const topClubs = Object.entries(clubScores)
+                  .map(([clubName, points]) => ({ clubName, points }))
+                  .sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName))
+                  .slice(0, 3);
+              
+              setRiders(topClubs.map((c, i) => ({
+                  rider_id: `club-${i}`,
+                  full_name: c.clubName,
+                  category: 'EQUIPO',
+                  club: null,
+                  club_logo: getClubLogo(c.clubName),
+                  instagram: null,
+                  total_points: c.points
+              })));
+          }
+      } else {
+          let query = supabase.from('ranking_global').select('*').order('total_points', { ascending: false }).limit(3);
+          if (categoriaActual !== 'General') query = query.ilike('category', categoriaActual);
+          
+          const { data } = await query.returns<HomeRider[]>();
+          if (data) setRiders(data);
+      }
     }
     loadRanking();
   }, [categoriaActual]);
