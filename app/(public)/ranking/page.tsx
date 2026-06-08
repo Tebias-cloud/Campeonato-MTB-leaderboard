@@ -13,8 +13,8 @@ const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat
 const getClubInitials = (clubName: string | null) => {
     if (!clubName || clubName === 'INDEPENDIENTE / LIBRE') return 'IND';
     const words = clubName.split(' ').filter(w => w.length > 0);
-    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
-    return (words[0][0] + words[1][0]).toUpperCase();
+    if (words.length === 1) return Array.from(words[0]).slice(0, 2).join('').toUpperCase();
+    return (Array.from(words[0])[0] + Array.from(words[1])[0]).toUpperCase();
 };
 
 const getClubLogo = (clubName: string | null) => {
@@ -150,7 +150,7 @@ export default async function RankingFull(props: Props) {
           clubName,
           points: stats.points,
           ridersCount: stats.riders.size
-      })).sort((a, b) => b.points - a.points);
+      })).sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName));
 
       rankingData = clubRankingList.map(item => ({
         rider_id: `club-${item.clubName}`,
@@ -233,7 +233,7 @@ export default async function RankingFull(props: Props) {
           clubName,
           points: stats.points,
           ridersCount: stats.riders.size
-      })).sort((a, b) => b.points - a.points);
+      })).sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName));
 
       rankingData = clubRankingList.map(item => ({
         rider_id: `club-${item.clubName}`,
@@ -431,7 +431,7 @@ export default async function RankingFull(props: Props) {
                         <img src={rider.club_logo} alt="Club" className="w-full h-full object-contain p-1.5" />
                     ) : (
                         <span className={`text-sm tracking-wider ${rider.club ? 'text-[#C64928]' : 'text-gray-400'}`}>
-                            {rider.club ? getClubInitials(rider.club) : (rider.full_name ? rider.full_name[0] : '?')}
+                            {rider.club ? getClubInitials(rider.club) : (rider.full_name ? Array.from(rider.full_name)[0] : '?')}
                         </span>
                     )}
                 </div>
