@@ -23,7 +23,7 @@ const getClubLogo = (clubName: string | null) => {
     // Buscar en organizersByDate
     const organizer = organizersByDate.find(o => {
         const orgClean = o.name.toLowerCase().replace('club', '').replace('team', '').trim();
-        return orgClean.length > 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
+        return orgClean.length >= 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
     });
     return organizer ? organizer.logo : null;
 };

@@ -28,7 +28,7 @@ const getClubLogo = (clubName: string | null) => {
     const cleanName = clubName.toLowerCase().replace('club', '').replace('team', '').trim();
     const organizer = organizers.find(o => {
         const orgClean = o.name.toLowerCase().replace('club', '').replace('team', '').trim();
-        return orgClean.length > 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
+        return orgClean.length >= 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
     });
     return organizer ? organizer.logo : null;
 };
@@ -256,7 +256,9 @@ export default function Home() {
                      <span className="font-heading text-7xl text-black/20 absolute bottom-0">2</span>
                  </div>
                  <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-gray-400 shadow-lg">
-                    <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{second.full_name.split(' ')[0]}</p>
+                    <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">
+                        {second.category === 'EQUIPO' ? second.full_name.replace(/^(CLUB|TEAM)\s+/i, '') : second.full_name.split(' ')[0]}
+                    </p>
                     <div className="flex flex-col items-center gap-0.5 mt-1">
                         <span className="bg-gray-500 text-white text-[8px] px-2 py-0.5 rounded uppercase tracking-wider">{second.category}</span>
                         {second.club && <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider mt-1 truncate px-2">{second.club}</span>}
@@ -319,7 +321,9 @@ export default function Home() {
                      <span className="font-heading text-7xl text-black/20 absolute bottom-0">3</span>
                  </div>
                  <div className="bg-[#34312F] w-full py-4 text-center rounded-b-xl border-b-4 border-[#CD7F32] shadow-lg">
-                    <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">{third.full_name.split(' ')[0]}</p>
+                    <p className="font-bold text-xs md:text-sm truncate px-1 uppercase text-white">
+                        {third.category === 'EQUIPO' ? third.full_name.replace(/^(CLUB|TEAM)\s+/i, '') : third.full_name.split(' ')[0]}
+                    </p>
                     <div className="flex flex-col items-center gap-0.5 mt-1">
                         <span className="bg-[#8B4513] text-white text-[8px] px-2 py-0.5 rounded uppercase tracking-wider">{third.category}</span>
                         {third.club && <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider mt-1 truncate px-2">{third.club}</span>}
