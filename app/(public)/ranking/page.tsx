@@ -9,6 +9,25 @@ import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat' });
 
+// --- HELPERS ---
+const getClubInitials = (clubName: string | null) => {
+    if (!clubName || clubName === 'INDEPENDIENTE / LIBRE') return 'IND';
+    const words = clubName.split(' ').filter(w => w.length > 0);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+};
+
+const getClubLogo = (clubName: string | null) => {
+    if (!clubName || clubName === 'INDEPENDIENTE / LIBRE') return null;
+    const cleanName = clubName.toLowerCase().replace('club', '').replace('team', '').trim();
+    // Buscar en organizersByDate
+    const organizer = organizersByDate.find(o => {
+        const orgClean = o.name.toLowerCase().replace('club', '').replace('team', '').trim();
+        return orgClean.length > 3 && (cleanName.includes(orgClean) || orgClean.includes(cleanName));
+    });
+    return organizer ? organizer.logo : null;
+};
+
 // --- CONFIGURACIÓN DE ORGANIZADORES ---
 const organizersByDate = [
   { name: 'Team Franklin', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/Logo%20PNG-04.png' },
@@ -95,7 +114,7 @@ export default async function RankingFull(props: Props) {
       .select('*')
       .order('total_points', { ascending: false });
 
-    if (categoryFilter !== 'Todas') {
+    if (categoryFilter !== 'Todas' && categoryFilter !== 'Clubes') {
       query = query.ilike('category', categoryFilter); 
     }
     
@@ -117,18 +136,48 @@ export default async function RankingFull(props: Props) {
       return indexA - indexB; // Menor índice (Elite) va primero
     });
 
-    rankingData = sortedData?.map(item => ({
-      rider_id: item.rider_id,
-      full_name: item.full_name,
-      category_shown: normalizeCategory(item.category), 
-      club: item.club,
-      city: item.ciudad,
-      club_logo: item.club_logo || null,
-      instagram: item.instagram,
-      sponsors: [item.sponsor_1, item.sponsor_2, item.sponsor_3].filter(s => s && s.length > 5) as string[],
-      points_display: item.total_points,
-      stats_extra: `${item.events_count} Carreras`
-    })) || [];
+    if (categoryFilter === 'Clubes') {
+      const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
+      data?.forEach(item => {
+          if (item.club && item.club !== 'INDEPENDIENTE / LIBRE') {
+              if (!clubScores[item.club]) clubScores[item.club] = { points: 0, riders: new Set() };
+              clubScores[item.club].points += item.total_points;
+              clubScores[item.club].riders.add(item.rider_id);
+          }
+      });
+      
+      const clubRankingList = Object.entries(clubScores).map(([clubName, stats]) => ({
+          clubName,
+          points: stats.points,
+          ridersCount: stats.riders.size
+      })).sort((a, b) => b.points - a.points);
+
+      rankingData = clubRankingList.map(item => ({
+        rider_id: `club-${item.clubName}`,
+        full_name: item.clubName,
+        category_shown: 'EQUIPO', 
+        club: item.clubName,
+        city: null,
+        club_logo: getClubLogo(item.clubName),
+        instagram: null,
+        sponsors: [],
+        points_display: item.points,
+        stats_extra: `${item.ridersCount} Corredores`
+      }));
+    } else {
+      rankingData = sortedData?.map(item => ({
+        rider_id: item.rider_id,
+        full_name: item.full_name,
+        category_shown: normalizeCategory(item.category), 
+        club: item.club,
+        city: item.ciudad,
+        club_logo: item.club_logo || null,
+        instagram: item.instagram,
+        sponsors: [item.sponsor_1, item.sponsor_2, item.sponsor_3].filter(s => s && s.length > 5) as string[],
+        points_display: item.total_points,
+        stats_extra: `${item.events_count} Carreras`
+      })) || [];
+    }
 
   } else {
     const selectedEvent = events?.find(e => e.id === eventIdFilter);
@@ -155,7 +204,7 @@ export default async function RankingFull(props: Props) {
       .order('points', { ascending: false })
       .order('race_time', { ascending: true, nullsFirst: false });
 
-    if (categoryFilter !== 'Todas') {
+    if (categoryFilter !== 'Todas' && categoryFilter !== 'Clubes') {
       query = query.ilike('category_played', categoryFilter);
     }
     
@@ -169,24 +218,55 @@ export default async function RankingFull(props: Props) {
 
     const typedData = data as unknown as ResultWithRider[];
 
-    rankingData = typedData?.map((item) => ({
-      rider_id: item.rider_id,
-      full_name: item.riders?.full_name || 'Corredor Desconocido',
-      category_shown: normalizeCategory(item.category_played),
-      club: item.riders?.club || null,
-      city: item.riders?.ciudad || null,
-      club_logo: null,
-      instagram: item.riders?.instagram || null,
-      sponsors: [],
-      points_display: item.points,
-      stats_extra: null,
-      race_time: item.race_time,
-      avg_speed: item.avg_speed
-    })) || [];
+    if (categoryFilter === 'Clubes') {
+      const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
+      typedData?.forEach(item => {
+          const clubName = item.riders?.club;
+          if (clubName && clubName !== 'INDEPENDIENTE / LIBRE') {
+              if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
+              clubScores[clubName].points += item.points;
+              clubScores[clubName].riders.add(item.rider_id);
+          }
+      });
+      
+      const clubRankingList = Object.entries(clubScores).map(([clubName, stats]) => ({
+          clubName,
+          points: stats.points,
+          ridersCount: stats.riders.size
+      })).sort((a, b) => b.points - a.points);
+
+      rankingData = clubRankingList.map(item => ({
+        rider_id: `club-${item.clubName}`,
+        full_name: item.clubName,
+        category_shown: 'EQUIPO',
+        club: item.clubName,
+        city: null,
+        club_logo: getClubLogo(item.clubName),
+        instagram: null,
+        sponsors: [],
+        points_display: item.points,
+        stats_extra: `${item.ridersCount} Corredores aportaron pts`,
+      }));
+    } else {
+      rankingData = typedData?.map((item) => ({
+        rider_id: item.rider_id,
+        full_name: item.riders?.full_name || 'Corredor Desconocido',
+        category_shown: normalizeCategory(item.category_played),
+        club: item.riders?.club || null,
+        city: item.riders?.ciudad || null,
+        club_logo: null,
+        instagram: item.riders?.instagram || null,
+        sponsors: [],
+        points_display: item.points,
+        stats_extra: null,
+        race_time: item.race_time,
+        avg_speed: item.avg_speed
+      })) || [];
+    }
   }
 
   // --- CATEGORÍAS UNIFICADAS ---
-  const categories = ['Todas', ...OFFICIAL_CATEGORIES.map(c => c.id)];
+  const categories = ['Todas', 'Clubes', ...OFFICIAL_CATEGORIES.map(c => c.id)];
 
   const buildUrl = (newCategory?: string, newEventId?: string) => {
       const cat = newCategory || categoryFilter;
@@ -322,6 +402,8 @@ export default async function RankingFull(props: Props) {
             const isTop10 = rank >= 6 && rank <= 10;
             const instaLink = rider.instagram ? `https://instagram.com/${rider.instagram.replace('@', '').replace(/https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}` : null;
 
+            const isClubRow = categoryFilter === 'Clubes';
+
             return (
             <div key={rider.rider_id + index} className={`group relative p-2.5 mb-2 rounded-xl border-l-[6px] bg-white transition-all flex items-center gap-3 hover:shadow-xl hover:scale-[1.005] overflow-hidden ${
                 isGold ? 'border-[#FFD700]' : 
@@ -331,7 +413,7 @@ export default async function RankingFull(props: Props) {
                 isTop10 ? 'border-gray-600' : 
                 'border-gray-200' 
             }`}>
-                <Link href={`/profile/${rider.rider_id}`} className="absolute inset-0 z-10" />
+                {!isClubRow && <Link href={`/profile/${rider.rider_id}`} className="absolute inset-0 z-10" />}
 
                 <div className={`font-heading text-4xl w-10 text-center shrink-0 ${
                     isGold ? 'text-[#FFD700] drop-shadow-sm' : 
@@ -348,7 +430,9 @@ export default async function RankingFull(props: Props) {
                     {rider.club_logo ? (
                         <img src={rider.club_logo} alt="Club" className="w-full h-full object-contain p-1.5" />
                     ) : (
-                        <span className="text-gray-300">{rider.full_name ? rider.full_name[0] : '?'}</span>
+                        <span className={`text-sm tracking-wider ${rider.club ? 'text-[#C64928]' : 'text-gray-400'}`}>
+                            {rider.club ? getClubInitials(rider.club) : (rider.full_name ? rider.full_name[0] : '?')}
+                        </span>
                     )}
                 </div>
 
@@ -370,7 +454,8 @@ export default async function RankingFull(props: Props) {
                         <div className="flex flex-wrap items-center gap-1.5 text-[9px] text-gray-500 font-bold uppercase mt-0.5">
                             <span className="bg-[#EFE6D5] text-[#1A1816] px-1.5 py-0.5 rounded-sm leading-none">{rider.category_shown}</span>
                             {rider.city && <span className="text-gray-600 truncate max-w-[80px]">• {rider.city}</span>}
-                            {rider.club && <span className="truncate max-w-[80px] text-gray-400">• {rider.club}</span>}
+                            {!isClubRow && rider.club && <span className="truncate max-w-[80px] text-gray-400">• {rider.club}</span>}
+                            {isClubRow && rider.stats_extra && <span className="truncate max-w-[120px] text-[#C64928]">• {rider.stats_extra}</span>}
                         </div>
                     </div>
 
