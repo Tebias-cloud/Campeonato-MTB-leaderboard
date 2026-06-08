@@ -245,7 +245,7 @@ export default async function RankingFull(props: Props) {
         instagram: null,
         sponsors: [],
         points_display: item.points,
-        stats_extra: `${item.ridersCount} Corredores aportaron pts`,
+        stats_extra: `${item.ridersCount} Corredores`,
       }));
     } else {
       rankingData = typedData?.map((item) => ({
@@ -454,8 +454,8 @@ export default async function RankingFull(props: Props) {
                         <div className="flex flex-wrap items-center gap-1.5 text-[9px] text-gray-500 font-bold uppercase mt-0.5">
                             <span className="bg-[#EFE6D5] text-[#1A1816] px-1.5 py-0.5 rounded-sm leading-none">{rider.category_shown}</span>
                             {rider.city && <span className="text-gray-600 truncate max-w-[80px]">• {rider.city}</span>}
-                            {!isClubRow && rider.club && <span className="truncate max-w-[80px] text-gray-400">• {rider.club}</span>}
-                            {isClubRow && rider.stats_extra && <span className="truncate max-w-[120px] text-[#C64928]">• {rider.stats_extra}</span>}
+                            {!isClubRow && rider.club && <span className="truncate max-w-[120px] text-gray-400">• {rider.club}</span>}
+                            {isClubRow && rider.stats_extra && <span className="truncate max-w-[200px] text-[#C64928]">• {rider.stats_extra}</span>}
                         </div>
                     </div>
 
