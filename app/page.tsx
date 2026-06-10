@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Event } from '@/lib/definitions';
 import { useEffect, useState } from 'react';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
+import LiveResultsModal from '@/components/LiveResultsModal';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
@@ -47,6 +48,7 @@ interface HomeRider {
 export default function Home() {
   const [riders, setRiders] = useState<HomeRider[]>([]);
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
+  const [showLiveResults, setShowLiveResults] = useState(false);
   
   // ESTADOS DINÁMICOS
   const [categorias, setCategorias] = useState<string[]>(['General']);
@@ -197,10 +199,25 @@ export default function Home() {
               </div>
           </div>
 
-          <Link href="/ranking" className="group relative inline-flex items-center gap-3 bg-[#C64928] text-white px-10 py-4 rounded-sm font-heading text-3xl uppercase tracking-widest overflow-hidden transform hover:scale-105 transition-all shadow-[0_0_20px_rgba(198,73,40,0.5)]">
-             <span className="relative z-10">Ver Ranking Oficial</span>
-             <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-2xl mx-auto">
+            <Link href="/ranking" className="group relative inline-flex items-center justify-center gap-3 bg-[#C64928] text-white px-10 py-4 rounded-sm font-heading text-3xl uppercase tracking-widest overflow-hidden transform hover:scale-105 transition-all shadow-[0_0_20px_rgba(198,73,40,0.5)] w-full sm:w-auto">
+               <span className="relative z-10">Ver Ranking Oficial</span>
+               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
+            </Link>
+            
+            {nextEvent && (
+              <button 
+                onClick={() => setShowLiveResults(true)}
+                className="group relative inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-4 rounded-sm font-heading text-2xl uppercase tracking-widest transition-all backdrop-blur-md shadow-lg w-full sm:w-auto"
+              >
+                <span className="relative flex h-3 w-3 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                Tiempos en Vivo
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -377,6 +394,15 @@ export default function Home() {
       <footer className="py-10 text-center opacity-40">
           <p className="font-heading text-2xl uppercase text-white tracking-widest">Chaski Riders 2026</p>
       </footer>
+
+      {nextEvent && (
+        <LiveResultsModal 
+          eventId={nextEvent.id} 
+          eventName={nextEvent.name} 
+          isOpen={showLiveResults} 
+          onClose={() => setShowLiveResults(false)} 
+        />
+      )}
     </main>
   );
 }

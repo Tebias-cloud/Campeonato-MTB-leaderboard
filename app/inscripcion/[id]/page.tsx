@@ -383,7 +383,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
         </form>
 
         <footer className="text-center pt-8 pb-12">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">© 2026 CHASKI RIDERS • CYCLES FRANKLIN</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">© 2026 Campeonato MTB Tarapacá 2026</p>
         </footer>
       </div>
     </div>

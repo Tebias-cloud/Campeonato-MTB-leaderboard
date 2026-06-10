@@ -1,6 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import Link from 'next/link';
 import { Teko, Montserrat } from "next/font/google";
+import LiveDashboardButton from '@/components/admin/LiveDashboardButton';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], variable: '--font-montserrat' });
@@ -62,6 +63,7 @@ export default async function AdminDashboard() {
                 className="bg-white/10 text-white px-5 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide hover:bg-white/20 transition-colors border border-white/10">
                 Cargar Resultados
               </Link>
+              <LiveDashboardButton eventId={nextEvent.id} eventName={nextEvent.name} />
             </div>
           </div>
         ) : (

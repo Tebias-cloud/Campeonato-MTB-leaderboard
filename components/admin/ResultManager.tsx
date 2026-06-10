@@ -25,7 +25,7 @@ const formatRut = (rut: string | null | undefined) => {
 
 const normalize = (str: string | null | undefined) => {
     if (!str) return '';
-    return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ');
 };
 
 interface Props {
@@ -39,9 +39,9 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('Novicios Varones');
   const [selectedRiderId, setSelectedRiderId] = useState<string>('');
-  
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState('');
+  const [manualLinks, setManualLinks] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterTable, setFilterTable] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
@@ -295,9 +295,13 @@ export default function ResultManager({ events, riders, existingResults, eventRi
           er.dorsal?.toString() === dorsal.toString()
         );
         
-        const riderByName = !entryByDorsal ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
-        const identifiedRiderId = entryByDorsal?.rider_id || riderByName?.id || null;
-        const identifiedName = entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
+        const rowKey = `${dorsal}-${nameInText}-${time}`;
+        const manualRiderId = manualLinks[rowKey];
+        const manualRider = manualRiderId ? riders.find(r => r.id === manualRiderId) : null;
+        
+        const riderByName = !entryByDorsal && !manualRider ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
+        const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
+        const identifiedName = manualRider?.full_name || entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
         const riderProfile = riders.find(r => r.id === identifiedRiderId);
         
         // TRIPLE SEGURIDAD EN CATEGORÍA:
@@ -317,8 +321,11 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         let status = "✅ LISTO";
         let canAutoLink = false;
 
-        if (!entryByDorsal && riderByName) {
-          status = "💡 RECONOCIDO";
+        if (manualRiderId) {
+          status = "🔧 CORREGIDO";
+          canAutoLink = true;
+        } else if (!entryByDorsal && riderByName) {
+          status = "✅ LISTO";
           canAutoLink = true;
         } else if (!entryByDorsal) {
           status = "❌ NO ENCONTRADO";
@@ -339,18 +346,18 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         if (alreadySaved) {
           const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
           const posMatches = alreadySaved.position === (puesto ? parseInt(puesto) : 999);
-          changeType = (timeMatches && posMatches) ? "SIN CAMBIOS" : "ACTUALIZAR";
-          if (changeType === "ACTUALIZAR") {
+          changeType = (timeMatches && posMatches) ? "SIN CAMBIOS" : "SOBREESCRIBIR";
+          if (changeType === "SOBREESCRIBIR") {
             const timeDiff = !timeMatches ? `T: ${alreadySaved.race_time} → ${time}` : "";
             const posDiff = !posMatches ? `P: ${alreadySaved.position} → ${puesto || 'DQ'}` : "";
             updateDetail = [timeDiff, posDiff].filter(Boolean).join(" | ");
           }
         } else if (isDQ) {
-          changeType = "DESCARTADO";
+          changeType = "IGNORAR";
         }
 
         results.push({
-          dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
+          rowKey, dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
           category: finalCategory, time, isDQ, riderId: identifiedRiderId,
           exists: !!entryByDorsal, canAutoLink, status, changeType, updateDetail
         });
@@ -358,7 +365,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     });
 
     return results;
-  }, [importText, selectedEventId, eventRiders, riders, existingResults]);
+  }, [importText, selectedEventId, eventRiders, riders, existingResults, manualLinks]);
 
   // Identificar quiénes están inscritos pero no aparecen en el PDF
   const missingFromPdf = useMemo(() => {
@@ -516,22 +523,22 @@ export default function ResultManager({ events, riders, existingResults, eventRi
 
       {/* ASISTENTE DE IMPORTACIÓN */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-[32px] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-[20px] sm:rounded-[32px] w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
             
-            <div className="p-8 bg-[#F8F5F0] border-b flex justify-between items-center">
+            <div className="p-4 sm:p-8 bg-[#F8F5F0] border-b flex justify-between items-center gap-2">
               <div>
-                <h2 className="font-heading text-4xl text-[#1A1816] uppercase italic leading-none">Asistente de <span className="text-[#C64928]">Importación PDF</span></h2>
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">Carga automática de resultados oficiales</p>
+                <h2 className="font-heading text-2xl sm:text-4xl text-[#1A1816] uppercase italic leading-none">Asistente de <span className="text-[#C64928]">Importación</span></h2>
+                <p className="text-slate-500 text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1">Carga automática de resultados</p>
               </div>
-              <button onClick={() => { setShowImportModal(false); setImportText(''); }} className="w-10 h-10 rounded-full bg-white border flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-all">✕</button>
+              <button onClick={() => { setShowImportModal(false); setImportText(''); setManualLinks({}); }} className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-white border flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-all">✕</button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-8">
               {!importText ? (
-                <div className="border-4 border-dashed border-slate-200 rounded-[32px] p-20 text-center space-y-6 bg-slate-50/50">
-                  <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mx-auto text-[#C64928]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <div className="border-4 border-dashed border-slate-200 rounded-[20px] sm:rounded-[32px] p-6 sm:p-20 text-center space-y-6 bg-slate-50/50">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center mx-auto text-[#C64928]">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[#1A1816] font-black text-xl">Cargar Resultados desde PDF</p>
@@ -545,42 +552,48 @@ export default function ResultManager({ events, riders, existingResults, eventRi
               ) : (
                 <div className="space-y-6">
                   {/* DASHBOARD SUMMARY */}
-                  <div className="bg-[#1A1816] p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden mb-8">
+                  <div className="bg-[#1A1816] p-4 sm:p-8 rounded-[20px] sm:rounded-[32px] text-white shadow-2xl relative overflow-hidden mb-4 sm:mb-8">
                     <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-6">
-                        <span className="bg-[#C64928] text-white text-[10px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg shadow-[#C64928]/20">Importando resultados para:</span>
-                        <h3 className="text-2xl font-black uppercase italic tracking-tight text-white border-b-2 border-[#C64928] pb-1">{currentEventName}</h3>
+                      <div className="flex flex-col gap-2 mb-4 sm:mb-6">
+                        <span className="bg-[#C64928] text-white text-[9px] sm:text-[10px] font-black px-3 sm:px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg shadow-[#C64928]/20 w-fit">Importando resultados:</span>
+                        <h3 className="text-xl md:text-2xl font-black uppercase italic tracking-tight text-white border-b-2 border-[#C64928] pb-1 truncate">{currentEventName}</h3>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white/5 backdrop-blur-xl p-5 rounded-3xl border border-white/10">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Inscritos Web</p>
-                          <p className="text-3xl font-black text-white">{eventRiders.filter(er => er.event_id === selectedEventId).length}</p>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                        <div className="bg-white/5 backdrop-blur-xl p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Inscritos Web</p>
+                          <p className="text-2xl sm:text-3xl font-black text-white">{eventRiders.filter(er => er.event_id === selectedEventId).length}</p>
                         </div>
-                        <div className="bg-emerald-500/10 backdrop-blur-xl p-5 rounded-3xl border border-emerald-500/20">
-                          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Listos</p>
-                          <p className="text-3xl font-black text-emerald-400">{readyToSaveCount}</p>
+                        <div className="bg-emerald-500/10 backdrop-blur-xl p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-emerald-500/20">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Listos</p>
+                          <p className="text-2xl sm:text-3xl font-black text-emerald-400">{readyToSaveCount}</p>
                         </div>
-                        <div className="bg-blue-500/10 backdrop-blur-xl p-5 rounded-3xl border border-blue-500/20">
-                          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Desc. (DQ)</p>
-                          <p className="text-3xl font-black text-blue-400">{detectedResults.filter(r => r.isDQ).length}</p>
+                        <div className="bg-blue-500/10 backdrop-blur-xl p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-blue-500/20">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Descalificados</p>
+                          <p className="text-2xl sm:text-3xl font-black text-blue-400">{detectedResults.filter(r => r.isDQ).length}</p>
                         </div>
-                        <div className={`backdrop-blur-xl p-5 rounded-3xl border ${detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length) > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
-                          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Sin Vincular</p>
-                          <p className="text-3xl font-black text-red-400">{detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length)}</p>
+                        <div className={`backdrop-blur-xl p-3 sm:p-5 rounded-2xl sm:rounded-3xl border ${detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length) > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+                          <p className="text-[9px] sm:text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Sin Vincular</p>
+                          <p className="text-2xl sm:text-3xl font-black text-red-400">{detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length)}</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* RESULTS TABLE */}
-                  <div className="border border-slate-200 rounded-[24px] overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-[#F8F5F0] text-[10px] font-black uppercase text-slate-400 border-b">
+                  <div className="border border-slate-200 rounded-[16px] sm:rounded-[24px] overflow-hidden bg-white overflow-x-auto">
+                    <datalist id="riders-datalist">
+                      {riders.map(r => (
+                        <option key={r.id} value={`${r.full_name} (${formatRut(r.rut)})`} />
+                      ))}
+                    </datalist>
+                    <table className="w-full text-xs sm:text-sm min-w-[500px]">
+                      <thead className="bg-[#F8F5F0] text-[9px] sm:text-[10px] font-black uppercase text-slate-400 border-b">
                         <tr>
-                          <th className="p-4 text-center w-[60px]">Pos</th>
-                          <th className="p-4 text-center w-[80px]">Dorsal</th>
-                          <th className="p-4 text-left">Corredor Identificado</th>
-                          <th className="p-4 text-center w-[120px]">Tiempo</th>
+                          <th className="p-2 sm:p-4 text-center w-[40px] sm:w-[60px]">Pos</th>
+                          <th className="p-2 sm:p-4 text-center w-[50px] sm:w-[80px]">Dorsal</th>
+                          <th className="p-2 sm:p-4 text-left">Corredor Identificado</th>
+                          <th className="p-2 sm:p-4 text-center w-[80px] sm:w-[120px]">Tiempo</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -594,33 +607,59 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                         ).map(([category, categoryResults]) => (
                           <Fragment key={category}>
                             <tr className="bg-slate-50">
-                              <td colSpan={4} className="p-3 px-6 border-y border-slate-100">
+                              <td colSpan={4} className="p-2 sm:p-3 px-4 sm:px-6 border-y border-slate-100">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{category}</span>
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase">{categoryResults.length} en PDF</span>
+                                  <span className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-widest">{category}</span>
+                                  <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase">{categoryResults.length} en PDF</span>
                                 </div>
                               </td>
                             </tr>
                             {categoryResults.map((r, i) => (
                               <tr key={`${category}-${i}`} className={`group ${!r.riderId && !r.isDQ ? 'bg-red-50/50' : 'hover:bg-slate-50/50'} transition-colors`}> 
-                                <td className="p-4 text-center font-bold">{r.puesto}</td>
-                                <td className="p-4 text-center font-black text-lg">{r.dorsal}</td>
-                                <td className="p-4">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <p className={`font-black uppercase text-base ${!r.riderId && !r.isDQ ? 'text-red-600' : 'text-[#1A1816]'}`}>{r.identifiedName || r.nameInText}</p>
-                                      {r.status.includes('✅') && <span className="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-black uppercase tracking-tighter">Vinculado</span>}
-                                      {r.status.includes('💡') && <span className="text-[9px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-black uppercase tracking-tighter">Sugerencia</span>}
-                                      {!r.riderId && !r.isDQ && <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-black uppercase tracking-tighter italic">Revisar Nombre</span>}
-                                      {r.changeType === "NUEVO" && <span className="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-black border border-indigo-100 uppercase tracking-tighter">Nuevo</span>}
-                                      {r.changeType === "ACTUALIZAR" && <span className="text-[9px] px-2 py-0.5 bg-orange-50 text-orange-600 rounded font-black border border-orange-100 uppercase tracking-tighter">Actualizar</span>}
-                                      {r.changeType === "DESCARTADO" && <span className="text-[9px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-black border border-gray-200 uppercase tracking-tighter">Descartado</span>}
-                                    </div>
+                                <td className="p-2 sm:p-4 text-center font-bold text-xs sm:text-sm">{r.puesto}</td>
+                                <td className="p-2 sm:p-4 text-center font-black text-sm sm:text-lg">{r.dorsal}</td>
+                                <td className="p-2 sm:p-4">
+                                  <div className="flex flex-col gap-2">
+                                    {r.riderId ? (
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="font-black uppercase text-base text-[#1A1816]">{r.identifiedName}</p>
+                                        {r.status.includes('✅') && <span className="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-black uppercase tracking-tighter">Listo</span>}
+                                        {r.status.includes('🔧') && (
+                                          <div className="flex items-center gap-1 bg-purple-100 text-purple-700 rounded-full pr-1 pl-2 py-0.5">
+                                            <span className="text-[9px] font-black uppercase tracking-tighter">Corregido</span>
+                                            <button 
+                                              onClick={(e) => { e.stopPropagation(); setManualLinks(prev => { const n = {...prev}; delete n[r.rowKey]; return n; }); }}
+                                              className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-purple-200 transition-colors"
+                                              title="Deshacer"
+                                            >✕</button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : !r.isDQ ? (
+                                      <div className="flex flex-col gap-1 w-full max-w-sm">
+                                        <input 
+                                          list="riders-datalist"
+                                          placeholder="Buscar nombre o RUT..."
+                                          className="p-1.5 border border-red-300 rounded-lg text-xs bg-white focus:bg-red-50 text-slate-800 focus:text-red-700 outline-none w-full shadow-sm font-semibold transition-colors placeholder:text-red-300"
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            const match = riders.find(rider => `${rider.full_name} (${formatRut(rider.rut)})` === val);
+                                            if (match) setManualLinks(prev => ({...prev, [r.rowKey]: match.id}));
+                                          }}
+                                        />
+                                        <span className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-widest">⚠️ Falta vincular</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-black uppercase text-base text-gray-500">{r.nameInText}</p>
+                                      </div>
+                                    )}
+                                    
                                     {r.updateDetail && <p className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded w-fit">{r.updateDetail}</p>}
-                                    {!r.identifiedName && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{r.nameInText}</p>}
+                                    {!r.identifiedName && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{r.nameInText}</p>}
                                   </div>
                                 </td>
-                                <td className="p-4 text-center font-mono font-black text-[#C64928] text-lg">{r.time}</td>
+                                <td className="p-2 sm:p-4 text-center font-mono font-black text-[#C64928] text-sm sm:text-lg">{r.time}</td>
                               </tr>
                             ))}
                           </Fragment>
@@ -668,10 +707,10 @@ export default function ResultManager({ events, riders, existingResults, eventRi
               )}
             </div>
 
-            <div className="p-8 bg-[#F8F5F0] border-t flex justify-end gap-4">
-              <button onClick={() => setImportText('')} className="px-6 py-3 font-black text-xs uppercase text-slate-400 hover:text-slate-600">{importText ? 'Volver a intentar' : 'Cerrar'}</button>
+            <div className="p-4 sm:p-8 bg-[#F8F5F0] border-t flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+              <button onClick={() => setImportText('')} className="w-full sm:w-auto px-6 py-3 sm:py-3 font-black text-xs uppercase text-slate-400 hover:text-slate-600 border sm:border-none border-slate-300 rounded-xl sm:rounded-none bg-white sm:bg-transparent">{importText ? 'Volver a intentar' : 'Cerrar'}</button>
               {importText && (
-                <button onClick={handleSaveResults} disabled={readyToSaveCount === 0 || loading} className={`px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all ${readyToSaveCount > 0 ? 'bg-[#C64928] text-white hover:scale-105' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                <button onClick={handleSaveResults} disabled={readyToSaveCount === 0 || loading} className={`w-full sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all ${readyToSaveCount > 0 ? 'bg-[#C64928] text-white hover:scale-105' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
                   {loading ? 'Guardando...' : `Guardar ${readyToSaveCount} Resultados`}
                 </button>
               )}
