@@ -18,7 +18,7 @@ const organizers = [
   { name: 'Chaski', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/chaski.png' },
   { name: 'TMT', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/tmtclub.png' },
   { name: 'Cobra', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/cobraclub.png' },
-  { name: 'Condores', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png' },
+  { name: 'CONDORES B&T', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/condores.png' },
   { name: 'Iquique Bike', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/iquiquebikepng.png' },
   { name: 'Camanchaca', logo: 'https://xfawvzaapepnxcraliat.supabase.co/storage/v1/object/public/logos/camanchaca.png' },
 ];
