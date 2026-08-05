@@ -16,12 +16,9 @@ El sistema automatiza el cálculo de resultados y clasificación a partir de la 
 
 ## 📸 Capturas de Pantalla (Visual Showcase)
 
-> [!TIP]
-> *Reemplaza los siguientes enlaces con imágenes o GIFs reales de tu despliegue para deslumbrar a los reclutadores.*
-
-| Dashboard de Resultados (Importación PDF) | Leaderboard Público (Tiempo Real) |
-| :---: | :---: |
-| ![ResultManager Showcase](https://placehold.co/600x400/1a1816/ffffff?text=Panel+de+Cronometraje+RaceTime) | ![Leaderboard Showcase](https://placehold.co/600x400/1a1816/ffffff?text=Ranking+Global+Tarapacá) |
+| Vista 1 - Dashboard de Gestión | Vista 2 - Importación y Control | Vista 3 - Clasificación / Leaderboard |
+| :---: | :---: | :---: |
+| ![Dashboard](assets/screenshots/chaski1.webp) | ![Importación](assets/screenshots/chaski2.webp) | ![Leaderboard](assets/screenshots/chaski3.webp) |
 
 ---
 
