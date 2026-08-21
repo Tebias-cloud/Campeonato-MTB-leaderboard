@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { updateLiveResults } from '@/actions/liveResults';
+import { parseExcelRows } from '@/lib/excel-parser';
 
 interface LiveResultsModalProps {
   eventId: string;
@@ -13,8 +14,8 @@ interface LiveResultsModalProps {
 }
 
 const normalize = (str: string | null | undefined) => {
-    if (!str) return '';
-    return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!str) return '';
+  return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
 
 const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑÜÄËÏÖ\\s()\\.#&\\'\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
@@ -30,24 +31,24 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
       const promises: any[] = [
         supabase.from('events').select('live_results_json').eq('id', eventId).single()
       ];
-      
+
       if (isAdmin) {
-         promises.push(supabase.from('riders').select('id, full_name, club, category'));
+        promises.push(supabase.from('riders').select('id, full_name, club, category'));
       }
 
       const responses = await Promise.all(promises);
       const eventData = responses[0].data;
-      
+
       if (isAdmin && responses[1]?.data) {
         setAllRiders(responses[1].data);
       }
 
       if (eventData?.live_results_json) {
-         // Asegurarse de que sea un array
-         const parsed = Array.isArray(eventData.live_results_json) ? eventData.live_results_json : [];
-         setResults(parsed);
+        // Asegurarse de que sea un array
+        const parsed = Array.isArray(eventData.live_results_json) ? eventData.live_results_json : [];
+        setResults(parsed);
       } else {
-         setResults([]);
+        setResults([]);
       }
     } catch (error) {
       console.error("Error fetching live results:", error);
@@ -61,60 +62,77 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     fetchData();
   }, [isOpen, eventId, fetchData]);
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
     try {
-      await new Promise<void>((resolve, reject) => {
-        if ((window as any).pdfjsLib) return resolve();
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error("No se pudo cargar el motor PDF."));
-        document.body.appendChild(script);
-      });
+      let fullText = '';
 
-      const pdfjsLib = (window as any)['pdfjsLib'];
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+        // ── Ruta PDF (sin cambios) ────────────────────────────────────────────
+        await new Promise<void>((resolve, reject) => {
+          if ((window as any).pdfjsLib) return resolve();
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('No se pudo cargar el motor PDF.'));
+          document.body.appendChild(script);
+        });
+        const pdfjsLib = (window as any)['pdfjsLib'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+        }
+      } else {
+        // ── Ruta Excel/CSV ────────────────────────────────────────────────────
+        const XLSX = await import('xlsx');
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheet = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheet];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'hh:mm:ss' }) as any[][];
 
-      const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const pdf = await loadingTask.promise;
-      let fullText = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
+        const { text, warnings } = parseExcelRows(json, { fallbackCategory: 'DESCONOCIDA' });
+        if (warnings.length > 0) console.warn('[Live Excel Import]', warnings);
+        if (!text.trim()) {
+          alert('No se encontraron datos válidos en el archivo.');
+          setLoading(false);
+          return;
+        }
+        fullText = text;
       }
 
+      // ── Procesar el texto con la lógica existente de RIDER_REGEX ────────────
       let posCounter = 1;
-      let currentCategory = "DESCONOCIDA";
+      let currentCategory = 'DESCONOCIDA';
       const liveResults: any[] = [];
       const lines = fullText.split(/\r?\n/);
 
-      // REINICIAR el estado global de la expresión regular
       RIDER_REGEX.lastIndex = 0;
 
       lines.forEach(line => {
         const cleanLine = line.trim();
         if (!cleanLine || cleanLine.length < 2) return;
 
-        // 1. Detectar Categoría
         const upper = cleanLine.toUpperCase();
-        const catKeywords = ["MASTER", "ELITE", "NOVICIO", "DAMAS", "VARONES", "MIXTO", "PRO", "INFANTIL", "JUVENIL", "CADETE", "SUB", "EBIKE", "ENDURO"];
-        const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO");
-        
+        const catKeywords = ['MASTER', 'ELITE', 'NOVICIO', 'DAMAS', 'VARONES', 'MIXTO', 'PRO', 'INFANTIL', 'JUVENIL', 'CADETE', 'SUB', 'EBIKE', 'ENDURO'];
+        const isNoise = upper.includes('PUESTO') || upper.includes('DORSAL') || upper.includes('PAGINA') || upper.includes('RESULTADOS') || upper.includes('OFICIAL') || upper.includes('TIEMPO');
+
         if (catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/)) {
-          let detected = upper.replace(/^(CATEGOR[IÍ]A|CATEGORIA|CAT\.|RANKING|RESULTADOS|FECHA)\s*[:\-]?\s*/i, "").trim();
-          if (detected.includes("PRE MASTER") || detected.includes("PREMASTER")) detected = "PRE MASTER MIXTO";
+          let detected = upper.replace(/^(CATEGOR[IÍ]A|CATEGORIA|CAT\.|RANKING|RESULTADOS|FECHA)\s*[:\-]?\s*/i, '').trim();
+          if (detected.includes('PRE MASTER') || detected.includes('PREMASTER')) detected = 'PRE MASTER MIXTO';
           currentCategory = detected;
-          posCounter = 1; // Reiniciar contador por categoría
+          posCounter = 1;
           return;
         }
 
-        // 2. Extraer Tiempos
         const riderMatches = Array.from(cleanLine.matchAll(RIDER_REGEX));
         riderMatches.forEach(match => {
           const posText = match[1];
@@ -122,10 +140,10 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
           const rawName = match[3].trim().toUpperCase();
           const time = match[4].toUpperCase();
 
-          if (dorsal.length === 4 && dorsal.startsWith("20")) return;
-          if (rawName.includes("PUESTO") || rawName.includes("DORSAL")) return;
+          if (dorsal.length === 4 && dorsal.startsWith('20')) return;
+          if (rawName.includes('PUESTO') || rawName.includes('DORSAL')) return;
 
-          const isDQ = time === 'DQ';
+          const isDQ = time === 'DQ' || time === 'DNF' || time === 'DNS' || time === 'DSQ';
           const position = isDQ ? 999 : (posText ? parseInt(posText, 10) : posCounter++);
           const nameInText = rawName.split('(')[0].trim();
 
@@ -133,23 +151,20 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
           const matchedRider = allRiders.find(r => normalize(r.full_name) === cleanRaw);
 
           liveResults.push({
-            id: (matchedRider?.id || "temp") + "-" + Date.now() + Math.random(),
+            id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
             rider_id: matchedRider?.id || null,
-            rider_name: nameInText, 
+            rider_name: nameInText,
             club: matchedRider?.club || '',
-            category_played: currentCategory !== "DESCONOCIDA" ? currentCategory : (matchedRider?.category || 'Sin Categoría'),
-            position: position,
-            race_time: time
+            // Nivel 2: categoria del rider en BD si no viene en el texto
+            category_played: currentCategory !== 'DESCONOCIDA' ? currentCategory : (matchedRider?.category || 'Sin Categoría'),
+            position,
+            race_time: isDQ ? 'DQ' : time,
           });
         });
       });
 
-      // Guardar JSON usando un Server Action para evitar problemas de permisos (RLS)
       await updateLiveResults(eventId, liveResults);
-
-      await fetchData(); // Recargar datos
-      
-      // Limpiar input
+      await fetchData();
       e.target.value = '';
     } catch (error: any) {
       alert(`Error al importar: ${error.message}`);
@@ -188,38 +203,38 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in-up">
       <div className="bg-[#1A1816] w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] rounded-[20px] sm:rounded-[32px] overflow-hidden flex flex-col shadow-2xl border border-white/10 relative">
-        
+
         {/* HEADER */}
         <div className="bg-[#C64928] p-4 sm:p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 relative">
           <div className="w-full sm:w-auto pr-8 sm:pr-0">
             <div className="flex items-center gap-2 mb-1">
-               <span className="relative flex h-3 w-3 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-               </span>
-               <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-black/20 px-2 py-1 rounded-md whitespace-nowrap">Transmisión en Vivo</span>
+              <span className="relative flex h-3 w-3 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-black/20 px-2 py-1 rounded-md whitespace-nowrap">Transmisión en Vivo</span>
             </div>
             <h2 className="font-heading text-2xl sm:text-4xl uppercase italic leading-none line-clamp-2">{eventName}</h2>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
             {isAdmin && (
               <div className="flex gap-2">
-                <input 
-                  type="file" 
-                  accept=".pdf" 
-                  id="pdf-live-upload" 
-                  className="hidden" 
-                  onChange={handlePdfUpload}
+                <input
+                  type="file"
+                  accept=".pdf, .xls, .xlsx, .csv"
+                  id="pdf-live-upload"
+                  className="hidden"
+                  onChange={handleFileUpload}
                   disabled={loading}
                 />
-                <label 
-                  htmlFor="pdf-live-upload" 
+                <label
+                  htmlFor="pdf-live-upload"
                   className="bg-white text-[#C64928] hover:bg-slate-100 px-3 sm:px-4 py-2 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest cursor-pointer shadow-lg transition-all active:scale-95 whitespace-nowrap"
                 >
-                  {loading ? 'Procesando...' : 'Subir PDF'}
+                  {loading ? 'Procesando...' : 'Subir Archivo'}
                 </label>
-                <button 
+                <button
                   onClick={handleClearLiveResults}
                   disabled={loading}
                   className="bg-black/20 text-white hover:bg-red-600/80 px-3 sm:px-4 py-2 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest transition-all"
@@ -287,7 +302,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
             </div>
           )}
         </div>
-        
+
         {/* FOOTER */}
         <div className="p-4 bg-white border-t border-slate-200 text-center shrink-0">
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">

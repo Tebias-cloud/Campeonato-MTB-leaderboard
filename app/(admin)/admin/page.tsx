@@ -54,13 +54,13 @@ export default async function AdminDashboard() {
               <p className="text-white font-black text-xl">{nextEvent.name}</p>
               <p className="text-slate-400 text-sm font-bold mt-0.5">{formatDate(nextEvent.date)}{daysUntil !== null && daysUntil >= 0 && ` — en ${daysUntil} día${daysUntil !== 1 ? 's' : ''}`}</p>
             </div>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 mt-4 md:mt-0">
               <Link href={`/admin/riders?eventId=${nextEvent.id}`}
-                className="bg-[#C64928] text-white px-5 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide hover:bg-[#a02b10] transition-colors">
+                className="w-full sm:w-auto text-center bg-[#C64928] text-white px-5 py-3 sm:py-2.5 rounded-xl font-black text-sm uppercase tracking-wide hover:bg-[#a02b10] transition-colors">
                 Asignar Dorsales
               </Link>
               <Link href="/admin/results"
-                className="bg-white/10 text-white px-5 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide hover:bg-white/20 transition-colors border border-white/10">
+                className="w-full sm:w-auto text-center bg-white/10 text-white px-5 py-3 sm:py-2.5 rounded-xl font-black text-sm uppercase tracking-wide hover:bg-white/20 transition-colors border border-white/10">
                 Cargar Resultados
               </Link>
               <LiveDashboardButton eventId={nextEvent.id} eventName={nextEvent.name} />

@@ -180,3 +180,85 @@ export async function deleteRiderFromEvent(riderId: string, eventId: string) {
     return { message: 'Error de servidor.', success: false };
   }
 }
+
+/**
+ * Crea un corredor de forma rápida desde el asistente de importación.
+ * RUT es opcional — puede quedar vacío para completarlo después desde el panel.
+ * Inscribe al corredor en el evento indicado y le asigna el dorsal del archivo.
+ * Retorna el id del nuevo rider para que el cliente lo inyecte en manualLinks.
+ */
+export async function quickCreateRider(data: {
+  full_name: string;
+  category: string;
+  club?: string;
+  rut?: string;
+  eventId: string;
+  dorsal: string;
+}): Promise<{ success: boolean; riderId?: string; message?: string }> {
+  try {
+    const { supabaseAdmin } = await import('@/lib/supabase-admin');
+
+    const finalName = data.full_name.trim().toUpperCase();
+    if (!finalName || finalName.split(/\s+/).length < 2) {
+      return { success: false, message: 'Ingresa al menos un nombre y un apellido.' };
+    }
+
+    const finalClub = (data.club?.trim().toUpperCase()) || 'INDEPENDIENTE / LIBRE';
+    const finalCategory = normalizeCategory(data.category);
+    const finalRut = data.rut?.replace(/[^0-9kK]/g, '').trim() || null;
+
+    // Insertar corredor (sin RUT si no se proporcionó)
+    const { data: newRider, error: insertError } = await supabaseAdmin
+      .from('riders')
+      .insert({
+        full_name: finalName,
+        category: finalCategory,
+        club: finalClub,
+        rut: finalRut,
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      // Si el RUT ya existe, intentar encontrar al corredor y retornar su id
+      if (insertError.code === '23505' && finalRut) {
+        const { data: existing } = await supabaseAdmin
+          .from('riders')
+          .select('id')
+          .eq('rut', finalRut)
+          .maybeSingle();
+        if (existing) {
+          // Inscribir en el evento con el dorsal
+          await supabaseAdmin.from('event_riders').upsert({
+            event_id: data.eventId,
+            rider_id: existing.id,
+            dorsal: data.dorsal,
+            category_at_event: finalCategory,
+            club_at_event: finalClub,
+          }, { onConflict: 'event_id, rider_id' });
+          return { success: true, riderId: existing.id };
+        }
+      }
+      return { success: false, message: insertError.message };
+    }
+
+    if (!newRider) return { success: false, message: 'No se pudo crear el corredor.' };
+
+    // Inscribir en el evento con el dorsal
+    await supabaseAdmin.from('event_riders').upsert({
+      event_id: data.eventId,
+      rider_id: newRider.id,
+      dorsal: data.dorsal,
+      category_at_event: finalCategory,
+      club_at_event: finalClub,
+    }, { onConflict: 'event_id, rider_id' });
+
+    revalidatePath('/admin/riders');
+    revalidatePath('/admin/resultados');
+
+    return { success: true, riderId: newRider.id };
+  } catch (e: any) {
+    console.error('Error en quickCreateRider:', e);
+    return { success: false, message: e.message || 'Error de servidor.' };
+  }
+}
