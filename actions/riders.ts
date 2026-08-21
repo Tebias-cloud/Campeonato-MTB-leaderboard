@@ -216,6 +216,7 @@ export async function quickCreateRider(data: {
         club: finalClub,
         rut: finalRut,
         ciudad: 'SIN ESPECIFICAR',
+        birth_date: '1900-01-01',
       })
       .select('id')
       .single();
