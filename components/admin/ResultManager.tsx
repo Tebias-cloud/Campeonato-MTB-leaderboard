@@ -459,8 +459,14 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       }
 
       // 2. GUARDADO: Procesar resultados válidos
+      const catCounters: Record<string, number> = {};
+
       for (const item of toSave) {
-        const finalPos = parseInt(item.puesto) || 999;
+        // Ignoramos el puesto crudo del Regex (que puede ser la Posición General del Excel)
+        // y forzamos el recuento secuencial (1, 2, 3...) dentro de su categoría específica.
+        if (!catCounters[item.category]) catCounters[item.category] = 0;
+        catCounters[item.category]++;
+        const finalPos = catCounters[item.category];
 
         if (item.canAutoLink) {
           await assignSingleDorsal(selectedEventId, item.riderId, item.dorsal, item.category);
