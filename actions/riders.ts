@@ -215,6 +215,7 @@ export async function quickCreateRider(data: {
         category: finalCategory,
         club: finalClub,
         rut: finalRut,
+        ciudad: 'SIN ESPECIFICAR',
       })
       .select('id')
       .single();
