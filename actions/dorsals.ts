@@ -140,3 +140,19 @@ export async function assignSingleDorsal(
     return { success: false, error: e.message };
   }
 }
+
+export async function bulkAssignDorsals(dataArray: any[]) {
+  try {
+    if (!dataArray || dataArray.length === 0) return { success: true };
+    const { error } = await supabase
+      .from('event_riders')
+      .upsert(dataArray, { onConflict: 'event_id, rider_id' });
+
+    if (error) throw error;
+    revalidatePath('/admin/riders');
+    return { success: true };
+  } catch (e: any) {
+    console.error('Error en bulkAssignDorsals:', e);
+    return { success: false, error: e.message };
+  }
+}

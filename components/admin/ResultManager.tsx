@@ -376,12 +376,9 @@ export default function ResultManager({ events, riders, existingResults, eventRi
 
         if (alreadySaved) {
           const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
-          const posMatches = alreadySaved.position === (puesto ? parseInt(puesto) : 999);
-          changeType = (timeMatches && posMatches) ? "SIN CAMBIOS" : "SOBREESCRIBIR";
+          changeType = timeMatches ? "SIN CAMBIOS" : "SOBREESCRIBIR";
           if (changeType === "SOBREESCRIBIR") {
-            const timeDiff = !timeMatches ? `T: ${alreadySaved.race_time} → ${time}` : "";
-            const posDiff = !posMatches ? `P: ${alreadySaved.position} → ${puesto || 'DQ'}` : "";
-            updateDetail = [timeDiff, posDiff].filter(Boolean).join(" | ");
+            updateDetail = `T: ${alreadySaved.race_time} → ${time}`;
           }
         } else if (isDQ) {
           changeType = "IGNORAR";
@@ -458,21 +455,26 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         }
       }
 
-      // 2. GUARDADO: Procesar resultados válidos
+      // 2. GUARDADO: Procesar resultados válidos en lote
       const catCounters: Record<string, number> = {};
+      const resultsToCreate = [];
+      const dorsalsToAssign = [];
 
       for (const item of toSave) {
-        // Ignoramos el puesto crudo del Regex (que puede ser la Posición General del Excel)
-        // y forzamos el recuento secuencial (1, 2, 3...) dentro de su categoría específica.
         if (!catCounters[item.category]) catCounters[item.category] = 0;
         catCounters[item.category]++;
         const finalPos = catCounters[item.category];
 
         if (item.canAutoLink) {
-          await assignSingleDorsal(selectedEventId, item.riderId, item.dorsal, item.category);
+          dorsalsToAssign.push({
+            event_id: selectedEventId,
+            rider_id: item.riderId,
+            dorsal: item.dorsal.toString(),
+            category_at_event: item.category
+          });
         }
 
-        await createResult({
+        resultsToCreate.push({
           event_id: selectedEventId,
           rider_id: item.riderId,
           position: finalPos,
@@ -482,6 +484,16 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         });
         totalProcessed++;
       }
+      
+      // Llamadas masivas
+      if (dorsalsToAssign.length > 0) {
+        await import('@/actions/dorsals').then(m => m.bulkAssignDorsals(dorsalsToAssign));
+      }
+      
+      if (resultsToCreate.length > 0) {
+        await import('@/actions/results').then(m => m.bulkCreateResults(resultsToCreate));
+      }
+
       alert(`✅ Sincronización completa: Se guardaron ${totalProcessed} resultados y se ignoraron/limpiaron ${toDelete.length} registros DQ.`);
       setShowImportModal(false);
       setImportText('');

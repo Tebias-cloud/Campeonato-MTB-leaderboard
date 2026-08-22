@@ -37,6 +37,27 @@ export async function createResult(data: CreateResultData) {
   revalidatePath('/');
 }
 
+export async function bulkCreateResults(dataArray: CreateResultData[]) {
+  console.log(`--- GUARDANDO BATCH DE ${dataArray.length} RESULTADOS ---`);
+
+  const { error } = await supabase
+    .from('results')
+    .upsert(dataArray, { 
+      onConflict: 'event_id, rider_id',
+      ignoreDuplicates: false 
+    });
+
+  if (error) {
+    console.error('Error DB:', error);
+    throw new Error('Error al guardar batch: ' + error.message);
+  }
+
+  // Refrescamos las vistas una sola vez por lote
+  revalidatePath('/admin/results');
+  revalidatePath('/ranking'); 
+  revalidatePath('/');
+}
+
 export async function deleteResult(resultId: string) {
   const { error } = await supabase.from('results').delete().eq('id', resultId);
   if (error) throw new Error('Error al borrar');
