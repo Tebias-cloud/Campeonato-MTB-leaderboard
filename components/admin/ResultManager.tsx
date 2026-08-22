@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
-import { createResult, deleteResult } from '@/actions/results';
-import { assignSingleDorsal } from '@/actions/dorsals';
+import { createResult, deleteResult, bulkCreateResults } from '@/actions/results';
+import { assignSingleDorsal, bulkAssignDorsals } from '@/actions/dorsals';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
 
@@ -487,11 +487,11 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       
       // Llamadas masivas
       if (dorsalsToAssign.length > 0) {
-        await import('@/actions/dorsals').then(m => m.bulkAssignDorsals(dorsalsToAssign));
+        await bulkAssignDorsals(dorsalsToAssign);
       }
       
       if (resultsToCreate.length > 0) {
-        await import('@/actions/results').then(m => m.bulkCreateResults(resultsToCreate));
+        await bulkCreateResults(resultsToCreate);
       }
 
       alert(`✅ Sincronización completa: Se guardaron ${totalProcessed} resultados y se ignoraron/limpiaron ${toDelete.length} registros DQ.`);
