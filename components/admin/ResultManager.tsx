@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { createResult, deleteResult, bulkCreateResults } from '@/actions/results';
+import { parseRiderLine } from '@/lib/results-parser';
 import { assignSingleDorsal, bulkAssignDorsals } from '@/actions/dorsals';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
@@ -307,18 +308,17 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       }
 
       // 2. BUSCAR CORREDORES
-      const riderMatches = Array.from(cleanLine.matchAll(RIDER_REGEX));
+      const riderMatches = parseRiderLine(cleanLine);
       riderMatches.forEach(match => {
-        const puesto = match[1];
-        const dorsal = match[2];
-        const rawName = match[3].trim().toUpperCase();
-        const time = match[4].toUpperCase();
+        const puesto = match.position;
+        const dorsal = match.dorsal.toString();
+        const rawName = match.originalText.toUpperCase();
+        const time = match.time;
+        const isDQ = match.isDQ;
+        const nameInText = match.riderName;
 
         if (dorsal.length === 4 && dorsal.startsWith("20")) return;
         if (rawName.includes("PUESTO") || rawName.includes("DORSAL")) return;
-
-        const isDQ = time === 'DQ';
-        const nameInText = rawName.split('(')[0].trim();
 
         // Identificación por Dorsal en este Evento
         const entryByDorsal = eventRiders.find(er =>
@@ -456,14 +456,20 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       }
 
       // 2. GUARDADO: Procesar resultados válidos en lote
-      const catCounters: Record<string, number> = {};
       const resultsToCreate = [];
       const dorsalsToAssign = [];
+      const posCounters: Record<string, number> = {};
 
       for (const item of toSave) {
-        if (!catCounters[item.category]) catCounters[item.category] = 0;
-        catCounters[item.category]++;
-        const finalPos = catCounters[item.category];
+        if (!posCounters[item.category]) posCounters[item.category] = 1;
+        
+        let finalPos = typeof item.puesto === 'number' && item.puesto > 0 ? item.puesto : posCounters[item.category];
+        
+        if (finalPos >= posCounters[item.category]) {
+            posCounters[item.category] = finalPos + 1;
+        } else {
+            posCounters[item.category]++;
+        }
 
         if (item.canAutoLink) {
           dorsalsToAssign.push({
