@@ -1,3 +1,5 @@
+import { OFFICIAL_CATEGORIES } from './categories';
+
 /**
  * Unifica las categorías del campeonato para visualización en el admin y ranking.
  * Ejemplo: "Novicios Open (Recién empezando)" -> "Novicios Open"
@@ -6,15 +8,29 @@ export const normalizeCategory = (cat: string | null | undefined): string => {
   if (!cat) return 'Sin Categoría';
   
   const clean = cat.split('(')[0].trim();
+  const upper = clean.toUpperCase();
 
-  // Mapeos de compatibilidad con nombres viejos o variaciones
-  if (clean.includes('Novicios Open') || clean.includes('Novicios Varones')) return 'Novicios Varones';
-  if (clean.includes('Novicias Open') || clean.includes('Novicias Damas')) return 'Novicias Damas';
-  if (clean.includes('Pre Master')) return 'Pre Master Mixto';
-  if (clean.includes('Enduro')) return 'Enduro Mixto';
-  if (clean.includes('E-Bike') || clean.includes('EBike')) return 'EBike Mixto';
+  // 1. Si coincide exactamente (case-insensitive) con una oficial, usar esa.
+  const official = OFFICIAL_CATEGORIES.find(c => c.label.toUpperCase() === upper);
+  if (official) return official.label;
+
+  // 2. Mapeos de compatibilidad con nombres viejos o variaciones
+  if (upper.includes('NOVICIOS OPEN') || upper.includes('NOVICIOS VARONES')) return 'Novicios Varones';
+  if (upper.includes('NOVICIAS OPEN') || upper.includes('NOVICIAS DAMAS')) return 'Novicias Damas';
+  if (upper.includes('PRE MASTER') || upper.includes('PREMASTER')) return 'Pre Master Mixto';
+  if (upper.includes('ENDURO')) return 'Enduro Mixto';
+  if (upper.includes('E-BIKE') || upper.includes('EBIKE')) return 'EBike Mixto';
   
-  return clean;
+  // 3. Fallbacks para Master (por si vienen con espacios raros o sin la palabra Damas al principio)
+  if (upper.includes('MASTER A')) return upper.includes('DAMAS') ? 'Damas Master A' : 'Master A';
+  if (upper.includes('MASTER B')) return upper.includes('DAMAS') ? 'Damas Master B' : 'Master B';
+  if (upper.includes('MASTER C')) return upper.includes('DAMAS') ? 'Damas Master C' : 'Master C';
+  if (upper.includes('MASTER D')) return upper.includes('DAMAS') ? 'Damas Master D' : 'Master D'; // Master D damas no existe, pero por si acaso.
+  if (upper.includes('ELITE')) return 'Elite';
+
+  // Si no se encuentra en las reglas anteriores, intentar capitalizar el string recibido.
+  // Así evitamos tener "PRE MASTER MIXTO" suelto si llegara a pasar.
+  return clean.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
 };
 
 /**

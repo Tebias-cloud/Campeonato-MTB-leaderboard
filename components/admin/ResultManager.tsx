@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { createResult, deleteResult, bulkCreateResults } from '@/actions/results';
-import { parseResultsText } from '@/lib/results-parser';
+import { parseResultsText, RIDER_REGEX } from '@/lib/results-parser';
 import { assignSingleDorsal, bulkAssignDorsals } from '@/actions/dorsals';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
@@ -11,10 +11,6 @@ import { normalizeCategory } from '@/lib/utils';
 import { OFFICIAL_CATEGORIES, CATEGORY_GROUPS } from '@/lib/categories';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { quickCreateRider } from '@/actions/riders';
-
-// Regex ultra-precisa fuera del componente para evitar errores de compilación
-// [Puesto?] [Dorsal] [Nombre] [Tiempo]
-const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑÜÄËÏÖ\\s()\\.#&\\'\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
 
 // --- UTILITIES ---
 const formatRut = (rut: string | null | undefined) => {

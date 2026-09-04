@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
+import { normalizeCategory } from '@/lib/utils';
 
 // Definimos los tipos exactos
 interface CreateResultData {
@@ -17,11 +18,17 @@ interface CreateResultData {
 export async function createResult(data: CreateResultData) {
   console.log("--- GUARDANDO ---", data);
 
+  // Normalizar la categoría antes de guardar
+  const normalizedData = {
+    ...data,
+    category_played: normalizeCategory(data.category_played)
+  };
+
   // Upsert busca coincidencias en (event_id, rider_id).
   // Si existe, actualiza. Si no, crea.
   const { error } = await supabase
     .from('results')
-    .upsert(data, { 
+    .upsert(normalizedData, { 
       onConflict: 'event_id, rider_id',
       ignoreDuplicates: false 
     });
@@ -40,9 +47,14 @@ export async function createResult(data: CreateResultData) {
 export async function bulkCreateResults(dataArray: CreateResultData[]) {
   console.log(`--- GUARDANDO BATCH DE ${dataArray.length} RESULTADOS ---`);
 
+  const normalizedDataArray = dataArray.map(data => ({
+    ...data,
+    category_played: normalizeCategory(data.category_played)
+  }));
+
   const { error } = await supabase
     .from('results')
-    .upsert(dataArray, { 
+    .upsert(normalizedDataArray, { 
       onConflict: 'event_id, rider_id',
       ignoreDuplicates: false 
     });
