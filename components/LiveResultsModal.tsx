@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { updateLiveResults } from '@/actions/liveResults';
 import { parseExcelRows } from '@/lib/excel-parser';
+import { parseResultsText } from '@/lib/results-parser';
 
 interface LiveResultsModalProps {
   eventId: string;
@@ -17,8 +18,6 @@ const normalize = (str: string | null | undefined) => {
   if (!str) return '';
   return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
-
-const RIDER_REGEX = new RegExp("(?:(\\d+)\\s+)?(\\d+)\\s+([A-ZÁÉÍÓÚÑÜÄËÏÖ\\s()\\.#&\\'\\/-]{3,})\\s+(\\d{1,2}:[\\d:.]+|DQ)", "gi");
 
 export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, isAdmin = false }: LiveResultsModalProps) {
   const [results, setResults] = useState<any[]>([]);
@@ -109,57 +108,27 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         fullText = text;
       }
 
-      // ── Procesar el texto con la lógica existente de RIDER_REGEX ────────────
-      let posCounter = 1;
-      let currentCategory = 'DESCONOCIDA';
+      // ── Procesar el texto con parseResultsText centralizado ────────────
+      const parsedRiders = parseResultsText(fullText, 'DESCONOCIDA');
       const liveResults: any[] = [];
-      const lines = fullText.split(/\r?\n/);
 
-      RIDER_REGEX.lastIndex = 0;
+      parsedRiders.forEach(item => {
+        const nameInText = item.riderName.split('(')[0].trim();
+        const cleanRaw = normalize(nameInText);
+        const matchedRider = allRiders.find(r => normalize(r.full_name) === cleanRaw);
 
-      lines.forEach(line => {
-        const cleanLine = line.trim();
-        if (!cleanLine || cleanLine.length < 2) return;
+        const category = item.category !== 'DESCONOCIDA'
+          ? item.category
+          : (matchedRider?.category || 'Sin Categoría');
 
-        const upper = cleanLine.toUpperCase();
-        const catKeywords = ['MASTER', 'ELITE', 'NOVICIO', 'DAMAS', 'VARONES', 'MIXTO', 'PRO', 'INFANTIL', 'JUVENIL', 'CADETE', 'SUB', 'EBIKE', 'ENDURO'];
-        const isNoise = upper.includes('PUESTO') || upper.includes('DORSAL') || upper.includes('PAGINA') || upper.includes('RESULTADOS') || upper.includes('OFICIAL') || upper.includes('TIEMPO');
-
-        if (catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/)) {
-          let detected = upper.replace(/^(CATEGOR[IÍ]A|CATEGORIA|CAT\.|RANKING|RESULTADOS|FECHA)\s*[:\-]?\s*/i, '').trim();
-          if (detected.includes('PRE MASTER') || detected.includes('PREMASTER')) detected = 'PRE MASTER MIXTO';
-          currentCategory = detected;
-          posCounter = 1;
-          return;
-        }
-
-        const riderMatches = Array.from(cleanLine.matchAll(RIDER_REGEX));
-        riderMatches.forEach(match => {
-          const posText = match[1];
-          const dorsal = match[2];
-          const rawName = match[3].trim().toUpperCase();
-          const time = match[4].toUpperCase();
-
-          if (dorsal.length === 4 && dorsal.startsWith('20')) return;
-          if (rawName.includes('PUESTO') || rawName.includes('DORSAL')) return;
-
-          const isDQ = time === 'DQ' || time === 'DNF' || time === 'DNS' || time === 'DSQ';
-          const position = isDQ ? 999 : (posText ? parseInt(posText, 10) : posCounter++);
-          const nameInText = rawName.split('(')[0].trim();
-
-          const cleanRaw = normalize(nameInText);
-          const matchedRider = allRiders.find(r => normalize(r.full_name) === cleanRaw);
-
-          liveResults.push({
-            id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
-            rider_id: matchedRider?.id || null,
-            rider_name: nameInText,
-            club: matchedRider?.club || '',
-            // Nivel 2: categoria del rider en BD si no viene en el texto
-            category_played: currentCategory !== 'DESCONOCIDA' ? currentCategory : (matchedRider?.category || 'Sin Categoría'),
-            position,
-            race_time: isDQ ? 'DQ' : time,
-          });
+        liveResults.push({
+          id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
+          rider_id: matchedRider?.id || null,
+          rider_name: item.riderName,
+          club: matchedRider?.club || '',
+          category_played: category,
+          position: item.position,
+          race_time: item.isDQ ? 'DQ' : item.time,
         });
       });
 
