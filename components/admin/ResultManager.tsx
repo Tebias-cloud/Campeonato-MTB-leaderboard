@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { createResult, deleteResult, bulkCreateResults } from '@/actions/results';
-import { parseRiderLine } from '@/lib/results-parser';
+import { parseResultsText } from '@/lib/results-parser';
 import { assignSingleDorsal, bulkAssignDorsals } from '@/actions/dorsals';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
@@ -282,118 +282,86 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   const detectedResults = useMemo(() => {
     if (!importText || !importText.trim()) return [];
 
-    const results: any[] = [];
-    const lines = importText.split(/\r?\n/);
-    let currentCategory = "DESCONOCIDA";
+    const parsedRiders = parseResultsText(importText, selectedCategory || "DESCONOCIDA");
 
-    // Usamos la regex definida fuera del componente
+    return parsedRiders.map(item => {
+      const puesto = item.position;
+      const dorsal = item.dorsal.toString();
+      const rawName = item.originalText.toUpperCase();
+      const time = item.time;
+      const isDQ = item.isDQ;
+      const nameInText = item.riderName;
 
-    lines.forEach(line => {
-      const cleanLine = line.trim();
-      if (!cleanLine || cleanLine.length < 2) return;
+      // Identificación por Dorsal en este Evento
+      const entryByDorsal = eventRiders.find(er =>
+        er.event_id === selectedEventId &&
+        er.dorsal?.toString() === dorsal.toString()
+      );
 
-      // 1. ¿ES UNA CATEGORÍA?
-      const upper = cleanLine.toUpperCase();
-      const catKeywords = ["MASTER", "ELITE", "NOVICIO", "DAMAS", "VARONES", "MIXTO", "PRO", "INFANTIL", "JUVENIL", "CADETE", "SUB", "EBIKE", "ENDURO"];
-      const isNoise = upper.includes("PUESTO") || upper.includes("DORSAL") || upper.includes("PAGINA") || upper.includes("RESULTADOS") || upper.includes("OFICIAL") || upper.includes("TIEMPO");
+      const rowKey = `${dorsal}-${nameInText}-${time}`;
+      const manualRiderId = manualLinks[rowKey];
+      const manualRider = manualRiderId ? riders.find(r => r.id === manualRiderId) : null;
 
-      if (catKeywords.some(kw => upper.includes(kw)) && !isNoise && upper.length < 60 && !upper.match(/\d{1,2}:\d{2}/)) {
-        let detected = upper.replace(/^(CATEGOR[IÍ]A|CATEGORIA|CAT\.|RANKING|RESULTADOS|FECHA)\s*[:\-]?\s*/i, "").trim();
-        // Unificación de Pre Master según reglamento:
-        if (detected.includes("PRE MASTER") || detected.includes("PREMASTER")) {
-          detected = "PRE MASTER MIXTO";
-        }
-        currentCategory = detected;
-        return;
+      const riderByName = !entryByDorsal && !manualRider ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
+      const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
+      const identifiedName = manualRider?.full_name || entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
+      const riderProfile = riders.find(r => r.id === identifiedRiderId);
+
+      // CATEGORÍA ASIGNADA:
+      // 1. Categoría detectada en el PDF/Excel para este corredor específico
+      // 2. Categoría de inscripción en el evento
+      // 3. Categoría de perfil
+      // 4. Categoría del selector
+      let finalCategory = item.category !== "DESCONOCIDA" ? item.category :
+        (entryByDorsal?.category_at_event || riderProfile?.category || selectedCategory || "DESCONOCIDA");
+
+      // NORMALIZACIÓN AGRESIVA: Si dice Pre Master en cualquier lado, unificar a MIXTO
+      if (finalCategory.toUpperCase().includes("PRE MASTER") || finalCategory.toUpperCase().includes("PREMASTER")) {
+        finalCategory = "PRE MASTER MIXTO";
       }
 
-      // 2. BUSCAR CORREDORES
-      const riderMatches = parseRiderLine(cleanLine);
-      riderMatches.forEach(match => {
-        const puesto = match.position;
-        const dorsal = match.dorsal.toString();
-        const rawName = match.originalText.toUpperCase();
-        const time = match.time;
-        const isDQ = match.isDQ;
-        const nameInText = match.riderName;
+      let status = "✅ LISTO";
+      let canAutoLink = false;
 
-        if (dorsal.length === 4 && dorsal.startsWith("20")) return;
-        if (rawName.includes("PUESTO") || rawName.includes("DORSAL")) return;
+      if (manualRiderId) {
+        status = "🔧 CORREGIDO";
+        canAutoLink = true;
+      } else if (!entryByDorsal && riderByName) {
+        status = "✅ LISTO";
+        canAutoLink = true;
+      } else if (!entryByDorsal) {
+        status = "❌ NO ENCONTRADO";
+      }
+      if (isDQ) status = "ℹ️ INFORMATIVO";
 
-        // Identificación por Dorsal en este Evento
-        const entryByDorsal = eventRiders.find(er =>
-          er.event_id === selectedEventId &&
-          er.dorsal?.toString() === dorsal.toString()
-        );
+      const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
+      let changeType = "NUEVO";
+      let updateDetail = "";
 
-        const rowKey = `${dorsal}-${nameInText}-${time}`;
-        const manualRiderId = manualLinks[rowKey];
-        const manualRider = manualRiderId ? riders.find(r => r.id === manualRiderId) : null;
+      const normalizeTime = (t: string | null | undefined) => {
+        if (!t) return '';
+        let clean = t.trim().toUpperCase();
+        if (clean.startsWith('0') && clean.includes(':')) clean = clean.substring(1);
+        return clean;
+      };
 
-        const riderByName = !entryByDorsal && !manualRider ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
-        const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
-        const identifiedName = manualRider?.full_name || entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
-        const riderProfile = riders.find(r => r.id === identifiedRiderId);
-
-        // TRIPLE SEGURIDAD EN CATEGORÍA:
-        // 1. Categoría de Inscripción (Evento)
-        // 2. Categoría de Perfil (Ficha del Corredor)
-        // 3. Categoría del PDF (Título actual)
-        let finalCategory = entryByDorsal?.category_at_event ||
-          riderProfile?.category ||
-          currentCategory ||
-          "DESCONOCIDA";
-
-        // NORMALIZACIÓN AGRESIVA: Si dice Pre Master en cualquier lado, unificar a MIXTO
-        if (finalCategory.toUpperCase().includes("PRE MASTER") || finalCategory.toUpperCase().includes("PREMASTER")) {
-          finalCategory = "PRE MASTER MIXTO";
+      if (alreadySaved) {
+        const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
+        changeType = timeMatches ? "SIN CAMBIOS" : "SOBREESCRIBIR";
+        if (changeType === "SOBREESCRIBIR") {
+          updateDetail = `T: ${alreadySaved.race_time} → ${time}`;
         }
+      } else if (isDQ) {
+        changeType = "IGNORAR";
+      }
 
-        let status = "✅ LISTO";
-        let canAutoLink = false;
-
-        if (manualRiderId) {
-          status = "🔧 CORREGIDO";
-          canAutoLink = true;
-        } else if (!entryByDorsal && riderByName) {
-          status = "✅ LISTO";
-          canAutoLink = true;
-        } else if (!entryByDorsal) {
-          status = "❌ NO ENCONTRADO";
-        }
-        if (isDQ) status = "ℹ️ INFORMATIVO";
-
-        const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
-        let changeType = "NUEVO";
-        let updateDetail = "";
-
-        const normalizeTime = (t: string | null | undefined) => {
-          if (!t) return '';
-          let clean = t.trim().toUpperCase();
-          if (clean.startsWith('0') && clean.includes(':')) clean = clean.substring(1);
-          return clean;
-        };
-
-        if (alreadySaved) {
-          const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
-          changeType = timeMatches ? "SIN CAMBIOS" : "SOBREESCRIBIR";
-          if (changeType === "SOBREESCRIBIR") {
-            updateDetail = `T: ${alreadySaved.race_time} → ${time}`;
-          }
-        } else if (isDQ) {
-          changeType = "IGNORAR";
-        }
-
-        results.push({
-          rowKey, dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
-          category: finalCategory, time, isDQ, riderId: identifiedRiderId,
-          exists: !!entryByDorsal, canAutoLink, status, changeType, updateDetail
-        });
-      });
+      return {
+        rowKey, dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
+        category: finalCategory, time, isDQ, riderId: identifiedRiderId,
+        exists: !!entryByDorsal, canAutoLink, status, changeType, updateDetail
+      };
     });
-
-    return results;
-  }, [importText, selectedEventId, eventRiders, riders, existingResults, manualLinks]);
+  }, [importText, selectedEventId, eventRiders, riders, existingResults, manualLinks, selectedCategory]);
 
   // Identificar quiénes están inscritos pero no aparecen en el PDF
   const missingFromPdf = useMemo(() => {
