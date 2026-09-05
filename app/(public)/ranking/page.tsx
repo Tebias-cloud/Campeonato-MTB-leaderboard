@@ -138,12 +138,28 @@ export default async function RankingFull(props: Props) {
     });
 
     if (categoryFilter === 'Clubes') {
+      const { data: allResults } = await supabase.from('results').select('rider_id, event_id, points');
+      const { data: allEventRiders } = await supabase.from('event_riders').select('rider_id, event_id, club_at_event');
+
+      const erMap = new Map();
+      allEventRiders?.forEach(er => {
+        erMap.set(`${er.event_id}-${er.rider_id}`, er.club_at_event);
+      });
+
       const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
-      data?.forEach(item => {
-          if (item.club && item.club !== 'INDEPENDIENTE / LIBRE') {
-              if (!clubScores[item.club]) clubScores[item.club] = { points: 0, riders: new Set() };
-              clubScores[item.club].points += item.total_points;
-              clubScores[item.club].riders.add(item.rider_id);
+      
+      allResults?.forEach(result => {
+          let clubName = erMap.get(`${result.event_id}-${result.rider_id}`);
+          if (clubName) {
+              clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
+              if (clubName === 'TMT') clubName = 'CLUB TMT';
+              if (clubName === 'COBRA') clubName = 'CLUB COBRA';
+              
+              if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
+                  if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
+                  clubScores[clubName].points += result.points || 0;
+                  clubScores[clubName].riders.add(result.rider_id);
+              }
           }
       });
       
@@ -220,13 +236,23 @@ export default async function RankingFull(props: Props) {
     const typedData = data as unknown as ResultWithRider[];
 
     if (categoryFilter === 'Clubes') {
+      const { data: eventRidersData } = await supabase.from('event_riders').select('rider_id, club_at_event').eq('event_id', eventIdFilter);
+      const erMap = new Map();
+      eventRidersData?.forEach(er => erMap.set(er.rider_id, er.club_at_event));
+
       const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
       typedData?.forEach(item => {
-          const clubName = item.riders?.club;
-          if (clubName && clubName !== 'INDEPENDIENTE / LIBRE') {
-              if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
-              clubScores[clubName].points += item.points;
-              clubScores[clubName].riders.add(item.rider_id);
+          let clubName = erMap.get(item.rider_id);
+          if (clubName) {
+              clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
+              if (clubName === 'TMT') clubName = 'CLUB TMT';
+              if (clubName === 'COBRA') clubName = 'CLUB COBRA';
+
+              if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
+                  if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
+                  clubScores[clubName].points += item.points || 0;
+                  clubScores[clubName].riders.add(item.rider_id);
+              }
           }
       });
       
