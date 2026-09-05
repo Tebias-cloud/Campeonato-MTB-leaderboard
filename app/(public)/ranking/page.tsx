@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Teko, Montserrat } from "next/font/google";
 import { Event } from '@/lib/definitions';
 import { normalizeCategory } from '@/lib/utils';

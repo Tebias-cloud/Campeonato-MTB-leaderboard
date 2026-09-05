@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Event } from '@/lib/definitions';
 import Link from 'next/link';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
+import { getClubSuggestions } from '@/lib/clubs';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-montserrat' });
@@ -307,7 +308,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                             />
                             {showSuggestions && formValues.club.length > 0 && (
                                 <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-slate-100 max-h-48 overflow-y-auto z-50">
-                                    {clubsList.filter(c => c.toLowerCase().includes(formValues.club.toLowerCase()) && c !== formValues.club).map(c => (
+                                    {getClubSuggestions(formValues.club, clubsList).map(c => (
                                         <div 
                                             key={c} 
                                             onClick={() => { setFormValues(p => ({...p, club: c})); setShowSuggestions(false); }}
@@ -316,7 +317,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                                             {c}
                                         </div>
                                     ))}
-                                    {clubsList.filter(c => c.toLowerCase().includes(formValues.club.toLowerCase())).length === 0 && (
+                                    {getClubSuggestions(formValues.club, clubsList).length === 0 && (
                                         <div className="p-3 text-xs text-slate-400 italic">No se encontró en la lista. Se registrará como club nuevo.</div>
                                     )}
                                 </div>

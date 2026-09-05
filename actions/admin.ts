@@ -38,6 +38,7 @@ export async function getPendingRequests(): Promise<RegistrationRequest[]> {
 }
 
 import { normalizeCategory } from '@/lib/utils';
+import { normalizeClubName } from '@/lib/clubs';
 
 // ... (existing interfaces)
 
@@ -53,7 +54,8 @@ export async function approveRequest(
     category?: string, 
     phone?: string, 
     instagram?: string,
-    ciudad?: string 
+    ciudad?: string,
+    force_new_club?: boolean
   }
 ) {
   try {
@@ -74,7 +76,10 @@ export async function approveRequest(
     const finalFullName = (overrides?.full_name || request.full_name)?.trim().toUpperCase();
     const finalEmail = (overrides?.email || request.email)?.toLowerCase().trim();
     const finalBirthDate = overrides?.birth_date || request.birth_date;
-    const finalClub = (overrides?.club || request.club || 'INDEPENDIENTE / LIBRE').trim().toUpperCase();
+    // El club final OBLIGATORIAMENTE debe venir de los overrides si es que se está resolviendo.
+    // Si no hay override explícito, usamos el del request, pero normalizado a INDEPENDIENTE si es necesario.
+    let rawFinalClub = overrides?.club !== undefined ? overrides.club : request.club;
+    const finalClub = normalizeClubName(rawFinalClub || 'INDEPENDIENTE / LIBRE');
     const finalCiudad = (overrides?.ciudad || request.ciudad || 'IQUIQUE').trim().toUpperCase() || 'IQUIQUE';
     
     // Normalizar Categoría para evitar inconsistencias de nombres largos o viejos
@@ -83,7 +88,13 @@ export async function approveRequest(
 
     // 2.5. Asegurar existencia del Club
     if (finalClub !== 'INDEPENDIENTE / LIBRE') {
-      await supabase.from('clubs').upsert({ name: finalClub }, { onConflict: 'name' });
+      const { data: existingClub } = await supabase.from('clubs').select('name').eq('name', finalClub).maybeSingle();
+      if (!existingClub) {
+        if (overrides?.force_new_club !== true) {
+          throw new Error(`El club "${finalClub}" no existe y no se ha confirmado su creación. No se aprueba la solicitud silenciosamente.`);
+        }
+        await supabase.from('clubs').insert({ name: finalClub });
+      }
     }
 
     // 3. UPSERT Rider

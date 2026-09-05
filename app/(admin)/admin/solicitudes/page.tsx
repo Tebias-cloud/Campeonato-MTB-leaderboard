@@ -13,6 +13,7 @@ import Link from 'next/link';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 import { normalizeCategory } from '@/lib/utils';
+import { getClubSuggestions } from '@/lib/clubs';
 
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700", "900"], variable: '--font-montserrat' });
 const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: '--font-mono' });
@@ -27,6 +28,7 @@ interface EditFields {
   category?: string;
   phone?: string;
   instagram?: string;
+  force_new_club?: boolean;
 }
 
 interface ExistingRider {
@@ -128,7 +130,11 @@ export default function AdminSolicitudes() {
     
     setProcessing(req.id);
     try {
-      const res = await approveRequest(req.id, edits[req.id]);
+      const overrides = { ...edits[req.id] };
+      if (isNewClub) {
+        overrides.force_new_club = true;
+      }
+      const res = await approveRequest(req.id, overrides);
       
       if (res.success) {
         setRequests(prev => prev.filter(r => r.id !== req.id));
@@ -374,28 +380,35 @@ export default function AdminSolicitudes() {
 
                         <td className="p-5 align-top pt-6">
                           {isManual ? (
-                            <div className="flex flex-col gap-1 pr-2 animate-in fade-in slide-in-from-right-2 duration-300">
-                              <div className="flex items-center gap-2">
-                                <div className="relative flex-1">
-                                  <input 
-                                    type="text"
-                                    className="w-full p-3 bg-white border-2 border-emerald-400 focus:border-emerald-500 rounded-xl font-black text-emerald-700 uppercase outline-none text-[11px] transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                                    value={currentClub}
-                                    onChange={(e) => handleEdit(req.id, 'club', e.target.value)}
-                                    placeholder="Escribe el Club..."
-                                  />
-                                  <div className="absolute -right-1 -top-1">
-                                    <span className="flex h-3 w-3">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                                    </span>
+                            <div className="flex flex-col gap-2 pr-2 animate-in fade-in slide-in-from-right-2 duration-300">
+                              <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 flex flex-col gap-2">
+                                <span className="text-[10px] text-orange-800 font-bold uppercase">Solicitado: {req.club || 'Vacío'}</span>
+                                {getClubSuggestions(req.club || '', clubs).length > 0 && (
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] text-orange-600 font-bold uppercase">Sugerencias:</span>
+                                    {getClubSuggestions(req.club || '', clubs).map(sug => (
+                                      <button 
+                                        key={sug}
+                                        onClick={() => handleClubChange(req.id, sug)}
+                                        className="text-left px-2 py-1 bg-white hover:bg-orange-100 rounded border border-orange-200 text-[10px] font-bold text-orange-900 uppercase transition-colors"
+                                      >
+                                        Usar {sug}
+                                      </button>
+                                    ))}
                                   </div>
-                                </div>
-                                <button onClick={() => revertToListMode(req.id)} className="p-3 bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-400 rounded-xl font-black text-xs transition-colors shadow-sm" title="Regresar a la lista">X</button>
-                              </div>
-                              <div className="flex items-center justify-between px-1 mt-1">
-                                <span className="text-emerald-600 font-black text-[9px] uppercase tracking-tighter">✨ Nuevo Club Detectado</span>
-                                <span className="text-[8px] text-slate-400 font-bold italic">Se autoguardará al aprobar</span>
+                                )}
+                                <button 
+                                  onClick={() => handleEdit(req.id, 'club', req.club || '')}
+                                  className="mt-1 w-full p-1.5 bg-slate-800 hover:bg-black text-white rounded text-[9px] font-bold uppercase transition-colors"
+                                >
+                                  Crear como nuevo club
+                                </button>
+                                <button 
+                                  onClick={() => handleClubChange(req.id, 'INDEPENDIENTE / LIBRE')}
+                                  className="w-full p-1.5 bg-white hover:bg-slate-100 text-slate-500 rounded border border-slate-200 text-[9px] font-bold uppercase transition-colors"
+                                >
+                                  Usar INDEPENDIENTE
+                                </button>
                               </div>
                             </div>
                           ) : (
