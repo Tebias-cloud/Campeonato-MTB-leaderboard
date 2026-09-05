@@ -255,7 +255,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         const textContent = await page.getTextContent();
         fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
       }
-      setImportText(fullText);
+      setImportText(prev => prev ? prev + '\n' + fullText : fullText);
     } catch (error: any) { alert(`Error: ${error.message}`); } finally { setLoading(false); }
   }
 
@@ -280,21 +280,52 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         return;
       }
 
-      setImportText(text);
+      setImportText(prev => prev ? prev + '\n' + text : text);
     } catch (error: any) { alert(`Error al leer Excel: ${error.message}`); } finally { setLoading(false); }
   };
 
   const detectedResults = useMemo(() => {
     if (!importText || !importText.trim()) return [];
 
-    const parsedRiders = parseResultsText(importText, "DESCONOCIDA");
+    const parsedRidersRaw = parseResultsText(importText, "DESCONOCIDA");
+    
+    // Deduplicación estructurada por dorsal + evento
+    const dorsalMap = new Map();
+    const uniqueRiders = [];
 
-    return parsedRiders.map(item => {
+    for (const item of parsedRidersRaw) {
+      if (!item.dorsal) {
+        uniqueRiders.push(item);
+        continue;
+      }
+      const existing = dorsalMap.get(item.dorsal);
+      if (!existing) {
+        dorsalMap.set(item.dorsal, item);
+        uniqueRiders.push(item);
+      } else {
+        const sameName = existing.riderName === item.riderName;
+        const sameTime = existing.time === item.time;
+        const sameCat = existing.category === item.category;
+        
+        if (sameName && sameTime && sameCat) {
+          // Duplicado exacto, ignorar
+          continue;
+        } else {
+          // Conflicto
+          (item as any).isConflict = true;
+          (existing as any).isConflict = true;
+          uniqueRiders.push(item);
+        }
+      }
+    }
+
+    return uniqueRiders.map(item => {
       const puesto = item.position;
       const dorsal = item.dorsal.toString();
       const rawName = item.originalText.toUpperCase();
       const time = item.time;
       const isDQ = item.isDQ;
+      const isConflict = (item as any).isConflict;
       const nameInText = item.riderName;
 
       // Identificación por Dorsal en este Evento
@@ -349,6 +380,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         status = "❌ NO ENCONTRADO";
       }
       if (isDQ) status = "ℹ️ INFORMATIVO";
+      if (isConflict) status = "⚠️ CONFLICTO MULTIARCHIVO";
 
       const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
       let changeType = "NUEVO";
@@ -409,7 +441,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     });
     return ignored;
   }, [importText]);
-  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && r.status !== "⚠️ DORSAL SOSPECHOSO").length;
+  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && !r.status.startsWith("⚠️")).length;
 
   const timeToSeconds = (timeStr: string) => {
     if (timeStr.toUpperCase() === 'DQ') return 999999;
@@ -424,7 +456,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     setLoading(true);
     try {
       const allDetected = importText ? detectedResults : [];
-      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ && r.status !== "⚠️ DORSAL SOSPECHOSO");
+      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ && !r.status.startsWith("⚠️"));
       const toDelete = allDetected.filter(r => r.riderId && r.isDQ);
 
       let totalProcessed = 0;

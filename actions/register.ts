@@ -54,6 +54,21 @@ export async function submitRegistration(prevState: RegisterState, formData: For
   });
 
   try {
+    // Verificar estado del evento
+    const { data: eventData, error: eventError } = await supabase
+      .from('events')
+      .select('status')
+      .eq('id', event_id)
+      .single();
+
+    if (eventError || !eventData) {
+      return { success: false, message: 'Evento no encontrado.', fields: rawData, timestamp };
+    }
+
+    if (eventData.status === 'completed') {
+      return { success: false, message: 'Las inscripciones para este evento están cerradas.', fields: rawData, timestamp };
+    }
+
     const { error: insertError } = await supabase
       .from('registration_requests')
       .insert({

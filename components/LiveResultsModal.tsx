@@ -110,25 +110,56 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
       }
 
       // ── Procesar el texto con parseResultsText centralizado ────────────
-      const parsedRiders = parseResultsText(fullText, 'DESCONOCIDA');
-      const liveResults: any[] = [];
+      const parsedRidersRaw = parseResultsText(fullText, 'DESCONOCIDA');
+      const liveResults: any[] = [...results]; // Empezar con el estado actual (acumulación)
 
-      parsedRiders.forEach(item => {
+      parsedRidersRaw.forEach(item => {
         const nameInText = item.riderName;
         const matchedRider = allRiders.find(r => isNameCompatible(r.full_name, nameInText));
 
         const category = item.category !== 'DESCONOCIDA'
           ? item.category
           : (matchedRider?.category || 'Sin Categoría');
+          
+        const time = item.isDQ ? 'DQ' : item.time;
+        
+        // Deduplicación estructurada
+        if (item.dorsal) {
+            const existingIndex = liveResults.findIndex(r => r.dorsal?.toString() === item.dorsal?.toString());
+            
+            if (existingIndex !== -1) {
+                const ex = liveResults[existingIndex];
+                if (ex.rider_name === item.riderName && ex.race_time === time && ex.category_played === category) {
+                    // Duplicado exacto, ignorar
+                    return;
+                } else {
+                    // Conflicto
+                    liveResults[existingIndex] = { ...ex, isConflict: true };
+                    liveResults.push({
+                        id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
+                        dorsal: item.dorsal,
+                        rider_id: matchedRider?.id || null,
+                        rider_name: item.riderName,
+                        club: matchedRider?.club || '',
+                        category_played: category,
+                        position: item.position,
+                        race_time: time,
+                        isConflict: true
+                    });
+                    return;
+                }
+            }
+        }
 
         liveResults.push({
           id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
+          dorsal: item.dorsal,
           rider_id: matchedRider?.id || null,
           rider_name: item.riderName,
           club: matchedRider?.club || '',
           category_played: category,
           position: item.position,
-          race_time: item.isDQ ? 'DQ' : item.time,
+          race_time: time,
         });
       });
 
@@ -255,7 +286,10 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                               {r.position === 999 ? 'DQ' : `${r.position}º`}
                             </td>
                             <td className="p-2 sm:p-3">
-                              <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">{r.rider_name}</p>
+                              <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">
+                                {r.rider_name}
+                                {r.isConflict && <span className="ml-2 text-red-500" title="Conflicto de Multiarchivo">⚠️</span>}
+                              </p>
                               {r.club && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">{r.club}</p>}
                             </td>
                             <td className="p-2 sm:p-3 text-center font-mono font-black text-[#C64928] text-[11px] sm:text-sm">
