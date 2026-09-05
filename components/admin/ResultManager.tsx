@@ -24,7 +24,13 @@ const formatRut = (rut: string | null | undefined) => {
 
 const normalize = (str: string | null | undefined) => {
   if (!str) return '';
-  return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ');
+  return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
+};
+
+const getRiderName = (er: any) => {
+  if (!er?.riders) return null;
+  if (Array.isArray(er.riders)) return er.riders[0]?.full_name;
+  return er.riders.full_name;
 };
 
 interface Props {
@@ -278,7 +284,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   const detectedResults = useMemo(() => {
     if (!importText || !importText.trim()) return [];
 
-    const parsedRiders = parseResultsText(importText, selectedCategory || "DESCONOCIDA");
+    const parsedRiders = parseResultsText(importText, "DESCONOCIDA");
 
     return parsedRiders.map(item => {
       const puesto = item.position;
@@ -300,7 +306,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
 
       const riderByName = !entryByDorsal && !manualRider ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
       const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
-      const identifiedName = manualRider?.full_name || entryByDorsal?.riders?.full_name || riderByName?.full_name || null;
+      const identifiedName = manualRider?.full_name || getRiderName(entryByDorsal) || riderByName?.full_name || null;
       const riderProfile = riders.find(r => r.id === identifiedRiderId);
 
       // CATEGORÍA ASIGNADA:
@@ -324,7 +330,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         canAutoLink = true;
       } else if (entryByDorsal) {
         const pdfNorm = normalize(nameInText);
-        const dbNorm = normalize(entryByDorsal.riders?.full_name);
+        const dbNorm = normalize(getRiderName(entryByDorsal));
         if (pdfNorm && dbNorm && pdfNorm !== dbNorm) {
           status = "⚠️ DORSAL SOSPECHOSO";
         }
