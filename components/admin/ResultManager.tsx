@@ -7,7 +7,7 @@ import { assignSingleDorsal, bulkAssignDorsals } from '@/actions/dorsals';
 import { Event, Rider, RawResult } from '@/lib/definitions';
 import ExportExcelButton from '@/components/admin/ExportExcelButton';
 
-import { normalizeCategory } from '@/lib/utils';
+import { normalizeCategory, isNameCompatible, normalizeForMatch } from '@/lib/utils';
 import { OFFICIAL_CATEGORIES, CATEGORY_GROUPS } from '@/lib/categories';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { quickCreateRider } from '@/actions/riders';
@@ -28,38 +28,7 @@ const normalize = (str: string | null | undefined) => {
   return noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
 };
 
-const normalizeForMatch = (str: string | null | undefined) => {
-  if (!str) return [];
-  const noClub = str.split('(')[0];
-  const cleaned = noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9\s]/g, '');
-  return cleaned.split(/\s+/).filter(t => t.length > 0);
-};
 
-const isNameCompatible = (nameA: string | null | undefined, nameB: string | null | undefined) => {
-  const tokensA = normalizeForMatch(nameA);
-  const tokensB = normalizeForMatch(nameB);
-
-  if (tokensA.length === 0 || tokensB.length === 0) return false;
-
-  const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
-  const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
-
-  let longerIndex = 0;
-  for (let i = 0; i < shorter.length; i++) {
-    const tokenToFind = shorter[i];
-    let found = false;
-    for (let j = longerIndex; j < longer.length; j++) {
-      if (longer[j] === tokenToFind) {
-        found = true;
-        longerIndex = j + 1;
-        break;
-      }
-    }
-    if (!found) return false;
-  }
-
-  return true;
-};
 
 const getRiderName = (er: any) => {
   if (!er?.riders) return null;

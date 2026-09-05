@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { updateLiveResults } from '@/actions/liveResults';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { parseResultsText } from '@/lib/results-parser';
+import { isNameCompatible } from '@/lib/utils';
 
 interface LiveResultsModalProps {
   eventId: string;
@@ -113,9 +114,8 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
       const liveResults: any[] = [];
 
       parsedRiders.forEach(item => {
-        const nameInText = item.riderName.split('(')[0].trim();
-        const cleanRaw = normalize(nameInText);
-        const matchedRider = allRiders.find(r => normalize(r.full_name) === cleanRaw);
+        const nameInText = item.riderName;
+        const matchedRider = allRiders.find(r => isNameCompatible(r.full_name, nameInText));
 
         const category = item.category !== 'DESCONOCIDA'
           ? item.category

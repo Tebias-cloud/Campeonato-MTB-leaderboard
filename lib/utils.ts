@@ -95,3 +95,36 @@ export const cleanInstagramHandle = (input: string | null | undefined): string |
   
   return handle || null;
 };
+
+export const normalizeForMatch = (str: string | null | undefined) => {
+  if (!str) return [];
+  const noClub = str.split('(')[0];
+  const cleaned = noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9\s]/g, '');
+  return cleaned.split(/\s+/).filter(t => t.length > 0);
+};
+
+export const isNameCompatible = (nameA: string | null | undefined, nameB: string | null | undefined) => {
+  const tokensA = normalizeForMatch(nameA);
+  const tokensB = normalizeForMatch(nameB);
+
+  if (tokensA.length === 0 || tokensB.length === 0) return false;
+
+  const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
+  const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
+
+  let longerIndex = 0;
+  for (let i = 0; i < shorter.length; i++) {
+    const tokenToFind = shorter[i];
+    let found = false;
+    for (let j = longerIndex; j < longer.length; j++) {
+      if (longer[j] === tokenToFind) {
+        found = true;
+        longerIndex = j + 1;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+
+  return true;
+};
