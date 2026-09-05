@@ -322,10 +322,16 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       if (manualRiderId) {
         status = "🔧 CORREGIDO";
         canAutoLink = true;
-      } else if (!entryByDorsal && riderByName) {
+      } else if (entryByDorsal) {
+        const pdfNorm = normalize(nameInText);
+        const dbNorm = normalize(entryByDorsal.riders?.full_name);
+        if (pdfNorm && dbNorm && pdfNorm !== dbNorm) {
+          status = "⚠️ DORSAL SOSPECHOSO";
+        }
+      } else if (riderByName) {
         status = "✅ LISTO";
         canAutoLink = true;
-      } else if (!entryByDorsal) {
+      } else {
         status = "❌ NO ENCONTRADO";
       }
       if (isDQ) status = "ℹ️ INFORMATIVO";
@@ -404,7 +410,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     setLoading(true);
     try {
       const allDetected = importText ? detectedResults : [];
-      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ);
+      const toSave = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ && r.status !== "⚠️ DORSAL SOSPECHOSO");
       const toDelete = allDetected.filter(r => r.riderId && r.isDQ);
 
       let totalProcessed = 0;
@@ -605,7 +611,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                   </div>
 
                   {/* ── SECCIÓN PRIORITARIA: SIN VINCULAR ── */}
-                  {detectedResults.filter(r => !r.riderId && !r.isDQ).length > 0 && (
+                  {detectedResults.filter(r => (!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ).length > 0 && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🔴</span>
@@ -615,12 +621,17 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                         </div>
                       </div>
 
-                      {detectedResults.filter(r => !r.riderId && !r.isDQ).map((r) => (
+                      {detectedResults.filter(r => (!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ).map((r) => (
                         <div key={r.rowKey} className="bg-white rounded-xl border border-red-100 p-3 space-y-3">
                           {/* Cabecera de la fila */}
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className="font-black text-slate-800 uppercase text-sm leading-tight">{r.nameInText}</p>
+                              {r.status === "⚠️ DORSAL SOSPECHOSO" && (
+                                <p className="text-[10px] font-bold text-red-600 mt-1">
+                                  ⚠️ Dorsal asociado a: {r.identifiedName}
+                                </p>
+                              )}
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded">#{r.dorsal}</span>
                                 <span className="text-[10px] font-bold text-slate-400">{r.category}</span>
@@ -761,7 +772,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                           </div>
                           <div className="divide-y divide-slate-50">
                             {categoryResults.map((r, i) => (
-                              <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${!r.riderId && !r.isDQ ? 'bg-red-50/50' : ''}`}>
+                              <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${(!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ ? 'bg-red-50/50' : ''}`}>
                                 <span className="text-xs font-bold text-slate-400 w-5 text-right shrink-0">{r.puesto}</span>
                                 <span className="text-sm font-black text-slate-600 w-7 shrink-0">#{r.dorsal}</span>
                                 <div className="flex-1 min-w-0">
@@ -773,7 +784,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <span className="font-mono font-bold text-[#C64928] text-xs">{r.time}</span>
                                   {r.riderId && <span className="text-emerald-500 text-sm">✓</span>}
-                                  {!r.riderId && !r.isDQ && <span className="text-red-400 text-xs">↑</span>}
+                                  {(!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ && <span className="text-red-400 text-xs">↑</span>}
                                 </div>
                               </div>
                             ))}
