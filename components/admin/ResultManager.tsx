@@ -24,7 +24,8 @@ const formatRut = (rut: string | null | undefined) => {
 
 const normalize = (str: string | null | undefined) => {
   if (!str) return '';
-  return str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
+  const noClub = str.split('(')[0];
+  return noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
 };
 
 const getRiderName = (er: any) => {
@@ -330,9 +331,14 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         canAutoLink = true;
       } else if (entryByDorsal) {
         const pdfNorm = normalize(nameInText);
-        const dbNorm = normalize(getRiderName(entryByDorsal));
+        const dbNameRaw = getRiderName(entryByDorsal);
+        const dbNorm = normalize(dbNameRaw);
+        
+        console.log(`[MATCH] PDF: "${nameInText}" -> "${pdfNorm}" | DB: "${dbNameRaw}" -> "${dbNorm}" | eq: ${pdfNorm === dbNorm}`);
+
         if (pdfNorm && dbNorm && pdfNorm !== dbNorm) {
           status = "⚠️ DORSAL SOSPECHOSO";
+          console.log(`[WARNING] DORSAL SOSPECHOSO: ${nameInText} vs ${dbNameRaw}`);
         }
       } else if (riderByName) {
         status = "✅ LISTO";
