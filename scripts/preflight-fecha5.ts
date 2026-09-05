@@ -60,7 +60,12 @@ async function runPreflight() {
     }
 
     // 4. Categorías anómalas en Fecha 5
-    const validCategories = ['Elite', 'Novicios Varones', 'Novicias Damas', 'Amateur', 'Master A', 'Master B', 'Master C', 'Master Damas', 'E-Bike', 'Infantil', 'Juvenil', 'Cadete', 'Amateur Damas', 'Junior', 'Pre Master Mixto'];
+    const validCategories = [
+      'Elite', 'Novicios Varones', 'Novicias Damas', 'Amateur', 'Master A', 'Master B', 
+      'Master C', 'Master D', 'Master Damas', 'Damas Master A', 'Damas Master B', 
+      'Damas Master C', 'E-Bike', 'EBike Mixto', 'Infantil', 'Juvenil', 'Cadete', 
+      'Amateur Damas', 'Junior', 'Pre Master Mixto', 'Enduro Mixto'
+    ];
     const invalidCats = new Set();
     eventRiders?.forEach(er => {
       if (!validCategories.some(c => c.toLowerCase() === er.category_at_event.toLowerCase())) {
