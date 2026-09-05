@@ -28,6 +28,39 @@ const normalize = (str: string | null | undefined) => {
   return noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
 };
 
+const normalizeForMatch = (str: string | null | undefined) => {
+  if (!str) return [];
+  const noClub = str.split('(')[0];
+  const cleaned = noClub.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9\s]/g, '');
+  return cleaned.split(/\s+/).filter(t => t.length > 0);
+};
+
+const isNameCompatible = (nameA: string | null | undefined, nameB: string | null | undefined) => {
+  const tokensA = normalizeForMatch(nameA);
+  const tokensB = normalizeForMatch(nameB);
+
+  if (tokensA.length === 0 || tokensB.length === 0) return false;
+
+  const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
+  const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
+
+  let longerIndex = 0;
+  for (let i = 0; i < shorter.length; i++) {
+    const tokenToFind = shorter[i];
+    let found = false;
+    for (let j = longerIndex; j < longer.length; j++) {
+      if (longer[j] === tokenToFind) {
+        found = true;
+        longerIndex = j + 1;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+
+  return true;
+};
+
 const getRiderName = (er: any) => {
   if (!er?.riders) return null;
   if (Array.isArray(er.riders)) return er.riders[0]?.full_name;
@@ -305,7 +338,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       const manualRiderId = manualLinks[rowKey];
       const manualRider = manualRiderId ? riders.find(r => r.id === manualRiderId) : null;
 
-      const riderByName = !entryByDorsal && !manualRider ? riders.find(r => normalize(r.full_name) === normalize(nameInText)) : null;
+      const riderByName = !entryByDorsal && !manualRider ? riders.find(r => isNameCompatible(r.full_name, nameInText)) : null;
       const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
       const identifiedName = manualRider?.full_name || getRiderName(entryByDorsal) || riderByName?.full_name || null;
       const riderProfile = riders.find(r => r.id === identifiedRiderId);
@@ -330,13 +363,13 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         status = "🔧 CORREGIDO";
         canAutoLink = true;
       } else if (entryByDorsal) {
-        const pdfNorm = normalize(nameInText);
+        const pdfName = nameInText;
         const dbNameRaw = getRiderName(entryByDorsal);
-        const dbNorm = normalize(dbNameRaw);
+        const compatible = isNameCompatible(pdfName, dbNameRaw);
         
-        console.log(`[MATCH] PDF: "${nameInText}" -> "${pdfNorm}" | DB: "${dbNameRaw}" -> "${dbNorm}" | eq: ${pdfNorm === dbNorm}`);
+        console.log(`[MATCH] PDF: "${pdfName}" | DB: "${dbNameRaw}" | compatible: ${compatible}`);
 
-        if (pdfNorm && dbNorm && pdfNorm !== dbNorm) {
+        if (!compatible) {
           status = "⚠️ DORSAL SOSPECHOSO";
           console.log(`[WARNING] DORSAL SOSPECHOSO: ${nameInText} vs ${dbNameRaw}`);
         }
