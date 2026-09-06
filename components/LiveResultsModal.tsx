@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { updateLiveResults } from '@/actions/liveResults';
+import { updateLiveResults } from '@/actions/liveResults'; // KEEP IMPORT FOR NOW IN CASE BUILD FAILS ELSEWHERE, BUT WE WON'T USE IT HERE
 import { parseExcelRows } from '@/lib/excel-parser';
 import { parseResultsText } from '@/lib/results-parser';
-import { isNameCompatible, normalizeCategory } from '@/lib/utils';
-import { timeToSeconds } from '@/lib/importer-core';
+import { normalizeCategory } from '@/lib/utils';
+import { timeToSeconds, matchAndDeduplicateResults } from '@/lib/importer-core';
 
 interface LiveResultsModalProps {
   eventId: string;
@@ -22,37 +22,24 @@ const normalize = (str: string | null | undefined) => {
 };
 
 export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, isAdmin = false }: LiveResultsModalProps) {
-  const [results, setResults] = useState<any[]>([]);
   const [allRiders, setAllRiders] = useState<any[]>([]);
+  const [eventRiders, setEventRiders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accumulatedText, setAccumulatedText] = useState<string>('');
 
   const fetchData = useCallback(async () => {
+    if (!isAdmin) return;
     setLoading(true);
     try {
-      const promises: any[] = [
-        supabase.from('events').select('live_results_json').eq('id', eventId).single()
-      ];
+      const responses = await Promise.all([
+        supabase.from('riders').select('id, full_name, club, category, rut'),
+        supabase.from('event_riders').select('*, riders(full_name, category)').eq('event_id', eventId)
+      ]);
 
-      if (isAdmin) {
-        promises.push(supabase.from('riders').select('id, full_name, club, category'));
-      }
-
-      const responses = await Promise.all(promises);
-      const eventData = responses[0].data;
-
-      if (isAdmin && responses[1]?.data) {
-        setAllRiders(responses[1].data);
-      }
-
-      if (eventData?.live_results_json) {
-        // Asegurarse de que sea un array
-        const parsed = Array.isArray(eventData.live_results_json) ? eventData.live_results_json : [];
-        setResults(parsed);
-      } else {
-        setResults([]);
-      }
+      if (responses[0]?.data) setAllRiders(responses[0].data);
+      if (responses[1]?.data) setEventRiders(responses[1].data);
     } catch (error) {
-      console.error("Error fetching live results:", error);
+      console.error("Error fetching live results dependencies:", error);
     } finally {
       setLoading(false);
     }
@@ -111,63 +98,9 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         return;
       }
 
-      // ── Procesar el texto con parseResultsText centralizado ────────────
-      const parsedRidersRaw = parseResultsText(fullText, 'DESCONOCIDA');
-      const liveResults: any[] = [...results]; // Empezar con el estado actual (acumulación)
-
-      parsedRidersRaw.forEach(item => {
-        const nameInText = item.riderName;
-        const matchedRider = allRiders.find(r => isNameCompatible(r.full_name, nameInText));
-
-        let rawCategory = item.category !== 'DESCONOCIDA'
-          ? item.category
-          : (matchedRider?.category || 'Sin Categoría');
-        const category = normalizeCategory(rawCategory);
-          
-        const time = item.isDQ ? 'DQ' : item.time;
-        
-        // Deduplicación estructurada
-        if (item.dorsal) {
-            const existingIndex = liveResults.findIndex(r => r.dorsal?.toString() === item.dorsal?.toString());
-            
-            if (existingIndex !== -1) {
-                const ex = liveResults[existingIndex];
-                if (ex.rider_name === item.riderName && ex.race_time === time && ex.category_played === category) {
-                    // Duplicado exacto, ignorar
-                    return;
-                } else {
-                    // Conflicto
-                    liveResults[existingIndex] = { ...ex, isConflict: true };
-                    liveResults.push({
-                        id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
-                        dorsal: item.dorsal,
-                        rider_id: matchedRider?.id || null,
-                        rider_name: item.riderName,
-                        club: matchedRider?.club || '',
-                        category_played: category,
-                        position: item.position,
-                        race_time: time,
-                        isConflict: true
-                    });
-                    return;
-                }
-            }
-        }
-
-        liveResults.push({
-          id: (matchedRider?.id || 'temp') + '-' + Date.now() + Math.random(),
-          dorsal: item.dorsal,
-          rider_id: matchedRider?.id || null,
-          rider_name: item.riderName,
-          club: matchedRider?.club || '',
-          category_played: category,
-          position: item.position,
-          race_time: time,
-        });
-      });
-
-      await updateLiveResults(eventId, liveResults);
-      await fetchData();
+      // ── Acumular texto para procesarlo todo junto ────────────
+      setAccumulatedText(prev => prev ? prev + '\n' + fullText : fullText);
+      setLoading(false);
       e.target.value = '';
     } catch (error: any) {
       alert(`Error al importar: ${error.message}`);
@@ -175,42 +108,56 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     }
   };
 
-  const handleClearLiveResults = async () => {
-    if (!confirm("¿Seguro que quieres borrar todos los resultados en vivo de esta carrera?")) return;
-    setLoading(true);
-    try {
-      await updateLiveResults(eventId, []);
-      await fetchData();
-    } catch (error: any) {
-      alert(`Error al limpiar: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const handleClearLiveResults = () => {
+    if (!confirm("¿Seguro que quieres borrar todos los resultados temporales?")) return;
+    setAccumulatedText('');
   };
+
+  const computedResults = useMemo(() => {
+    if (!accumulatedText.trim()) return [];
+
+    const parsedRidersRaw = parseResultsText(accumulatedText, "DESCONOCIDA");
+    const rawMatches = matchAndDeduplicateResults(
+      parsedRidersRaw,
+      eventRiders,
+      allRiders,
+      [], 
+      eventId,
+      "",
+      {} 
+    );
+
+    const valid = rawMatches.filter(r => !r.isDQ && !r.status.startsWith("❌"));
+
+    valid.sort((a, b) => {
+      if (a.category !== b.category) return a.category.localeCompare(b.category);
+      return timeToSeconds(a.time) - timeToSeconds(b.time);
+    });
+
+    const posCounters: Record<string, number> = {};
+    const finalMatches: any[] = [];
+
+    for (const item of valid) {
+      if (!posCounters[item.category]) posCounters[item.category] = 1;
+      const pos = posCounters[item.category]++;
+      finalMatches.push({
+        ...item,
+        visualPosition: pos
+      });
+    }
+
+    return finalMatches;
+  }, [accumulatedText, eventRiders, allRiders, eventId]);
 
   if (!isOpen) return null;
 
   // Agrupar por categoría
-  const grouped = results.reduce((acc: any, curr: any) => {
-    const cat = curr.category_played || 'Sin Categoría';
+  const grouped = computedResults.reduce((acc: any, curr: any) => {
+    const cat = curr.category || 'Sin Categoría';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(curr);
     return acc;
   }, {});
-
-  // Ordenar dentro de cada categoría
-  Object.keys(grouped).forEach(cat => {
-    grouped[cat].sort((a: any, b: any) => timeToSeconds(a.race_time) - timeToSeconds(b.race_time));
-    // Asignar posición visual
-    let pos = 1;
-    grouped[cat].forEach((r: any) => {
-      if (r.race_time !== 'DQ') {
-        r.visualPosition = pos++;
-      } else {
-        r.visualPosition = 'DQ';
-      }
-    });
-  });
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in-up">
@@ -268,7 +215,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
             <div className="flex justify-center items-center h-40">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#C64928]"></div>
             </div>
-          ) : results.length === 0 ? (
+          ) : computedResults.length === 0 ? (
             <div className="text-center py-20 flex flex-col items-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-200 mb-4">
                 <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -300,13 +247,13 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                             </td>
                             <td className="p-2 sm:p-3">
                               <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">
-                                {r.rider_name}
-                                {r.isConflict && <span className="ml-2 text-red-500" title="Conflicto de Multiarchivo">⚠️</span>}
+                                {r.identifiedName || r.nameInText}
+                                {r.status?.startsWith("⚠️") && <span className="ml-2 text-orange-500" title={r.status}>⚠️</span>}
                               </p>
-                              {r.club && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">{r.club}</p>}
+                              {(r.clubAtEvent || r.clubInText) && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">{r.clubAtEvent || r.clubInText}</p>}
                             </td>
                             <td className="p-2 sm:p-3 text-center font-mono font-black text-[#C64928] text-[11px] sm:text-sm">
-                              {r.race_time || '--:--:--'}
+                              {r.time || '--:--:--'}
                             </td>
                           </tr>
                         ))}
