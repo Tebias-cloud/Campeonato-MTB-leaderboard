@@ -151,6 +151,51 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         return;
       }
 
+      // Validar contexto del evento para evitar pisar datos accidentalmente
+      const unknownRiders = fileRiders.filter(r => normalizeCategory(r.category || "DESCONOCIDA") === "Desconocida");
+      if (unknownRiders.length > 0) {
+        const ridersByEvent = allEventRiders.reduce((acc, er) => {
+          if (!acc[er.event_id]) acc[er.event_id] = [];
+          acc[er.event_id].push(er);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        let bestEventId: string | null = null;
+        let maxSafeMatchCount = 0;
+
+        for (const [evtId, ridersOfEvent] of Object.entries(ridersByEvent)) {
+          const evtRiders = ridersOfEvent as any[];
+          let safeMatchCount = 0;
+          for (const item of unknownRiders) {
+            if (item.dorsal) {
+              const matchL1 = evtRiders.find((er: any) => er.dorsal === item.dorsal);
+              if (matchL1 && matchL1.riders) {
+                const fileRiderName = normalize(item.riderName);
+                const dbRiderName = normalize(matchL1.riders.full_name);
+                const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
+                const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
+                if (fileParts.some(fp => dbParts.includes(fp))) {
+                  safeMatchCount++;
+                }
+              }
+            }
+          }
+          if (safeMatchCount > maxSafeMatchCount) {
+            maxSafeMatchCount = safeMatchCount;
+            bestEventId = evtId;
+          }
+        }
+
+        const matchThreshold = 0.70;
+        if (bestEventId && (maxSafeMatchCount / unknownRiders.length) >= matchThreshold) {
+          if (bestEventId !== eventId) {
+            alert("Error: El archivo parece corresponder a otra fecha/evento. Súbelo en el contexto correcto para evitar sobreescribir el Vivo actual.");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       // ── Acumular objetos parseados estructurados, nunca texto ────────────
       setAccumulatedRawRiders(prev => {
         const merged = [...prev];
@@ -176,6 +221,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         
         return merged;
       });
+      setHasUserModified(true);
       setLoading(false);
       e.target.value = '';
     } catch (error: any) {
@@ -187,9 +233,11 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   const handleClearLiveResults = () => {
     if (!confirm("¿Seguro que quieres borrar todos los resultados temporales?")) return;
     setAccumulatedRawRiders([]);
+    setHasUserModified(true);
   };
 
   const [hasInferredCategories, setHasInferredCategories] = useState(false);
+  const [hasUserModified, setHasUserModified] = useState(false);
 
   const computedResults = useMemo(() => {
     if (accumulatedRawRiders.length === 0) {
@@ -361,10 +409,35 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     return finalMatches;
   }, [accumulatedRawRiders, allEventRiders, allRiders]);
 
+  useEffect(() => {
+    if (isAdmin && eventId && hasUserModified) {
+      const timeout = setTimeout(() => {
+        updateLiveResults(eventId, computedResults).catch(err => console.error("Error auto-publishing live results:", err));
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isAdmin, eventId, computedResults, hasUserModified]);
+
+  const finalPublicResults = useMemo(() => {
+    if (isAdmin) return computedResults;
+    
+    // Si no es admin, el publico recibe el JSON preprocesado directo desde DB/Realtime.
+    // Damos soporte defensivo a ambos formatos (el viejo oficial y el nuevo del Vivo).
+    return accumulatedRawRiders.map((r: any) => ({
+      id: r.id || Math.random().toString(36).substring(7),
+      category: r.category || r.category_played || 'Categoría pendiente',
+      visualPosition: r.visualPosition || r.position || 0,
+      nameInText: r.nameInText || r.rider_name || r.riderName || 'No identificado',
+      dorsal: r.dorsal || '',
+      clubInText: r.clubInText || r.club || 'Sin club',
+      time: r.time || r.race_time || '--:--:--'
+    }));
+  }, [isAdmin, computedResults, accumulatedRawRiders]);
+
   if (!isOpen) return null;
 
   // Agrupar por categoría
-  const grouped = computedResults.reduce((acc: any, curr: any) => {
+  const grouped = finalPublicResults.reduce((acc: any, curr: any) => {
     const cat = curr.category || 'Categoría pendiente';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(curr);
@@ -427,7 +500,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
             <div className="flex justify-center items-center h-40">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#C64928]"></div>
             </div>
-          ) : computedResults.length === 0 ? (
+          ) : finalPublicResults.length === 0 ? (
             <div className="text-center py-20 flex flex-col items-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-200 mb-4">
                 <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
