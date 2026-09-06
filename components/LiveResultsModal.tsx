@@ -77,17 +77,22 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            let lastY = -1;
-            let pageText = '';
+            
+            const rows: Record<number, any[]> = {};
             for (const item of textContent.items) {
-              if (lastY !== -1 && Math.abs(lastY - item.transform[5]) > 2) {
-                pageText += '\n';
-              } else if (lastY !== -1) {
-                pageText += ' ';
-              }
-              pageText += item.str;
-              lastY = item.transform[5];
+              const y = Math.round(item.transform[5]); 
+              if (!rows[y]) rows[y] = [];
+              rows[y].push(item);
             }
+            
+            const sortedY = Object.keys(rows).map(Number).sort((a, b) => b - a);
+            
+            let pageText = '';
+            for (const y of sortedY) {
+              const rowItems = rows[y].sort((a, b) => a.transform[4] - b.transform[4]);
+              pageText += rowItems.map(item => item.str).join(' ') + '\n';
+            }
+            
             fileText += pageText + '\n';
           }
         } else {
