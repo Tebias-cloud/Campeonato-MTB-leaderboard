@@ -105,7 +105,30 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
       }
 
       // ── Acumular objetos parseados estructurados, nunca texto ────────────
-      setAccumulatedRawRiders(prev => [...prev, ...fileRiders]);
+      setAccumulatedRawRiders(prev => {
+        const merged = [...prev];
+        
+        for (const newRider of fileRiders) {
+          const normCat = normalizeCategory(newRider.category || "DESCONOCIDA");
+          
+          let existingIndex = -1;
+          
+          if (newRider.dorsal) {
+            existingIndex = merged.findIndex(r => r.dorsal === newRider.dorsal && normalizeCategory(r.category || "DESCONOCIDA") === normCat);
+          } else if (newRider.riderName) {
+            const normNameNew = normalize(newRider.riderName);
+            existingIndex = merged.findIndex(r => !r.dorsal && normalize(r.riderName || "") === normNameNew && normalizeCategory(r.category || "DESCONOCIDA") === normCat);
+          }
+          
+          if (existingIndex !== -1) {
+            merged[existingIndex] = newRider;
+          } else {
+            merged.push(newRider);
+          }
+        }
+        
+        return merged;
+      });
       setLoading(false);
       e.target.value = '';
     } catch (error: any) {
