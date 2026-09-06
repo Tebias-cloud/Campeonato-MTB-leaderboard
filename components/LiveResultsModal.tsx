@@ -145,12 +145,20 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   const computedResults = useMemo(() => {
     if (accumulatedRawRiders.length === 0) return [];
 
-    const valid = accumulatedRawRiders.filter(r => !r.isDQ);
+    const rawMatches = matchAndDeduplicateResults(
+      accumulatedRawRiders,
+      eventRiders,
+      allRiders,
+      [], 
+      eventId,
+      "",
+      {} 
+    );
+
+    const valid = rawMatches.filter(r => !r.isDQ && !r.status.startsWith("❌"));
 
     valid.sort((a, b) => {
-      const catA = normalizeCategory(a.category || "DESCONOCIDA");
-      const catB = normalizeCategory(b.category || "DESCONOCIDA");
-      if (catA !== catB) return catA.localeCompare(catB);
+      if (a.category !== b.category) return a.category.localeCompare(b.category);
       return timeToSeconds(a.time || "") - timeToSeconds(b.time || "");
     });
 
@@ -158,22 +166,21 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     const finalMatches: any[] = [];
 
     for (const item of valid) {
-      const cat = normalizeCategory(item.category || "DESCONOCIDA");
-      if (!posCounters[cat]) posCounters[cat] = 1;
-      const pos = posCounters[cat]++;
+      if (!posCounters[item.category]) posCounters[item.category] = 1;
+      const pos = posCounters[item.category]++;
       
       finalMatches.push({
         id: Math.random().toString(36).substring(7),
-        category: cat,
+        category: item.category,
         visualPosition: pos,
-        nameInText: item.riderName,
-        clubInText: item.club,
+        nameInText: item.nameInText,
+        clubInText: item.clubAtEvent || item.clubInText,
         time: item.time
       });
     }
 
     return finalMatches;
-  }, [accumulatedRawRiders]);
+  }, [accumulatedRawRiders, eventRiders, allRiders, eventId]);
 
   if (!isOpen) return null;
 
