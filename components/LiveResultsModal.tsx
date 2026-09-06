@@ -6,6 +6,7 @@ import { updateLiveResults } from '@/actions/liveResults';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { parseResultsText } from '@/lib/results-parser';
 import { isNameCompatible } from '@/lib/utils';
+import { timeToSeconds } from '@/lib/importer-core';
 
 interface LiveResultsModalProps {
   eventId: string;
@@ -63,50 +64,51 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   }, [isOpen, eventId, fetchData]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setLoading(true);
     try {
       let fullText = '';
 
-      if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
-        // ── Ruta PDF (sin cambios) ────────────────────────────────────────────
-        await new Promise<void>((resolve, reject) => {
-          if ((window as any).pdfjsLib) return resolve();
-          const script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('No se pudo cargar el motor PDF.'));
-          document.body.appendChild(script);
-        });
-        const pdfjsLib = (window as any)['pdfjsLib'];
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
-        }
-      } else {
-        // ── Ruta Excel/CSV ────────────────────────────────────────────────────
-        const XLSX = await import('xlsx');
-        const arrayBuffer = await file.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const firstSheet = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheet];
-        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'hh:mm:ss' }) as any[][];
+      for (const file of files) {
+        if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+          await new Promise<void>((resolve, reject) => {
+            if ((window as any).pdfjsLib) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('No se pudo cargar el motor PDF.'));
+            document.body.appendChild(script);
+          });
+          const pdfjsLib = (window as any)['pdfjsLib'];
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const arrayBuffer = await file.arrayBuffer();
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          const pdf = await loadingTask.promise;
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+          }
+        } else {
+          const XLSX = await import('xlsx');
+          const arrayBuffer = await file.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheet];
+          const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'hh:mm:ss' }) as any[][];
 
-        const { text, warnings } = parseExcelRows(json, { fallbackCategory: 'DESCONOCIDA' });
-        if (warnings.length > 0) console.warn('[Live Excel Import]', warnings);
-        if (!text.trim()) {
-          alert('No se encontraron datos válidos en el archivo.');
-          setLoading(false);
-          return;
+          const { text, warnings } = parseExcelRows(json, { fallbackCategory: 'DESCONOCIDA' });
+          if (warnings.length > 0) console.warn('[Live Excel Import]', warnings);
+          fullText += text + '\n';
         }
-        fullText = text;
+      }
+
+      if (!fullText.trim()) {
+        alert('No se encontraron datos válidos en los archivos.');
+        setLoading(false);
+        return;
       }
 
       // ── Procesar el texto con parseResultsText centralizado ────────────
@@ -197,7 +199,16 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
   // Ordenar dentro de cada categoría
   Object.keys(grouped).forEach(cat => {
-    grouped[cat].sort((a: any, b: any) => a.position - b.position);
+    grouped[cat].sort((a: any, b: any) => timeToSeconds(a.race_time) - timeToSeconds(b.race_time));
+    // Asignar posición visual
+    let pos = 1;
+    grouped[cat].forEach((r: any) => {
+      if (r.race_time !== 'DQ') {
+        r.visualPosition = pos++;
+      } else {
+        r.visualPosition = 'DQ';
+      }
+    });
   });
 
   return (
@@ -222,6 +233,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
               <div className="flex gap-2">
                 <input
                   type="file"
+                  multiple
                   accept=".pdf, .xls, .xlsx, .csv"
                   id="pdf-live-upload"
                   className="hidden"
@@ -283,7 +295,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                         {grouped[cat].map((r: any, i: number) => (
                           <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                             <td className="p-2 sm:p-3 text-center font-bold text-slate-600 text-[11px] sm:text-sm">
-                              {r.position === 999 ? 'DQ' : `${r.position}º`}
+                              {r.visualPosition === 'DQ' ? 'DQ' : `${r.visualPosition}º`}
                             </td>
                             <td className="p-2 sm:p-3">
                               <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">

@@ -11,6 +11,7 @@ import { normalizeCategory, isNameCompatible, normalizeForMatch } from '@/lib/ut
 import { OFFICIAL_CATEGORIES, CATEGORY_GROUPS } from '@/lib/categories';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { quickCreateRider } from '@/actions/riders';
+import { matchAndDeduplicateResults, timeToSeconds, calculatePoints } from '@/lib/importer-core';
 
 // --- UTILITIES ---
 const formatRut = (rut: string | null | undefined) => {
@@ -177,14 +178,6 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     } else setPoints('');
   };
 
-  const calculatePoints = (pos: number, isDQ: boolean = false) => {
-    if (isDQ || pos === 999) return 0;
-    if (pos === 1) return 100;
-    if (pos <= 10) return 110 - (pos * 10);
-    if (pos < 20) return 20 - pos;
-    return 1;
-  };
-
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toUpperCase();
     if (val === 'DQ') {
@@ -255,12 +248,13 @@ export default function ResultManager({ events, riders, existingResults, eventRi
         const textContent = await page.getTextContent();
         fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
       }
-      setImportText(prev => prev ? prev + '\n' + fullText : fullText);
-    } catch (error: any) { alert(`Error: ${error.message}`); } finally { setLoading(false); }
+      return fullText;
+    } catch (error: any) { 
+      throw error;
+    }
   }
 
   const processExcelFile = async (file: File) => {
-    setLoading(true);
     try {
       const XLSX = await import('xlsx');
       const arrayBuffer = await file.arrayBuffer();
@@ -269,146 +263,63 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       const worksheet = workbook.Sheets[firstSheet];
       const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'hh:mm:ss' }) as any[][];
 
-      const { text, warnings } = parseExcelRows(json, { fallbackCategory: selectedCategory });
+      const { text, warnings } = parseExcelRows(json, { fallbackCategory: "DESCONOCIDA" });
 
       if (warnings.length > 0) {
         console.warn('[Excel Import] Advertencias:', warnings);
       }
 
-      if (!text.trim()) {
-        alert('No se encontraron datos válidos en el archivo. Revisa el formato de las columnas.');
-        return;
-      }
-
-      setImportText(prev => prev ? prev + '\n' + text : text);
-    } catch (error: any) { alert(`Error al leer Excel: ${error.message}`); } finally { setLoading(false); }
+      return text;
+    } catch (error: any) { 
+      throw error; 
+    }
   };
 
   const detectedResults = useMemo(() => {
     if (!importText || !importText.trim()) return [];
 
     const parsedRidersRaw = parseResultsText(importText, "DESCONOCIDA");
-    
-    // Deduplicación estructurada por dorsal + evento
-    const dorsalMap = new Map();
-    const uniqueRiders = [];
+    const rawMatches = matchAndDeduplicateResults(
+      parsedRidersRaw,
+      eventRiders,
+      riders,
+      existingResults,
+      selectedEventId,
+      selectedCategory,
+      manualLinks
+    );
 
-    for (const item of parsedRidersRaw) {
-      if (!item.dorsal) {
-        uniqueRiders.push(item);
-        continue;
-      }
-      const existing = dorsalMap.get(item.dorsal);
-      if (!existing) {
-        dorsalMap.set(item.dorsal, item);
-        uniqueRiders.push(item);
-      } else {
-        const sameName = existing.riderName === item.riderName;
-        const sameTime = existing.time === item.time;
-        const sameCat = existing.category === item.category;
-        
-        if (sameName && sameTime && sameCat) {
-          // Duplicado exacto, ignorar
-          continue;
-        } else {
-          // Conflicto
-          (item as any).isConflict = true;
-          (existing as any).isConflict = true;
-          uniqueRiders.push(item);
-        }
-      }
+    // Separar los listos/DQs de los conflictos para no afectar la posición de los reales
+    const valid = rawMatches.filter(r => !r.isDQ && !r.status.startsWith("⚠️") && !r.status.startsWith("❌"));
+    const others = rawMatches.filter(r => r.isDQ || r.status.startsWith("⚠️") || r.status.startsWith("❌"));
+
+    // Ordenar y asignar posición visual
+    valid.sort((a, b) => {
+      if (a.category !== b.category) return a.category.localeCompare(b.category);
+      return timeToSeconds(a.time) - timeToSeconds(b.time);
+    });
+
+    const posCounters: Record<string, number> = {};
+    const finalMatches: any[] = [...others];
+
+    for (const item of valid) {
+      if (!posCounters[item.category]) posCounters[item.category] = 1;
+      const pos = posCounters[item.category]++;
+      finalMatches.push({
+        ...item,
+        puesto: pos.toString(),
+        calculatedPoints: calculatePoints(pos, false)
+      });
     }
 
-    return uniqueRiders.map(item => {
-      const puesto = item.position;
-      const dorsal = item.dorsal.toString();
-      const rawName = item.originalText.toUpperCase();
-      const time = item.time;
-      const isDQ = item.isDQ;
-      const isConflict = (item as any).isConflict;
-      const nameInText = item.riderName;
-
-      // Identificación por Dorsal en este Evento
-      const entryByDorsal = eventRiders.find(er =>
-        er.event_id === selectedEventId &&
-        er.dorsal?.toString() === dorsal.toString()
-      );
-
-      const rowKey = `${dorsal}-${nameInText}-${time}`;
-      const manualRiderId = manualLinks[rowKey];
-      const manualRider = manualRiderId ? riders.find(r => r.id === manualRiderId) : null;
-
-      const riderByName = !entryByDorsal && !manualRider ? riders.find(r => isNameCompatible(r.full_name, nameInText)) : null;
-      const identifiedRiderId = manualRiderId || entryByDorsal?.rider_id || riderByName?.id || null;
-      const identifiedName = manualRider?.full_name || getRiderName(entryByDorsal) || riderByName?.full_name || null;
-      const riderProfile = riders.find(r => r.id === identifiedRiderId);
-
-      // CATEGORÍA ASIGNADA:
-      // 1. Categoría detectada en el PDF/Excel para este corredor específico
-      // 2. Categoría de inscripción en el evento
-      // 3. Categoría de perfil
-      // 4. Categoría del selector
-      let finalCategory = item.category !== "DESCONOCIDA" ? item.category :
-        (entryByDorsal?.category_at_event || riderProfile?.category || selectedCategory || "DESCONOCIDA");
-
-      // NORMALIZACIÓN AGRESIVA: Si dice Pre Master en cualquier lado, unificar a MIXTO
-      if (finalCategory.toUpperCase().includes("PRE MASTER") || finalCategory.toUpperCase().includes("PREMASTER")) {
-        finalCategory = "PRE MASTER MIXTO";
-      }
-
-      let status = "✅ LISTO";
-      let canAutoLink = false;
-
-      if (manualRiderId) {
-        status = "🔧 CORREGIDO";
-        canAutoLink = true;
-      } else if (entryByDorsal) {
-        const pdfName = nameInText;
-        const dbNameRaw = getRiderName(entryByDorsal);
-        const compatible = isNameCompatible(pdfName, dbNameRaw);
-        
-        console.log(`[MATCH] PDF: "${pdfName}" | DB: "${dbNameRaw}" | compatible: ${compatible}`);
-
-        if (!compatible) {
-          status = "⚠️ DORSAL SOSPECHOSO";
-          console.log(`[WARNING] DORSAL SOSPECHOSO: ${nameInText} vs ${dbNameRaw}`);
-        }
-      } else if (riderByName) {
-        status = "✅ LISTO";
-        canAutoLink = true;
-      } else {
-        status = "❌ NO ENCONTRADO";
-      }
-      if (isDQ) status = "ℹ️ INFORMATIVO";
-      if (isConflict) status = "⚠️ CONFLICTO MULTIARCHIVO";
-
-      const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
-      let changeType = "NUEVO";
-      let updateDetail = "";
-
-      const normalizeTime = (t: string | null | undefined) => {
-        if (!t) return '';
-        let clean = t.trim().toUpperCase();
-        if (clean.startsWith('0') && clean.includes(':')) clean = clean.substring(1);
-        return clean;
-      };
-
-      if (alreadySaved) {
-        const timeMatches = normalizeTime(alreadySaved.race_time) === normalizeTime(time);
-        changeType = timeMatches ? "SIN CAMBIOS" : "SOBREESCRIBIR";
-        if (changeType === "SOBREESCRIBIR") {
-          updateDetail = `T: ${alreadySaved.race_time} → ${time}`;
-        }
-      } else if (isDQ) {
-        changeType = "IGNORAR";
-      }
-
-      return {
-        rowKey, dorsal, puesto: puesto || '-', nameInText: rawName, identifiedName,
-        category: finalCategory, time, isDQ, riderId: identifiedRiderId,
-        exists: !!entryByDorsal, canAutoLink, status, changeType, updateDetail
-      };
+    // Devolver ordenados para la tabla: válidos primero (por categoría y pos), luego others
+    return finalMatches.sort((a, b) => {
+      if (a.category !== b.category) return a.category.localeCompare(b.category);
+      const posA = a.puesto === '-' ? 9999 : parseInt(a.puesto);
+      const posB = b.puesto === '-' ? 9999 : parseInt(b.puesto);
+      return posA - posB;
     });
+
   }, [importText, selectedEventId, eventRiders, riders, existingResults, manualLinks, selectedCategory]);
 
   // Identificar quiénes están inscritos pero no aparecen en el PDF
@@ -443,14 +354,6 @@ export default function ResultManager({ events, riders, existingResults, eventRi
   }, [importText]);
   const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && !r.status.startsWith("⚠️")).length;
 
-  const timeToSeconds = (timeStr: string) => {
-    if (timeStr.toUpperCase() === 'DQ') return 999999;
-    const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return parts[0] || 999999;
-  };
-
   const handleSaveResults = async () => {
     if (readyToSaveCount === 0) return;
     setLoading(true);
@@ -476,16 +379,14 @@ export default function ResultManager({ events, riders, existingResults, eventRi
       const dorsalsToAssign = [];
       const posCounters: Record<string, number> = {};
 
-      for (const item of toSave) {
-        if (!posCounters[item.category]) posCounters[item.category] = 1;
-        
-        let finalPos = typeof item.puesto === 'number' && item.puesto > 0 ? item.puesto : posCounters[item.category];
-        
-        if (finalPos >= posCounters[item.category]) {
-            posCounters[item.category] = finalPos + 1;
-        } else {
-            posCounters[item.category]++;
-        }
+      // Ordenar globalmente por categoría y luego por tiempo real para asegurar cálculos precisos multiarchivo
+      const sortedToSave = [...toSave].sort((a, b) => {
+        if (a.category !== b.category) return a.category.localeCompare(b.category);
+        return timeToSeconds(a.time) - timeToSeconds(b.time);
+      });
+
+      for (const item of sortedToSave) {
+        let finalPos = parseInt(item.puesto);
 
         if (item.canAutoLink) {
           dorsalsToAssign.push({
@@ -625,10 +526,30 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                     </div>
                     {!loading && <span className="bg-[#C64928] text-white px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg">Seleccionar archivo</span>}
                   </label>
-                  <input type="file" accept=".pdf, .xls, .xlsx, .csv" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') { processPdfFile(file); } else { processExcelFile(file); }
+                  <input type="file" multiple accept=".pdf, .xls, .xlsx, .csv" onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    setLoading(true);
+                    let allText = "";
+                    try {
+                      for (const file of files) {
+                        if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') { 
+                          allText += (await processPdfFile(file)) + "\n";
+                        } else { 
+                          allText += (await processExcelFile(file)) + "\n";
+                        }
+                      }
+                      if (!allText.trim()) {
+                        alert('No se encontraron datos válidos en los archivos.');
+                      } else {
+                        setImportText(prev => prev ? prev + '\n' + allText : allText);
+                      }
+                    } catch(err: any) {
+                      alert(`Error procesando archivos: ${err.message}`);
+                    } finally {
+                      setLoading(false);
+                      e.target.value = '';
+                    }
                   }} className="hidden" id="pdf-input" disabled={loading} />
                 </div>
               ) : (
