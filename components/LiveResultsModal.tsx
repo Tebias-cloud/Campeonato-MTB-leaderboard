@@ -168,12 +168,18 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     for (const item of valid) {
       if (!posCounters[item.category]) posCounters[item.category] = 1;
       const pos = posCounters[item.category]++;
+
+      // Buscar el objeto crudo original para rescatar el riderName limpio y el dorsal
+      const rawObj = accumulatedRawRiders.find(r => r.originalText.toUpperCase() === item.nameInText);
+      const cleanName = rawObj?.riderName || item.nameInText;
+      const cleanDorsal = rawObj?.dorsal || item.dorsal || '';
       
       finalMatches.push({
         id: Math.random().toString(36).substring(7),
         category: item.category,
         visualPosition: pos,
-        nameInText: item.nameInText,
+        nameInText: cleanName,
+        dorsal: cleanDorsal,
         clubInText: item.clubAtEvent || item.clubInText,
         time: item.time
       });
@@ -268,6 +274,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                       <thead className="bg-white text-[9px] sm:text-[10px] font-black uppercase text-slate-400 border-b">
                         <tr>
                           <th className="p-2 sm:p-3 text-center w-10 sm:w-16">Pos</th>
+                          <th className="p-2 sm:p-3 text-center w-10 sm:w-16">Dorsal</th>
                           <th className="p-2 sm:p-3">Corredor</th>
                           <th className="p-2 sm:p-3 text-center w-20 sm:w-24">Tiempo</th>
                         </tr>
@@ -278,9 +285,12 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                             <td className="p-2 sm:p-3 text-center font-bold text-slate-600 text-[11px] sm:text-sm">
                               {r.visualPosition === 'DQ' ? 'DQ' : `${r.visualPosition}º`}
                             </td>
+                            <td className="p-2 sm:p-3 text-center">
+                              <span className="font-black text-slate-400 text-[11px] sm:text-sm">#{r.dorsal || '-'}</span>
+                            </td>
                             <td className="p-2 sm:p-3">
                               <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">
-                                {r.identifiedName || r.nameInText || 'No identificado'}
+                                {r.nameInText || 'No identificado'}
                               </p>
                               {(r.clubAtEvent || r.clubInText) && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">{r.clubAtEvent || r.clubInText}</p>}
                             </td>
