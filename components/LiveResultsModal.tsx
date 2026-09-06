@@ -158,23 +158,58 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     setAccumulatedRawRiders([]);
   };
 
+  const [hasInferredCategories, setHasInferredCategories] = useState(false);
+
   const computedResults = useMemo(() => {
-    if (accumulatedRawRiders.length === 0) return [];
+    if (accumulatedRawRiders.length === 0) {
+      setHasInferredCategories(false);
+      return [];
+    }
 
     const valid = accumulatedRawRiders.filter(r => !r.isDQ);
+    let didInfer = false;
 
-    valid.sort((a, b) => {
-      const catA = normalizeCategory(a.category || "DESCONOCIDA");
-      const catB = normalizeCategory(b.category || "DESCONOCIDA");
-      if (catA !== catB) return catA.localeCompare(catB);
+    // Primer paso: Normalizar e intentar inferir Desconocidas
+    const enhancedValid = valid.map(item => {
+      let cat = normalizeCategory(item.category || "DESCONOCIDA");
+      
+      if (cat === "Desconocida" && item.dorsal) {
+        // Buscar dorsal en eventRiders (NUNCA buscar solo por nombre o sin dorsal)
+        const match = eventRiders.find(er => er.dorsal === item.dorsal);
+        if (match && match.riders) {
+          // Exigir coincidencia de nombre para evitar falsos positivos
+          const fileRiderName = normalize(item.riderName);
+          const dbRiderName = normalize(match.riders.full_name);
+          
+          // Match seguro: si ambos nombres comparten al menos un apellido/nombre significativo
+          const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
+          const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
+          
+          const hasCommonPart = fileParts.some(fp => dbParts.includes(fp));
+          
+          if (hasCommonPart) {
+            cat = normalizeCategory(match.riders.category);
+            didInfer = true;
+          }
+        }
+      }
+      
+      return { ...item, finalCategory: cat };
+    });
+
+    setHasInferredCategories(didInfer);
+
+    // Ordenar y asignar posiciones visuales
+    enhancedValid.sort((a, b) => {
+      if (a.finalCategory !== b.finalCategory) return a.finalCategory.localeCompare(b.finalCategory);
       return timeToSeconds(a.time || "") - timeToSeconds(b.time || "");
     });
 
     const posCounters: Record<string, number> = {};
     const finalMatches: any[] = [];
 
-    for (const item of valid) {
-      const cat = normalizeCategory(item.category || "DESCONOCIDA");
+    for (const item of enhancedValid) {
+      const cat = item.finalCategory;
       if (!posCounters[cat]) posCounters[cat] = 1;
       const pos = posCounters[cat]++;
       
@@ -190,7 +225,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     }
 
     return finalMatches;
-  }, [accumulatedRawRiders]);
+  }, [accumulatedRawRiders, eventRiders]);
 
   if (!isOpen) return null;
 
@@ -268,6 +303,11 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
             </div>
           ) : (
             <div className="space-y-8">
+              {hasInferredCategories && (
+                <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] sm:text-xs font-semibold text-center border border-blue-100">
+                  Algunas categorías fueron completadas usando los inscritos de esta fecha.
+                </div>
+              )}
               {Object.keys(grouped).sort().map(cat => (
                 <div key={cat} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-slate-100 px-4 py-3 border-b border-slate-200">
