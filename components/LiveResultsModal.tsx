@@ -28,27 +28,58 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   const [accumulatedRawRiders, setAccumulatedRawRiders] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
-    if (!isAdmin) return;
     setLoading(true);
     try {
       const responses = await Promise.all([
         supabase.from('riders').select('id, full_name, club, category, rut'),
-        supabase.from('event_riders').select('*, riders(full_name, category)')
+        supabase.from('event_riders').select('*, riders(full_name, category)'),
+        !isAdmin ? supabase.from('events').select('live_results_json').eq('id', eventId).maybeSingle() : Promise.resolve(null)
       ]);
 
       if (responses[0]?.data) setAllRiders(responses[0].data);
       if (responses[1]?.data) setAllEventRiders(responses[1].data);
+      
+      if (!isAdmin) {
+        if (responses[2]?.data?.live_results_json) {
+          setAccumulatedRawRiders(responses[2].data.live_results_json);
+        } else {
+          setAccumulatedRawRiders([]);
+        }
+      }
     } catch (error) {
       console.error("Error fetching live results dependencies:", error);
     } finally {
       setLoading(false);
     }
-  }, [isAdmin]);
+  }, [isAdmin, eventId]);
 
   useEffect(() => {
     if (!isOpen || !eventId) return;
+    
     fetchData();
-  }, [isOpen, eventId, fetchData]);
+
+    if (!isAdmin) {
+      const channel = supabase
+        .channel(`live-results-${eventId}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${eventId}` },
+          (payload) => {
+            const newData = payload.new.live_results_json;
+            if (newData) {
+              setAccumulatedRawRiders(newData);
+            } else {
+              setAccumulatedRawRiders([]);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isOpen, eventId, fetchData, isAdmin]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
