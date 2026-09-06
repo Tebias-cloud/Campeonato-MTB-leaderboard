@@ -25,7 +25,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   const [allRiders, setAllRiders] = useState<any[]>([]);
   const [eventRiders, setEventRiders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [accumulatedText, setAccumulatedText] = useState<string>('');
+  const [accumulatedRawRiders, setAccumulatedRawRiders] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
     if (!isAdmin) return;
@@ -56,9 +56,10 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
     setLoading(true);
     try {
-      let fullText = '';
+      let fileRiders: any[] = [];
 
       for (const file of files) {
+        let fileText = '';
         if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
           await new Promise<void>((resolve, reject) => {
             if ((window as any).pdfjsLib) return resolve();
@@ -76,7 +77,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+            fileText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
           }
         } else {
           const XLSX = await import('xlsx');
@@ -88,18 +89,23 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
           const { text, warnings } = parseExcelRows(json, { fallbackCategory: 'DESCONOCIDA' });
           if (warnings.length > 0) console.warn('[Live Excel Import]', warnings);
-          fullText += text + '\n';
+          fileText = text;
+        }
+
+        if (fileText.trim()) {
+          const parsed = parseResultsText(fileText, 'DESCONOCIDA');
+          fileRiders = [...fileRiders, ...parsed];
         }
       }
 
-      if (!fullText.trim()) {
+      if (fileRiders.length === 0) {
         alert('No se encontraron datos válidos en los archivos.');
         setLoading(false);
         return;
       }
 
-      // ── Acumular texto para procesarlo todo junto ────────────
-      setAccumulatedText(prev => prev ? prev + '\n' + fullText : fullText);
+      // ── Acumular objetos parseados estructurados, nunca texto ────────────
+      setAccumulatedRawRiders(prev => [...prev, ...fileRiders]);
       setLoading(false);
       e.target.value = '';
     } catch (error: any) {
@@ -110,15 +116,14 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
   const handleClearLiveResults = () => {
     if (!confirm("¿Seguro que quieres borrar todos los resultados temporales?")) return;
-    setAccumulatedText('');
+    setAccumulatedRawRiders([]);
   };
 
   const computedResults = useMemo(() => {
-    if (!accumulatedText.trim()) return [];
+    if (accumulatedRawRiders.length === 0) return [];
 
-    const parsedRidersRaw = parseResultsText(accumulatedText, "DESCONOCIDA");
     const rawMatches = matchAndDeduplicateResults(
-      parsedRidersRaw,
+      accumulatedRawRiders,
       eventRiders,
       allRiders,
       [], 
@@ -147,7 +152,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     }
 
     return finalMatches;
-  }, [accumulatedText, eventRiders, allRiders, eventId]);
+  }, [accumulatedRawRiders, eventRiders, allRiders, eventId]);
 
   if (!isOpen) return null;
 
