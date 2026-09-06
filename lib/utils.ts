@@ -5,32 +5,46 @@ import { OFFICIAL_CATEGORIES } from './categories';
  * Ejemplo: "Novicios Open (Recién empezando)" -> "Novicios Open"
  */
 export const normalizeCategory = (cat: string | null | undefined): string => {
-  if (!cat) return 'Sin Categoría';
+  if (!cat) return 'Desconocida';
   
-  const clean = cat.split('(')[0].trim();
-  const upper = clean.toUpperCase();
+  // Limpieza inicial: quitar paréntesis, quitar acentos y pasar a mayúsculas
+  let upper = cat.toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // quita tildes
+    .replace(/\(.*?\)/g, '') // quita rangos de edad en paréntesis ej. (30 A 39 AÑOS)
+    .replace(/-/g, ' ')      // E-BIKE -> E BIKE
+    .trim()
+    .replace(/\s+/g, ' ');   // espacios dobles a simples
 
-  // 1. Si coincide exactamente (case-insensitive) con una oficial, usar esa.
-  const official = OFFICIAL_CATEGORIES.find(c => c.label.toUpperCase() === upper);
+  // Si coincide exactamente con el label (ignorando mayúsculas/tildes)
+  const official = OFFICIAL_CATEGORIES.find(
+    c => c.label.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") === upper
+  );
   if (official) return official.label;
 
-  // 2. Mapeos de compatibilidad con nombres viejos o variaciones
-  if (upper.includes('NOVICIOS OPEN') || upper.includes('NOVICIOS VARONES')) return 'Novicios Varones';
-  if (upper.includes('NOVICIAS OPEN') || upper.includes('NOVICIAS DAMAS')) return 'Novicias Damas';
-  if (upper.includes('PRE MASTER') || upper.includes('PREMASTER')) return 'Pre Master Mixto';
-  if (upper.includes('ENDURO')) return 'Enduro Mixto';
-  if (upper.includes('E-BIKE') || upper.includes('EBIKE')) return 'EBike Mixto';
+  // Mapeos robustos tolerantes a prefijos y sufijos comunes
   
-  // 3. Fallbacks para Master (por si vienen con espacios raros o sin la palabra Damas al principio)
-  if (upper.includes('MASTER A')) return upper.includes('DAMAS') ? 'Damas Master A' : 'Master A';
-  if (upper.includes('MASTER B')) return upper.includes('DAMAS') ? 'Damas Master B' : 'Master B';
-  if (upper.includes('MASTER C')) return upper.includes('DAMAS') ? 'Damas Master C' : 'Master C';
-  if (upper.includes('MASTER D')) return upper.includes('DAMAS') ? 'Damas Master D' : 'Master D'; // Master D damas no existe, pero por si acaso.
+  // 1. NOVICIOS / NOVICIAS
+  if (upper.includes('NOVICIA')) return 'Novicias Damas'; // cubre NOVICIAS OPEN, NOVICIAS DAMAS
+  if (upper.includes('NOVICIO')) return 'Novicios Varones'; // cubre NOVICIOS OPEN, NOVICIOS VARONES, NOVICIOS
+
+  // 2. MIXTOS (EBIKE, PRE MASTER, ENDURO)
+  if (upper.includes('EBIKE') || upper.includes('E BIKE')) return 'EBike Mixto';
+  if (upper.includes('PREMASTER') || upper.includes('PRE MASTER')) return 'Pre Master Mixto';
+  if (upper.includes('ENDURO')) return 'Enduro Mixto';
+
+  // 3. MASTER (Validar si incluye DAMAS explícitamente)
+  const isDamas = upper.includes('DAMA');
+  
+  if (upper.includes('MASTER A')) return isDamas ? 'Damas Master A' : 'Master A';
+  if (upper.includes('MASTER B')) return isDamas ? 'Damas Master B' : 'Master B';
+  if (upper.includes('MASTER C')) return isDamas ? 'Damas Master C' : 'Master C';
+  if (upper.includes('MASTER D')) return 'Master D'; // Master D no tiene versión damas en la lista oficial
+
+  // 4. ELITE
   if (upper.includes('ELITE')) return 'Elite';
 
-  // Si no se encuentra en las reglas anteriores, intentar capitalizar el string recibido.
-  // Así evitamos tener "PRE MASTER MIXTO" suelto si llegara a pasar.
-  return clean.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+  // Si nada de lo anterior matchea, no inventamos variantes.
+  return 'Desconocida';
 };
 
 /**
