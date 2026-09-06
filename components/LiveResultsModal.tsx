@@ -145,20 +145,12 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
   const computedResults = useMemo(() => {
     if (accumulatedRawRiders.length === 0) return [];
 
-    const rawMatches = matchAndDeduplicateResults(
-      accumulatedRawRiders,
-      eventRiders,
-      allRiders,
-      [], 
-      eventId,
-      "",
-      {} 
-    );
-
-    const valid = rawMatches.filter(r => !r.isDQ && !r.status.startsWith("❌"));
+    const valid = accumulatedRawRiders.filter(r => !r.isDQ);
 
     valid.sort((a, b) => {
-      if (a.category !== b.category) return a.category.localeCompare(b.category);
+      const catA = normalizeCategory(a.category || "DESCONOCIDA");
+      const catB = normalizeCategory(b.category || "DESCONOCIDA");
+      if (catA !== catB) return catA.localeCompare(catB);
       return timeToSeconds(a.time || "") - timeToSeconds(b.time || "");
     });
 
@@ -166,27 +158,23 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     const finalMatches: any[] = [];
 
     for (const item of valid) {
-      if (!posCounters[item.category]) posCounters[item.category] = 1;
-      const pos = posCounters[item.category]++;
-
-      // Buscar el objeto crudo original para rescatar el riderName limpio y el dorsal
-      const rawObj = accumulatedRawRiders.find(r => r.originalText.toUpperCase() === item.nameInText);
-      const cleanName = rawObj?.riderName || item.nameInText;
-      const cleanDorsal = rawObj?.dorsal || item.dorsal || '';
+      const cat = normalizeCategory(item.category || "DESCONOCIDA");
+      if (!posCounters[cat]) posCounters[cat] = 1;
+      const pos = posCounters[cat]++;
       
       finalMatches.push({
         id: Math.random().toString(36).substring(7),
-        category: item.category,
+        category: cat,
         visualPosition: pos,
-        nameInText: cleanName,
-        dorsal: cleanDorsal,
-        clubInText: item.clubAtEvent || item.clubInText,
+        nameInText: item.riderName,
+        dorsal: item.dorsal || '',
+        clubInText: item.club || '',
         time: item.time
       });
     }
 
     return finalMatches;
-  }, [accumulatedRawRiders, eventRiders, allRiders, eventId]);
+  }, [accumulatedRawRiders]);
 
   if (!isOpen) return null;
 
