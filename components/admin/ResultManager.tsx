@@ -352,10 +352,11 @@ export default function ResultManager({ events, riders, existingResults, eventRi
     });
     return ignored;
   }, [importText]);
-  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && !r.isDQ && !r.status.startsWith("⚠️")).length;
+  const pendingCount = detectedResults.filter(r => (!r.riderId || r.status.startsWith("⚠️") || r.status.startsWith("❌")) && !r.isDQ).length;
+  const readyToSaveCount = detectedResults.filter(r => (r.exists || r.canAutoLink) && r.riderId && !r.isDQ && !r.status.startsWith("⚠️")).length;
 
   const handleSaveResults = async () => {
-    if (readyToSaveCount === 0) return;
+    if (readyToSaveCount === 0 || pendingCount > 0) return;
     setLoading(true);
     try {
       const allDetected = importText ? detectedResults : [];
@@ -564,9 +565,9 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { label: 'En archivo', value: detectedResults.length, color: 'bg-white/5 border-white/10', text: 'text-white' },
+                        { label: 'Resultados detectados', value: detectedResults.length, color: 'bg-white/5 border-white/10', text: 'text-white' },
                         { label: '✓ Listos', value: readyToSaveCount, color: 'bg-emerald-500/15 border-emerald-500/30', text: 'text-emerald-400' },
-                        { label: 'Sin vincular', value: detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length), color: detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length) > 0 ? 'bg-red-500/15 border-red-500/30' : 'bg-white/5 border-white/10', text: detectedResults.length - (readyToSaveCount + detectedResults.filter(r => r.isDQ).length) > 0 ? 'text-red-400' : 'text-white' },
+                        { label: 'Requieren revisión', value: pendingCount, color: pendingCount > 0 ? 'bg-red-500/15 border-red-500/30' : 'bg-white/5 border-white/10', text: pendingCount > 0 ? 'text-red-400' : 'text-white' },
                         { label: 'Inscritos web', value: eventRiders.filter(er => er.event_id === selectedEventId).length, color: 'bg-white/5 border-white/10', text: 'text-slate-300' },
                       ].map(stat => (
                         <div key={stat.label} className={`${stat.color} border rounded-xl p-3`}>
@@ -578,25 +579,25 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                   </div>
 
                   {/* ── SECCIÓN PRIORITARIA: SIN VINCULAR ── */}
-                  {detectedResults.filter(r => (!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ).length > 0 && (
+                  {pendingCount > 0 && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🔴</span>
                         <div>
-                          <p className="font-black text-red-700 text-sm uppercase tracking-tight">Requieren atención</p>
-                          <p className="text-red-500 text-xs">Estos corredores están en el archivo pero no se encontraron en el sistema. Vincúlalos o créalos.</p>
+                          <p className="font-black text-red-700 text-sm uppercase tracking-tight">Revisar corredores</p>
+                          <p className="text-red-500 text-xs">Estos corredores están en el archivo pero no se encontraron en el sistema de manera segura. Vincúlalos o créalos.</p>
                         </div>
                       </div>
 
-                      {detectedResults.filter(r => (!r.riderId || r.status === "⚠️ DORSAL SOSPECHOSO") && !r.isDQ).map((r) => (
+                      {detectedResults.filter(r => (!r.riderId || r.status.startsWith("⚠️") || r.status.startsWith("❌")) && !r.isDQ).map((r) => (
                         <div key={r.rowKey} className="bg-white rounded-xl border border-red-100 p-3 space-y-3">
                           {/* Cabecera de la fila */}
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className="font-black text-slate-800 uppercase text-sm leading-tight">{r.nameInText}</p>
-                              {r.status === "⚠️ DORSAL SOSPECHOSO" && (
+                              {r.identifiedName && (
                                 <p className="text-[10px] font-bold text-red-600 mt-1">
-                                  ⚠️ Dorsal asociado a: {r.identifiedName}
+                                  Posible coincidencia: {r.identifiedName}
                                 </p>
                               )}
                               <div className="flex items-center gap-2 mt-1">
@@ -709,7 +710,7 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                                   [r.rowKey]: { name: r.nameInText, rut: '', club: '', category: r.category || selectedCategory, saving: false }
                                 }))}
                                 className="py-3 px-4 text-sm font-black text-white bg-[#C64928] hover:bg-[#a83820] rounded-xl transition-colors active:scale-95 whitespace-nowrap"
-                              >+ Nuevo corredor</button>
+                              >Crear nuevo / No es esta persona</button>
                             </div>
                           )}
                         </div>
@@ -720,17 +721,19 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                   {/* ── TABLA COMPLETA (CORREDORES LISTOS) ── */}
                   <details open className="group">
                     <summary className="flex items-center justify-between p-3 bg-slate-100 rounded-xl cursor-pointer select-none list-none">
-                      <span className="font-black text-slate-700 text-sm uppercase tracking-tight">Ver todos los corredores detectados ({detectedResults.length})</span>
+                      <span className="font-black text-slate-700 text-sm uppercase tracking-tight">Ver corredores listos ({readyToSaveCount + detectedResults.filter(r => r.isDQ).length})</span>
                       <svg className="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </summary>
                     <div className="mt-2 space-y-2">
                       {Object.entries(
-                        detectedResults.reduce<Record<string, any[]>>((acc, curr) => {
-                          const cat = curr.category || 'SIN CATEGORÍA';
-                          if (!acc[cat]) acc[cat] = [];
-                          acc[cat].push(curr);
-                          return acc;
-                        }, {})
+                        detectedResults
+                          .filter(r => r.isDQ || ((r.exists || r.canAutoLink) && r.riderId && !r.status.startsWith("⚠️")))
+                          .reduce<Record<string, any[]>>((acc, curr) => {
+                            const cat = curr.category || 'SIN CATEGORÍA';
+                            if (!acc[cat]) acc[cat] = [];
+                            acc[cat].push(curr);
+                            return acc;
+                          }, {})
                       ).map(([category, categoryResults]) => (
                         <div key={category} className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
                           <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
@@ -803,8 +806,16 @@ export default function ResultManager({ events, riders, existingResults, eventRi
             <div className="p-4 sm:p-8 bg-[#F8F5F0] border-t flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
               <button onClick={() => setImportText('')} className="w-full sm:w-auto px-6 py-3 sm:py-3 font-black text-xs uppercase text-slate-400 hover:text-slate-600 border sm:border-none border-slate-300 rounded-xl sm:rounded-none bg-white sm:bg-transparent">{importText ? 'Volver a intentar' : 'Cerrar'}</button>
               {importText && (
-                <button onClick={handleSaveResults} disabled={readyToSaveCount === 0 || loading} className={`w-full sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all ${readyToSaveCount > 0 ? 'bg-[#C64928] text-white hover:scale-105' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
-                  {loading ? 'Guardando...' : `Guardar ${readyToSaveCount} Resultados`}
+                <button 
+                  onClick={handleSaveResults} 
+                  disabled={readyToSaveCount === 0 || loading || pendingCount > 0} 
+                  className={`w-full sm:w-auto px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all ${readyToSaveCount > 0 && pendingCount === 0 ? 'bg-[#C64928] text-white hover:scale-105' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}
+                >
+                  {pendingCount > 0 
+                    ? 'Resuelve los pendientes'
+                    : loading 
+                      ? 'Guardando...' 
+                      : `Guardar ${readyToSaveCount} Resultados`}
                 </button>
               )}
             </div>
