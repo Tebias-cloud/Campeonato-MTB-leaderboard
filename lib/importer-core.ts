@@ -104,8 +104,11 @@ export function matchAndDeduplicateResults(
       matchReason = "not_found";
     }
     
-    if (isDQ) status = "ℹ️ INFORMATIVO";
-    if (isConflict) status = "⚠️ CONFLICTO MULTIARCHIVO";
+    if (isDQ) {
+      status = "ℹ️ INFORMATIVO";
+    } else if (isConflict && !manualRiderId) {
+      status = "⚠️ CONFLICTO MULTIARCHIVO";
+    }
 
     const alreadySaved = existingResults.find(er => er.event_id === selectedEventId && er.rider_id === identifiedRiderId);
     let changeType = "NUEVO";
