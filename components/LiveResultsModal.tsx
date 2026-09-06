@@ -169,28 +169,44 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     const valid = accumulatedRawRiders.filter(r => !r.isDQ);
     let didInfer = false;
 
-    // Primer paso: Normalizar e intentar inferir Desconocidas
-    const enhancedValid = valid.map(item => {
+    // Primer paso: Calcular umbral de coincidencia global para evitar inferir en fechas incorrectas
+    let unknownCount = 0;
+    let safeMatchCount = 0;
+    const matchMap = new Map<string, string>(); // dorsal -> category inferida
+
+    for (const item of valid) {
       let cat = normalizeCategory(item.category || "DESCONOCIDA");
-      
       if (cat === "Desconocida" && item.dorsal) {
-        // Buscar dorsal en eventRiders (NUNCA buscar solo por nombre o sin dorsal)
+        unknownCount++;
         const match = eventRiders.find(er => er.dorsal === item.dorsal);
         if (match && match.riders) {
-          // Exigir coincidencia de nombre para evitar falsos positivos
           const fileRiderName = normalize(item.riderName);
           const dbRiderName = normalize(match.riders.full_name);
-          
-          // Match seguro: si ambos nombres comparten al menos un apellido/nombre significativo
           const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
           const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
-          
           const hasCommonPart = fileParts.some(fp => dbParts.includes(fp));
           
           if (hasCommonPart) {
-            cat = normalizeCategory(match.riders.category);
-            didInfer = true;
+            safeMatchCount++;
+            matchMap.set(item.dorsal, normalizeCategory(match.riders.category));
           }
+        }
+      }
+    }
+
+    // Umbral estricto: Solo si >= 70% de los 'Desconocidos' coinciden en nombre+dorsal con la base
+    const matchThreshold = 0.70; 
+    const isSafeToInfer = unknownCount > 0 && (safeMatchCount / unknownCount) >= matchThreshold;
+
+    // Segundo paso: Normalizar e inferir (solo si pasamos el umbral)
+    const enhancedValid = valid.map(item => {
+      let cat = normalizeCategory(item.category || "DESCONOCIDA");
+      
+      if (cat === "Desconocida" && item.dorsal && isSafeToInfer) {
+        const inferred = matchMap.get(item.dorsal);
+        if (inferred) {
+          cat = inferred;
+          didInfer = true;
         }
       }
       
