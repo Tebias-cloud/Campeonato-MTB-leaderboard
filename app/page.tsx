@@ -62,12 +62,35 @@ export default function Home() {
     async function loadInitialData() {
       const today = new Date().toISOString().split('T')[0];
 
-      const [eventResponse, categoriesResponse] = await Promise.all([
-        supabase.from('events').select('*').eq('status', 'pending').gte('date', today).order('date', { ascending: true }).limit(1).maybeSingle(),
+      const [categoriesResponse] = await Promise.all([
         supabase.from('riders').select('category')
       ]);
 
-      if (eventResponse.data) setNextEvent(eventResponse.data as Event);
+      // Buscar primero un evento 'active' (sin importar la fecha)
+      const { data: activeEvent } = await supabase
+        .from('events')
+        .select('*')
+        .eq('status', 'active')
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let targetEvent = activeEvent;
+
+      if (!targetEvent) {
+        // Si no hay evento activo, buscar el próximo 'pending'
+        const { data: pendingEvent } = await supabase
+          .from('events')
+          .select('*')
+          .eq('status', 'pending')
+          .gte('date', today)
+          .order('date', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        targetEvent = pendingEvent;
+      }
+
+      if (targetEvent) setNextEvent(targetEvent as Event);
       
       if (categoriesResponse.data) {
         const uniqueCategories = Array.from(new Set(categoriesResponse.data.map(r => r.category).filter(Boolean)));
@@ -205,18 +228,22 @@ export default function Home() {
                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
             </Link>
             
-            {nextEvent && (
-              <button 
-                onClick={() => setShowLiveResults(true)}
-                className="group relative inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-4 rounded-sm font-heading text-2xl uppercase tracking-widest transition-all backdrop-blur-md shadow-lg w-full sm:w-auto"
-              >
-                <span className="relative flex h-3 w-3 mr-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
-                Tiempos en Vivo
-              </button>
-            )}
+            <button 
+              onClick={() => {
+                if (nextEvent) {
+                  setShowLiveResults(true);
+                } else {
+                  alert("No hay ningún evento activo o próximo disponible en este momento.");
+                }
+              }}
+              className="group relative inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-4 rounded-sm font-heading text-2xl uppercase tracking-widest transition-all backdrop-blur-md shadow-lg w-full sm:w-auto"
+            >
+              <span className="relative flex h-3 w-3 mr-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              Tiempos en Vivo
+            </button>
           </div>
         </div>
       </header>
