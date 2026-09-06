@@ -151,50 +151,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         return;
       }
 
-      // Validar contexto del evento para evitar pisar datos accidentalmente
-      const unknownRiders = fileRiders.filter(r => normalizeCategory(r.category || "DESCONOCIDA") === "Desconocida");
-      if (unknownRiders.length > 0) {
-        const ridersByEvent = allEventRiders.reduce((acc, er) => {
-          if (!acc[er.event_id]) acc[er.event_id] = [];
-          acc[er.event_id].push(er);
-          return acc;
-        }, {} as Record<string, any[]>);
 
-        let bestEventId: string | null = null;
-        let maxSafeMatchCount = 0;
-
-        for (const [evtId, ridersOfEvent] of Object.entries(ridersByEvent)) {
-          const evtRiders = ridersOfEvent as any[];
-          let safeMatchCount = 0;
-          for (const item of unknownRiders) {
-            if (item.dorsal) {
-              const matchL1 = evtRiders.find((er: any) => er.dorsal === item.dorsal);
-              if (matchL1 && matchL1.riders) {
-                const fileRiderName = normalize(item.riderName);
-                const dbRiderName = normalize(matchL1.riders.full_name);
-                const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
-                const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
-                if (fileParts.some(fp => dbParts.includes(fp))) {
-                  safeMatchCount++;
-                }
-              }
-            }
-          }
-          if (safeMatchCount > maxSafeMatchCount) {
-            maxSafeMatchCount = safeMatchCount;
-            bestEventId = evtId;
-          }
-        }
-
-        const matchThreshold = 0.70;
-        if (bestEventId && (maxSafeMatchCount / unknownRiders.length) >= matchThreshold) {
-          if (bestEventId !== eventId) {
-            alert("Error: El archivo parece corresponder a otra fecha/evento. Súbelo en el contexto correcto para evitar sobreescribir el Vivo actual.");
-            setLoading(false);
-            return;
-          }
-        }
-      }
 
       // ── Acumular objetos parseados estructurados, nunca texto ────────────
       setAccumulatedRawRiders(prev => {
@@ -248,61 +205,16 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     const valid = accumulatedRawRiders.filter(r => !r.isDQ);
     let didInfer = false;
 
-    // Primer paso: Agrupar todos los inscritos por evento
-    const ridersByEvent = allEventRiders.reduce((acc, er) => {
-      if (!acc[er.event_id]) acc[er.event_id] = [];
-      acc[er.event_id].push(er);
-      return acc;
-    }, {} as Record<string, any[]>);
+    // Primer paso: Obtener inscritos SOLO del evento actual
+    const targetEventRiders = allEventRiders.filter(er => er.event_id === eventId);
 
     // Segundo paso: Contar cuántos corredores del archivo tienen categoría 'Desconocida'
     const unknownRiders = valid.map((item, index) => ({ item, index })).filter(x => {
       const cat = normalizeCategory(x.item.category || "DESCONOCIDA");
       return cat === "Desconocida";
     });
-    const unknownCount = unknownRiders.length;
 
-    let targetEventRiders: any[] = [];
-    let isSafeToInfer = false;
-
-    // Tercer paso: Detectar automáticamente el evento al que pertenece este archivo
-    if (unknownCount > 0) {
-      let bestEventId: string | null = null;
-      let maxSafeMatchCount = 0;
-
-      // Evaluamos cada evento usando SOLO Nivel 1 (dorsal + nombre compatible)
-      for (const [evtId, ridersOfEvent] of Object.entries(ridersByEvent)) {
-        const evtRiders = ridersOfEvent as any[];
-        let safeMatchCount = 0;
-        
-        for (const { item } of unknownRiders) {
-          if (item.dorsal) {
-            const matchL1 = evtRiders.find((er: any) => er.dorsal === item.dorsal);
-            if (matchL1 && matchL1.riders) {
-              const fileRiderName = normalize(item.riderName);
-              const dbRiderName = normalize(matchL1.riders.full_name);
-              const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
-              const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
-              if (fileParts.some(fp => dbParts.includes(fp))) {
-                safeMatchCount++;
-              }
-            }
-          }
-        }
-
-        if (safeMatchCount > maxSafeMatchCount) {
-          maxSafeMatchCount = safeMatchCount;
-          bestEventId = evtId;
-        }
-      }
-
-      // Umbral estricto: Solo si >= 70% de los 'Desconocidos' coinciden en el mejor evento
-      const matchThreshold = 0.70;
-      if (bestEventId && (maxSafeMatchCount / unknownCount) >= matchThreshold) {
-        targetEventRiders = ridersByEvent[bestEventId];
-        isSafeToInfer = true;
-      }
-    }
+    const isSafeToInfer = unknownRiders.length > 0 && targetEventRiders.length > 0;
 
     // Cuarto paso: Aplicar inferencias Nivel 1 y Nivel 2 usando SOLO el evento detectado
     const matchMap = new Map<number, string>(); // index -> category
