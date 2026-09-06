@@ -77,7 +77,18 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            fileText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+            let lastY = -1;
+            let pageText = '';
+            for (const item of textContent.items) {
+              if (lastY !== -1 && Math.abs(lastY - item.transform[5]) > 2) {
+                pageText += '\n';
+              } else if (lastY !== -1) {
+                pageText += ' ';
+              }
+              pageText += item.str;
+              lastY = item.transform[5];
+            }
+            fileText += pageText + '\n';
           }
         } else {
           const XLSX = await import('xlsx');
