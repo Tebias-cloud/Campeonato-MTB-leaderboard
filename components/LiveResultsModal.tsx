@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { updateLiveResults } from '@/actions/liveResults';
 import { parseExcelRows } from '@/lib/excel-parser';
 import { parseResultsText } from '@/lib/results-parser';
-import { isNameCompatible } from '@/lib/utils';
+import { isNameCompatible, normalizeCategory } from '@/lib/utils';
 import { timeToSeconds } from '@/lib/importer-core';
 
 interface LiveResultsModalProps {
@@ -119,9 +119,10 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
         const nameInText = item.riderName;
         const matchedRider = allRiders.find(r => isNameCompatible(r.full_name, nameInText));
 
-        const category = item.category !== 'DESCONOCIDA'
+        let rawCategory = item.category !== 'DESCONOCIDA'
           ? item.category
           : (matchedRider?.category || 'Sin Categoría');
+        const category = normalizeCategory(rawCategory);
           
         const time = item.isDQ ? 'DQ' : item.time;
         

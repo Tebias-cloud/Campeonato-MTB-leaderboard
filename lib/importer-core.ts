@@ -1,4 +1,4 @@
-import { isNameCompatible } from './utils';
+import { isNameCompatible, normalizeCategory } from './utils';
 
 export function getRiderName(er: any) {
   if (!er?.riders) return null;
@@ -19,6 +19,10 @@ export function matchAndDeduplicateResults(
   const uniqueRiders: any[] = [];
 
   for (const item of parsedRidersRaw) {
+    if (item.category && item.category.toUpperCase() !== 'DESCONOCIDA') {
+      item.category = normalizeCategory(item.category);
+    }
+    
     if (!item.dorsal) {
       uniqueRiders.push(item);
       continue;
@@ -65,12 +69,10 @@ export function matchAndDeduplicateResults(
     const identifiedName = manualRider?.full_name || getRiderName(entryByDorsal) || riderByName?.full_name || null;
     const riderProfile = riders.find(r => r.id === identifiedRiderId);
 
-    let finalCategory = item.category !== "DESCONOCIDA" ? item.category :
+    let rawCategory = item.category !== "DESCONOCIDA" ? item.category :
       (entryByDorsal?.category_at_event || riderProfile?.category || selectedCategory || "DESCONOCIDA");
 
-    if (finalCategory.toUpperCase().includes("PRE MASTER") || finalCategory.toUpperCase().includes("PREMASTER")) {
-      finalCategory = "PRE MASTER MIXTO";
-    }
+    let finalCategory = normalizeCategory(rawCategory);
 
     let status = "✅ LISTO";
     let canAutoLink = false;
