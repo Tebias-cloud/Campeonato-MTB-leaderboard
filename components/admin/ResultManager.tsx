@@ -39,15 +39,15 @@ const getRiderName = (er: any) => {
 
 const getPendingUIDetails = (status: string, matchReason: string) => {
   if (status.includes("CONFLICTO")) {
-    return { icon: "🔴", color: "red", title: "Conflicto", desc: "El corredor aparece con resultados contradictorios en los archivos subidos." };
+    return { color: "red", title: "Conflicto", desc: "el corredor aparece con resultados contradictorios en los archivos subidos" };
   }
   if (status.includes("DORSAL SOSPECHOSO") || matchReason === "incompatible_name") {
-    return { icon: "🟡", color: "amber", title: "Revisar", desc: "El dorsal coincide, pero el nombre del archivo no coincide con el registrado." };
+    return { color: "amber", title: "Revisar", desc: "el dorsal coincide, pero el nombre no" };
   }
   if (matchReason === "name_only") {
-    return { icon: "🟡", color: "amber", title: "Revisar", desc: "Nombre parecido, requiere confirmación." };
+    return { color: "amber", title: "Revisar", desc: "nombre parecido, requiere confirmación" };
   }
-  return { icon: "⚪", color: "slate", title: "No encontrado", desc: "No se encontró a nadie con este dorsal ni nombre." };
+  return { color: "slate", title: "No encontrado", desc: "no se encontró a nadie con este dorsal ni nombre" };
 };
 
 interface Props {
@@ -594,15 +594,12 @@ export default function ResultManager({ events, riders, existingResults, eventRi
 
                   {/* ── SECCIÓN PRIORITARIA: SIN VINCULAR ── */}
                   {pendingCount > 0 && (
-                    <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🔴</span>
-                        <div>
-                          <p className="font-black text-red-700 text-sm uppercase tracking-tight">Revisar corredores</p>
-                          <p className="text-red-500 text-xs">
-                            {pendingCount} requieren revisión — la mayoría porque el dorsal pertenece a otro corredor en esta fecha, o no se encontró en el sistema.
-                          </p>
-                        </div>
+                    <div className="bg-red-50/50 border border-red-200 rounded-2xl p-4 space-y-4">
+                      <div>
+                        <p className="font-black text-red-700 text-sm uppercase tracking-tight">Revisar corredores ({pendingCount})</p>
+                        <p className="text-red-600 text-xs mt-1">
+                          La mayoría requiere revisión porque el dorsal pertenece a otro corredor en esta fecha, o no se encontró en el sistema.
+                        </p>
                       </div>
 
                       {detectedResults.filter(r => (!r.riderId || r.status.startsWith("⚠️") || r.status.startsWith("❌")) && !r.isDQ).map((r) => {
@@ -613,38 +610,42 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                         const dbDorsal = eventReg?.dorsal || null;
 
                         return (
-                        <div key={r.rowKey} className="bg-white rounded-xl border border-red-100 p-3 space-y-4">
+                        <div key={r.rowKey} className="bg-white rounded-xl border border-slate-200 p-3 flex flex-col gap-3 shadow-sm">
                           
-                          {/* 1. Datos del Archivo */}
-                          <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Archivo</p>
-                            <p className="font-black text-slate-800 uppercase text-sm leading-tight">
-                              <span className="text-slate-500 font-bold mr-2">#{r.dorsal}</span>
-                              {r.nameInText}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-bold text-slate-500">{r.category}</span>
-                              <span className="text-[10px] font-mono font-bold text-[#C64928]">{r.time}</span>
-                            </div>
-                          </div>
-
-                          {/* 2. Coincidencia del Sistema y 3. Motivo Claro */}
                           <div className="flex flex-col gap-2">
+                            {/* 1. Datos del Archivo */}
+                            <div>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Archivo</p>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
+                                <span className="font-black text-slate-600">{r.puesto !== '-' && r.puesto !== 999 ? `${r.puesto}º` : (r.puesto === 999 ? 'DQ' : '-')}</span>
+                                <span className="text-slate-300 font-bold">·</span>
+                                <span className="font-black text-slate-500">#{r.dorsal}</span>
+                                <span className="text-slate-300 font-bold">·</span>
+                                <span className="font-black text-slate-800 uppercase">{r.nameInText}</span>
+                                <span className="text-slate-300 font-bold">·</span>
+                                <span className="font-bold text-slate-600">{r.category}</span>
+                                <span className="text-slate-300 font-bold">·</span>
+                                <span className="font-mono font-black text-[#C64928]">{r.time}</span>
+                              </div>
+                            </div>
+
+                            {/* 2. Coincidencia del Sistema */}
                             {r.identifiedName && r.riderId && !showSearchBox[r.rowKey] && (
-                              <div className={`p-3 bg-${ui.color}-50 border border-${ui.color}-200 rounded-lg`}>
-                                <p className={`text-[10px] font-bold text-${ui.color}-700 uppercase tracking-widest mb-1`}>Sistema sugiere</p>
-                                <p className={`font-black text-${ui.color}-900 uppercase text-sm`}>
+                              <div>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Sistema</p>
+                                <p className="text-xs sm:text-sm font-black text-slate-800 uppercase">
                                   {r.identifiedName} 
-                                  {dbDorsal && <span className="font-normal text-xs opacity-75 ml-1">· dorsal #{dbDorsal} en esta fecha</span>}
+                                  {dbDorsal && <span className="font-semibold text-slate-500 ml-1">· dorsal #{dbDorsal} en esta fecha</span>}
                                 </p>
                               </div>
                             )}
 
-                            <div className="flex items-start gap-2">
-                              <span className="text-base leading-none">{ui.icon}</span>
-                              <div>
-                                <p className={`font-black text-${ui.color}-700 text-xs uppercase tracking-tight`}>{ui.title}</p>
-                                <p className={`text-${ui.color}-600 text-xs`}>{ui.desc}</p>
+                            {/* 3. Estado */}
+                            <div>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Estado</p>
+                              <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                                <span className={`bg-${ui.color}-100 text-${ui.color}-800 font-black px-2 py-0.5 rounded uppercase text-[10px]`}>{ui.title}</span>
+                                <span className={`text-${ui.color}-700 font-semibold`}>— {ui.desc}</span>
                               </div>
                             </div>
                           </div>
