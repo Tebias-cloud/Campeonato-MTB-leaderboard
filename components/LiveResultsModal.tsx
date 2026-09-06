@@ -252,8 +252,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
                             </td>
                             <td className="p-2 sm:p-3">
                               <p className="font-black uppercase text-slate-800 text-[11px] sm:text-sm">
-                                {r.identifiedName || r.nameInText}
-                                {r.status?.startsWith("⚠️") && <span className="ml-2 text-orange-500" title={r.status}>⚠️</span>}
+                                {r.identifiedName || r.nameInText || 'No identificado'}
                               </p>
                               {(r.clubAtEvent || r.clubInText) && <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">{r.clubAtEvent || r.clubInText}</p>}
                             </td>
