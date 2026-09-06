@@ -172,41 +172,84 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     // Primer paso: Calcular umbral de coincidencia global para evitar inferir en fechas incorrectas
     let unknownCount = 0;
     let safeMatchCount = 0;
-    const matchMap = new Map<string, string>(); // dorsal -> category inferida
+    
+    // id único del item -> categoría inferida
+    const matchMap = new Map<number, string>(); 
 
-    for (const item of valid) {
+    for (let i = 0; i < valid.length; i++) {
+      const item = valid[i];
       let cat = normalizeCategory(item.category || "DESCONOCIDA");
-      if (cat === "Desconocida" && item.dorsal) {
+      
+      if (cat === "Desconocida") {
         unknownCount++;
-        const match = eventRiders.find(er => er.dorsal === item.dorsal);
-        if (match && match.riders) {
-          const fileRiderName = normalize(item.riderName);
-          const dbRiderName = normalize(match.riders.full_name);
-          const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
-          const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
-          const hasCommonPart = fileParts.some(fp => dbParts.includes(fp));
-          
-          if (hasCommonPart) {
-            safeMatchCount++;
-            matchMap.set(item.dorsal, normalizeCategory(match.riders.category));
+        let matchedCategory: string | null = null;
+        const fileRiderName = normalize(item.riderName);
+        const fileParts = fileRiderName.split(' ').filter(p => p.length > 2);
+
+        // Nivel 1: Fuerte (mismo dorsal + nombre compatible)
+        if (item.dorsal) {
+          const matchL1 = eventRiders.find(er => er.dorsal === item.dorsal);
+          if (matchL1 && matchL1.riders) {
+            const dbRiderName = normalize(matchL1.riders.full_name);
+            const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
+            if (fileParts.some(fp => dbParts.includes(fp))) {
+              matchedCategory = normalizeCategory(matchL1.riders.category);
+            }
           }
+        }
+
+        // Nivel 2: Apoyo (nombre muy similar, desempate por club si es necesario)
+        if (!matchedCategory && fileParts.length > 0) {
+          const candidates = eventRiders.filter(er => {
+            if (!er.riders) return false;
+            const dbRiderName = normalize(er.riders.full_name);
+            const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
+            const commonWords = fileParts.filter(fp => dbParts.includes(fp)).length;
+            // Requiere al menos 2 palabras coincidentes, o 1 si el nombre crudo solo tiene 1 palabra larga
+            return commonWords >= Math.min(2, fileParts.length);
+          });
+
+          if (candidates.length === 1) {
+            matchedCategory = normalizeCategory(candidates[0].riders.category);
+          } else if (candidates.length > 1) {
+            // Desempate por club si viene en el archivo
+            const fileClub = normalize(item.club);
+            if (fileClub) {
+              const tied = candidates.filter(er => {
+                // Buscamos el club en allRiders porque eventRiders tal vez no lo traiga populado
+                const fullRider = allRiders.find(ar => ar.id === er.rider_id);
+                if (!fullRider || !fullRider.club) return false;
+                const dbClub = normalize(fullRider.club);
+                return dbClub === fileClub || dbClub.includes(fileClub) || fileClub.includes(dbClub);
+              });
+              if (tied.length === 1) {
+                matchedCategory = normalizeCategory(tied[0].riders.category);
+              }
+            }
+          }
+        }
+
+        if (matchedCategory) {
+          safeMatchCount++;
+          matchMap.set(i, matchedCategory);
         }
       }
     }
 
-    // Umbral estricto: Solo si >= 70% de los 'Desconocidos' coinciden en nombre+dorsal con la base
+    // Umbral estricto: Solo si >= 70% de los 'Desconocidos' coinciden con la base
     const matchThreshold = 0.70; 
     const isSafeToInfer = unknownCount > 0 && (safeMatchCount / unknownCount) >= matchThreshold;
 
-    // Segundo paso: Normalizar e inferir (solo si pasamos el umbral)
-    const enhancedValid = valid.map(item => {
+    // Segundo paso: Aplicar inferencias
+    const enhancedValid = valid.map((item, i) => {
       let cat = normalizeCategory(item.category || "DESCONOCIDA");
       
-      if (cat === "Desconocida" && item.dorsal && isSafeToInfer) {
-        const inferred = matchMap.get(item.dorsal);
-        if (inferred) {
-          cat = inferred;
+      if (cat === "Desconocida") {
+        if (isSafeToInfer && matchMap.has(i)) {
+          cat = matchMap.get(i)!;
           didInfer = true;
+        } else {
+          cat = "Categoría pendiente";
         }
       }
       
@@ -217,6 +260,10 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
     // Ordenar y asignar posiciones visuales
     enhancedValid.sort((a, b) => {
+      // "Categoría pendiente" siempre al final
+      if (a.finalCategory === "Categoría pendiente" && b.finalCategory !== "Categoría pendiente") return 1;
+      if (b.finalCategory === "Categoría pendiente" && a.finalCategory !== "Categoría pendiente") return -1;
+      
       if (a.finalCategory !== b.finalCategory) return a.finalCategory.localeCompare(b.finalCategory);
       return timeToSeconds(a.time || "") - timeToSeconds(b.time || "");
     });
@@ -241,13 +288,13 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     }
 
     return finalMatches;
-  }, [accumulatedRawRiders, eventRiders]);
+  }, [accumulatedRawRiders, eventRiders, allRiders]);
 
   if (!isOpen) return null;
 
   // Agrupar por categoría
   const grouped = computedResults.reduce((acc: any, curr: any) => {
-    const cat = curr.category || 'Sin Categoría';
+    const cat = curr.category || 'Categoría pendiente';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(curr);
     return acc;
