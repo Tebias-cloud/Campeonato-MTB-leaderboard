@@ -37,6 +37,19 @@ const getRiderName = (er: any) => {
   return er.riders.full_name;
 };
 
+const getPendingUIDetails = (status: string, matchReason: string) => {
+  if (status.includes("CONFLICTO")) {
+    return { icon: "🔴", color: "red", title: "Conflicto", desc: "El corredor aparece con resultados contradictorios en los archivos subidos." };
+  }
+  if (status.includes("DORSAL SOSPECHOSO") || matchReason === "incompatible_name") {
+    return { icon: "🟡", color: "amber", title: "Revisar", desc: "El dorsal coincide, pero el nombre del archivo no coincide con el registrado." };
+  }
+  if (matchReason === "name_only") {
+    return { icon: "🟡", color: "amber", title: "Revisar", desc: "Nombre parecido, requiere confirmación." };
+  }
+  return { icon: "⚪", color: "slate", title: "No encontrado", desc: "No se encontró a nadie con este dorsal ni nombre." };
+};
+
 interface Props {
   events: Event[];
   riders: Rider[];
@@ -586,20 +599,52 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                         <span className="text-lg">🔴</span>
                         <div>
                           <p className="font-black text-red-700 text-sm uppercase tracking-tight">Revisar corredores</p>
-                          <p className="text-red-500 text-xs">Estos corredores están en el archivo pero no se encontraron en el sistema de manera segura. Vincúlalos o créalos.</p>
+                          <p className="text-red-500 text-xs">
+                            {pendingCount} requieren revisión — la mayoría porque el dorsal pertenece a otro corredor en esta fecha, o no se encontró en el sistema.
+                          </p>
                         </div>
                       </div>
 
-                      {detectedResults.filter(r => (!r.riderId || r.status.startsWith("⚠️") || r.status.startsWith("❌")) && !r.isDQ).map((r) => (
-                        <div key={r.rowKey} className="bg-white rounded-xl border border-red-100 p-3 space-y-3">
-                          {/* Cabecera de la fila */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="font-black text-slate-800 uppercase text-sm leading-tight">{r.nameInText}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded">#{r.dorsal}</span>
-                                <span className="text-[10px] font-bold text-slate-400">{r.category}</span>
-                                <span className="text-[10px] font-mono font-bold text-[#C64928]">{r.time}</span>
+                      {detectedResults.filter(r => (!r.riderId || r.status.startsWith("⚠️") || r.status.startsWith("❌")) && !r.isDQ).map((r) => {
+                        const ui = getPendingUIDetails(r.status, r.matchReason);
+                        
+                        // Encontrar info de registro de sistema para este evento
+                        const eventReg = eventRiders.find(er => er.event_id === selectedEventId && er.rider_id === r.riderId);
+                        const dbDorsal = eventReg?.dorsal || null;
+
+                        return (
+                        <div key={r.rowKey} className="bg-white rounded-xl border border-red-100 p-3 space-y-4">
+                          
+                          {/* 1. Datos del Archivo */}
+                          <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Archivo</p>
+                            <p className="font-black text-slate-800 uppercase text-sm leading-tight">
+                              <span className="text-slate-500 font-bold mr-2">#{r.dorsal}</span>
+                              {r.nameInText}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-bold text-slate-500">{r.category}</span>
+                              <span className="text-[10px] font-mono font-bold text-[#C64928]">{r.time}</span>
+                            </div>
+                          </div>
+
+                          {/* 2. Coincidencia del Sistema y 3. Motivo Claro */}
+                          <div className="flex flex-col gap-2">
+                            {r.identifiedName && r.riderId && !showSearchBox[r.rowKey] && (
+                              <div className={`p-3 bg-${ui.color}-50 border border-${ui.color}-200 rounded-lg`}>
+                                <p className={`text-[10px] font-bold text-${ui.color}-700 uppercase tracking-widest mb-1`}>Sistema sugiere</p>
+                                <p className={`font-black text-${ui.color}-900 uppercase text-sm`}>
+                                  {r.identifiedName} 
+                                  {dbDorsal && <span className="font-normal text-xs opacity-75 ml-1">· dorsal #{dbDorsal} en esta fecha</span>}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex items-start gap-2">
+                              <span className="text-base leading-none">{ui.icon}</span>
+                              <div>
+                                <p className={`font-black text-${ui.color}-700 text-xs uppercase tracking-tight`}>{ui.title}</p>
+                                <p className={`text-${ui.color}-600 text-xs`}>{ui.desc}</p>
                               </div>
                             </div>
                           </div>
@@ -663,11 +708,8 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                               </div>
                             </div>
                           ) : r.identifiedName && r.riderId && !showSearchBox[r.rowKey] ? (
-                            /* Sugerencia principal */
-                            <div className="mt-2 p-3 bg-orange-50/50 border border-orange-100 rounded-xl space-y-3">
-                              <p className="text-xs font-bold text-orange-800">
-                                Sugerencia: <span className="font-black uppercase">{r.identifiedName}</span>
-                              </p>
+                            /* Botones de acción principal (con sugerencia) */
+                            <div className="pt-2 border-t border-slate-100 space-y-3">
                               <div className="flex flex-wrap gap-2">
                                 <button
                                   onClick={() => setManualLinks(prev => ({ ...prev, [r.rowKey]: r.riderId! }))}
@@ -737,7 +779,8 @@ export default function ResultManager({ events, riders, existingResults, eventRi
                             </div>
                           )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
