@@ -1,0 +1,328 @@
+{
+  "f4": {
+    "noviciosF4": [
+      {
+        "id": "8a4b2f89-88e6-4cdd-bb1b-d9a1eca103cf",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "9baf0c7d-8477-474d-abf8-36935d91fffa",
+        "category_played": "Novicios Varones",
+        "position": 1,
+        "points": 100,
+        "created_at": "2026-08-21T19:41:36.788851+00:00",
+        "race_time": "2:21:36.13",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "VICTOR SEPULVEDA"
+        }
+      },
+      {
+        "id": "28afb197-4178-4dd8-9787-654548493eae",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "a7ef41c1-3609-48dc-b92a-338d27c113a8",
+        "category_played": "Novicios Varones",
+        "position": 1,
+        "points": 100,
+        "created_at": "2026-08-22T04:07:45.423818+00:00",
+        "race_time": "2:16:57.96",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "MICHEL REBELLADO URZUA"
+        }
+      },
+      {
+        "id": "f67cd3fb-f58e-4a09-942b-dd4cfc10d14c",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "36833472-0225-4667-985b-9739e6b7ef5e",
+        "category_played": "Novicios Varones",
+        "position": 2,
+        "points": 90,
+        "created_at": "2026-08-22T04:07:46.243607+00:00",
+        "race_time": "2:35:59.12",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "EDDY VARGAS"
+        }
+      },
+      {
+        "id": "b23dfca5-42b5-4e69-b925-12e14b7a1b5a",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "51987964-d01d-41ae-b699-96fa1e7a74cb",
+        "category_played": "Novicios Varones",
+        "position": 2,
+        "points": 90,
+        "created_at": "2026-08-22T01:23:59.133952+00:00",
+        "race_time": "2:56:06.14",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "HIBALDO LA FUENTE"
+        }
+      },
+      {
+        "id": "4398586a-6d49-4b3b-9f44-b31d64e4843c",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "f32537a6-9175-4dbf-bb84-f6ef58f26bdd",
+        "category_played": "Novicios Varones",
+        "position": 3,
+        "points": 80,
+        "created_at": "2026-08-22T04:07:47.595909+00:00",
+        "race_time": "2:43:09.32",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "SANTIAGO MARTINEZ OPAZO"
+        }
+      },
+      {
+        "id": "ab5c7279-7ade-4b4b-996d-52f63515ba1a",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "fc9f469c-bfe3-4be3-a38b-ee51eeef04ce",
+        "category_played": "Novicios Varones",
+        "position": 4,
+        "points": 70,
+        "created_at": "2026-08-22T04:07:48.174689+00:00",
+        "race_time": "2:45:16.24",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "LEONARDO ANTONIO MARTINEZ GONZÁLEZ"
+        }
+      },
+      {
+        "id": "cef403b7-51e1-42f9-ac41-26f2f2e46bce",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "cc03e2fa-7c14-4a57-b720-70fb2c8de2f4",
+        "category_played": "Novicios Varones",
+        "position": 5,
+        "points": 60,
+        "created_at": "2026-08-22T04:07:48.740772+00:00",
+        "race_time": "2:47:21.73",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "CRISTOPHER ALEXANDER LETELIER OLIVARES"
+        }
+      },
+      {
+        "id": "8c87c183-213e-44ec-ae8f-2dee7a02d8ec",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "ef15aeb6-f345-4d2d-a84a-115f78422736",
+        "category_played": "Novicios Varones",
+        "position": 6,
+        "points": 50,
+        "created_at": "2026-08-22T04:07:49.489327+00:00",
+        "race_time": "2:51:48.65",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "FABIÁN ANDRÉS LÓPEZ COLOMA"
+        }
+      },
+      {
+        "id": "87e2e625-c152-41e6-9d29-3e18a69d6e2b",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "b1216231-d7b9-406d-9a9e-7846a1628902",
+        "category_played": "Novicios Varones",
+        "position": 7,
+        "points": 40,
+        "created_at": "2026-08-22T04:07:50.225238+00:00",
+        "race_time": "2:54:10.54",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "JOAQUIN IGNACIO MONSÁLVEZ RONDAN"
+        }
+      },
+      {
+        "id": "62b07a73-9d6a-42d2-a392-67016a1359a7",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "0ec5a461-4d12-4200-9bac-c1b900a111e9",
+        "category_played": "Novicios Varones",
+        "position": 8,
+        "points": 30,
+        "created_at": "2026-08-22T04:07:50.793503+00:00",
+        "race_time": "2:58:24.55",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "RODRIGO ANTONIO CAYO BUSTAMANTE"
+        }
+      },
+      {
+        "id": "d48a08d8-4014-4e95-afb2-2d8bba86f4f4",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "af40e9f1-5340-45d3-9f36-b5787b1ae4c9",
+        "category_played": "Novicios Varones",
+        "position": 9,
+        "points": 20,
+        "created_at": "2026-08-22T04:07:51.367573+00:00",
+        "race_time": "3:03:34.65",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "ORLANDO ANDRÉS SANDOVAL CORTEZ"
+        }
+      },
+      {
+        "id": "e4342779-78bc-40e3-8dd5-f0fb6b19b875",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "36c2bc25-5984-4fc8-a54e-fbe2ee4be9e3",
+        "category_played": "Novicios Varones",
+        "position": 10,
+        "points": 10,
+        "created_at": "2026-08-22T04:07:51.933503+00:00",
+        "race_time": "3:04:34.02",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "JUAN DAVID LAURA"
+        }
+      },
+      {
+        "id": "00886b5b-b1cd-40cc-a890-3b0ba78e3505",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "5bf0c670-a770-44a9-8acf-23027a8e6882",
+        "category_played": "Novicios Varones",
+        "position": 11,
+        "points": 9,
+        "created_at": "2026-08-22T04:07:52.489045+00:00",
+        "race_time": "3:13:33.49",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "JUAN ANTONIO DUQUE DUQUE"
+        }
+      },
+      {
+        "id": "e4512c97-3e09-42c8-9a8c-48d054529ad4",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "d4a204ee-bab1-49b6-8221-d20ba9c14859",
+        "category_played": "Novicios Varones",
+        "position": 12,
+        "points": 8,
+        "created_at": "2026-08-22T04:07:53.036083+00:00",
+        "race_time": "3:15:27.95",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "VÍCTOR MANUEL RIVERA NARANJO"
+        }
+      },
+      {
+        "id": "d5148f1f-0edd-43df-b2f9-d372282fed65",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "d4eab9de-d9cd-4876-8864-41c3009f700a",
+        "category_played": "Novicios Varones",
+        "position": 13,
+        "points": 7,
+        "created_at": "2026-08-22T04:07:55.050416+00:00",
+        "race_time": "3:27:24.41",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "CRISTIAN MARCELO ZAMBRA WELLS"
+        }
+      },
+      {
+        "id": "00bfff90-fc3e-4b9b-9526-466a911bdb8e",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "a746d2f1-eb2e-4d86-ab66-5ef01c7f270b",
+        "category_played": "Novicios Varones",
+        "position": 14,
+        "points": 6,
+        "created_at": "2026-08-22T04:07:55.750329+00:00",
+        "race_time": "3:38:27.26",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "WILLIAM VALDEBENITO BARRA"
+        }
+      },
+      {
+        "id": "32b5b55e-19b2-424d-816d-d7cd6dfdb627",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "fa99f25b-871b-4768-9471-03b1178548ad",
+        "category_played": "Novicios Varones",
+        "position": 15,
+        "points": 5,
+        "created_at": "2026-08-22T04:07:56.289265+00:00",
+        "race_time": "3:38:40.36",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "CARLOS CABELLO REYES"
+        }
+      },
+      {
+        "id": "a8b5c0e6-d988-4d15-9203-2e0c295d590d",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "a5f1fbd8-87bb-4b1e-a295-c16a7829fc1b",
+        "category_played": "Novicios Varones",
+        "position": 16,
+        "points": 4,
+        "created_at": "2026-08-22T04:07:56.829991+00:00",
+        "race_time": "3:41:02.58",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "RODRIGO DÍAZ MOYA"
+        }
+      },
+      {
+        "id": "0970cb05-cb82-4dd5-a9e8-00d9fba1ca2b",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "593b49fe-6135-4fd2-9890-df24a0616186",
+        "category_played": "Novicios Varones",
+        "position": 17,
+        "points": 3,
+        "created_at": "2026-08-22T04:07:57.56729+00:00",
+        "race_time": "3:48:18.75",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "ELVIS QUECHUYANTE"
+        }
+      },
+      {
+        "id": "3b790bbb-e4c9-4fc6-a9a1-d7448cf931a0",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "5a6416a1-3334-4d16-aca4-b74e0e14389a",
+        "category_played": "Novicios Varones",
+        "position": 18,
+        "points": 2,
+        "created_at": "2026-08-22T04:08:00.131622+00:00",
+        "race_time": "4:17:12.54",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "MATIAS VICENTELO"
+        }
+      },
+      {
+        "id": "4112ec2e-7047-4d27-b2bb-767105d78f1e",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "05c45b91-46bd-4c27-94a3-761e25070b0e",
+        "category_played": "Novicios Varones",
+        "position": 19,
+        "points": 1,
+        "created_at": "2026-08-22T04:08:00.841679+00:00",
+        "race_time": "4:25:19.00",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "JAROD GUILLERMO ALIAGA CONTRERA"
+        }
+      },
+      {
+        "id": "2948cc2c-1b5b-46e9-8e35-a0615bd18de3",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "9d717b02-c4dc-4e0a-856b-59c9caf5f876",
+        "category_played": "Novicios Varones",
+        "position": 20,
+        "points": 1,
+        "created_at": "2026-08-22T04:08:02.110018+00:00",
+        "race_time": "4:39:05.11",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "PATRICIO HERRERA SEPÚLVEDA"
+        }
+      },
+      {
+        "id": "8f82d794-9ed5-4896-853a-3a86c810cd1e",
+        "event_id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+        "rider_id": "a4552acd-c794-4598-8907-134fa822a5ef",
+        "category_played": "Novicios Varones",
+        "position": 21,
+        "points": 1,
+        "created_at": "2026-08-22T04:08:02.686215+00:00",
+        "race_time": "5:19:07.82",
+        "avg_speed": null,
+        "riders": {
+          "full_name": "RICARDO LETELIER"
+        }
+      }
+    ]
+  }
+}

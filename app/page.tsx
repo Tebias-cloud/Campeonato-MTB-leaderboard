@@ -47,7 +47,8 @@ interface HomeRider {
 
 export default function Home() {
   const [riders, setRiders] = useState<HomeRider[]>([]);
-  const [nextEvent, setNextEvent] = useState<Event | null>(null);
+  const [liveEvent, setLiveEvent] = useState<Event | null>(null);
+  const [inscriptionEvent, setInscriptionEvent] = useState<Event | null>(null);
   const [showLiveResults, setShowLiveResults] = useState(false);
   
   // ESTADOS DINÁMICOS
@@ -60,7 +61,7 @@ export default function Home() {
   // 1. CARGAR DATOS INICIALES
   useEffect(() => {
     async function loadInitialData() {
-      const today = new Date().toISOString().split('T')[0];
+      const todaySantiago = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date());
 
       const [categoriesResponse] = await Promise.all([
         supabase.from('riders').select('category')
@@ -75,22 +76,33 @@ export default function Home() {
         .limit(1)
         .maybeSingle();
 
-      let targetEvent = activeEvent;
+      let targetLiveEvent = activeEvent;
 
-      if (!targetEvent) {
+      if (!targetLiveEvent) {
         // Si no hay evento activo, buscar el próximo 'pending'
         const { data: pendingEvent } = await supabase
           .from('events')
           .select('*')
           .eq('status', 'pending')
-          .gte('date', today)
+          .gte('date', todaySantiago)
           .order('date', { ascending: true })
           .limit(1)
           .maybeSingle();
-        targetEvent = pendingEvent;
+        targetLiveEvent = pendingEvent;
       }
 
-      if (targetEvent) setNextEvent(targetEvent as Event);
+      if (targetLiveEvent) setLiveEvent(targetLiveEvent as Event);
+
+      // Buscar evento con inscripción abierta
+      const { data: openEvent } = await supabase
+        .from('events')
+        .select('*')
+        .eq('registration_open', true)
+        .order('date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (openEvent) setInscriptionEvent(openEvent as Event);
       
       if (categoriesResponse.data) {
         const uniqueCategories = Array.from(new Set(categoriesResponse.data.map(r => r.category).filter(Boolean)));
@@ -228,22 +240,21 @@ export default function Home() {
                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
             </Link>
             
-            <button 
-              onClick={() => {
-                if (nextEvent) {
-                  setShowLiveResults(true);
-                } else {
-                  alert("No hay ningún evento activo o próximo disponible en este momento.");
-                }
-              }}
-              className="group relative inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-4 rounded-sm font-heading text-2xl uppercase tracking-widest transition-all backdrop-blur-md shadow-lg w-full sm:w-auto"
+          {liveEvent && (
+            <button
+              onClick={() => setShowLiveResults(true)}
+              className="group relative px-6 py-3 rounded-xl bg-[#1A1816] hover:bg-[#C64928] overflow-hidden transition-all duration-300"
             >
-              <span className="relative flex h-3 w-3 mr-1">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-              Tiempos en Vivo
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+              <div className="relative flex items-center justify-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                <span className="text-white font-bold tracking-widest text-[10px] uppercase">Tiempos en Vivo</span>
+              </div>
             </button>
+          )}
           </div>
         </div>
       </header>
@@ -385,32 +396,32 @@ export default function Home() {
         <div className="max-w-xl mx-auto">
             {/* ✅ AQUÍ ESTÁ EL CAMBIO CLAVE: href dinámico al evento o deshabilitado si no hay */}
             <Link 
-              href={nextEvent ? `/inscripcion/${nextEvent.id}` : '#'} 
-              className={`group relative block rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(198,73,40,0.4)] border-4 border-white/10 transition-all transform cursor-pointer ${nextEvent ? 'bg-[#C64928] hover:bg-[#D85A35] hover:border-white/30 hover:-translate-y-2 active:scale-95' : 'bg-gray-800 opacity-60 cursor-not-allowed'}`}
+              href={inscriptionEvent ? `/inscripcion/${inscriptionEvent.id}` : '#'} 
+              className={`group relative block rounded-3xl p-8 text-center shadow-[0_0_30px_rgba(198,73,40,0.4)] border-4 border-white/10 transition-all transform cursor-pointer ${inscriptionEvent ? 'bg-[#C64928] hover:bg-[#D85A35] hover:border-white/30 hover:-translate-y-2 active:scale-95' : 'bg-gray-800 opacity-60 cursor-not-allowed'}`}
             >
                 <div className="absolute top-4 right-4 flex items-center gap-2">
-                    {nextEvent && (
+                    {inscriptionEvent && (
                       <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
                       </span>
                     )}
                     <span className="text-white font-black text-[10px] uppercase tracking-widest drop-shadow-md">
-                      {nextEvent ? 'Abierto' : 'Cerrado'}
+                      {inscriptionEvent ? 'Abierto' : 'Cerrado'}
                     </span>
                 </div>
                 <h2 className="font-heading text-5xl md:text-6xl text-white uppercase italic leading-none mb-4 drop-shadow-xl group-hover:drop-shadow-2xl transition-all pt-4">
-                    {nextEvent ? 'INSCRÍBETE' : 'INSCRIPCIÓN'} <br/>
+                    {inscriptionEvent ? 'INSCRÍBETE' : 'INSCRIPCIÓN'} <br/>
                     <span className="text-black/20 group-hover:text-black/30 transition-colors">AQUÍ</span>
                 </h2>
                 <div className="bg-black/20 rounded-xl py-2 px-6 inline-block backdrop-blur-sm border border-white/10 group-hover:bg-black/30 transition-colors">
                   <p className="text-white font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-2">
-                    {nextEvent ? nextEvent.name : 'TEMPORADA 2026'} 
-                    {nextEvent && <span className="text-2xl transition-transform group-hover:translate-x-1">➔</span>}
+                    {inscriptionEvent ? inscriptionEvent.name : 'TEMPORADA 2026'} 
+                    {inscriptionEvent && <span className="text-2xl transition-transform group-hover:translate-x-1">➔</span>}
                   </p>
-                  {nextEvent && (
+                  {inscriptionEvent && (
                     <p className="text-white/80 text-[10px] font-bold uppercase mt-1">
-                       FECHA: {new Date(nextEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
+                       FECHA: {new Date(inscriptionEvent.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
                     </p>
                   )}
                 </div>
@@ -422,10 +433,10 @@ export default function Home() {
           <p className="font-heading text-2xl uppercase text-white tracking-widest">Chaski Riders 2026</p>
       </footer>
 
-      {nextEvent && (
+      {liveEvent && (
         <LiveResultsModal 
-          eventId={nextEvent.id} 
-          eventName={nextEvent.name} 
+          eventId={liveEvent.id} 
+          eventName={liveEvent.name} 
           isOpen={showLiveResults} 
           onClose={() => setShowLiveResults(false)} 
         />

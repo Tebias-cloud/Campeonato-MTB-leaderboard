@@ -1,0 +1,433 @@
+{
+  "groups": [
+    {
+      "canonical": "CLUB CAMANCHACA",
+      "aliases": [
+        {
+          "name": "CLUB CAMANCHACA + EVOLUTION TRI TEAM",
+          "tier": "B"
+        }
+      ]
+    },
+    {
+      "canonical": "TEAM DESERT RIDER",
+      "aliases": [
+        {
+          "name": "TEAM DESERT RIDER CALAMA",
+          "tier": "B"
+        }
+      ]
+    }
+  ],
+  "clubStats": {
+    "JALLALLA BIKE": {
+      "totalPoints": 1891,
+      "ridersCount": 14,
+      "eventsCount": 5
+    },
+    "TEAM CICLES IQUIQUE": {
+      "totalPoints": 160,
+      "ridersCount": 3,
+      "eventsCount": 2
+    },
+    "CLUB CAMANCHACA": {
+      "totalPoints": 1410,
+      "ridersCount": 14,
+      "eventsCount": 5
+    },
+    "CHASKI RIDERS": {
+      "totalPoints": 1366,
+      "ridersCount": 15,
+      "eventsCount": 5
+    },
+    "TEAM AURIC": {
+      "totalPoints": 50,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM DELFIN": {
+      "totalPoints": 211,
+      "ridersCount": 4,
+      "eventsCount": 5
+    },
+    "TEAM CYCLES FRANKLIN": {
+      "totalPoints": 3464,
+      "ridersCount": 24,
+      "eventsCount": 5
+    },
+    "TEAM CCR CALAMA": {
+      "totalPoints": 0,
+      "ridersCount": 2,
+      "eventsCount": 0
+    },
+    "TEAM EPIC BIKES": {
+      "totalPoints": 200,
+      "ridersCount": 1,
+      "eventsCount": 3
+    },
+    "BEIRAMAR": {
+      "totalPoints": 38,
+      "ridersCount": 1,
+      "eventsCount": 3
+    },
+    "RUGLO MTB": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "NORTH SPORT": {
+      "totalPoints": 167,
+      "ridersCount": 6,
+      "eventsCount": 2
+    },
+    "COBRALINCH MTB": {
+      "totalPoints": 732,
+      "ridersCount": 7,
+      "eventsCount": 5
+    },
+    "CLUB TMT": {
+      "totalPoints": 2059,
+      "ridersCount": 20,
+      "eventsCount": 5
+    },
+    "IQUIQUE BIKE": {
+      "totalPoints": 954,
+      "ridersCount": 10,
+      "eventsCount": 5
+    },
+    "DRAGONES DEL DESIERTO": {
+      "totalPoints": 510,
+      "ridersCount": 4,
+      "eventsCount": 5
+    },
+    "IKIKE TRI TEAM": {
+      "totalPoints": 80,
+      "ridersCount": 1,
+      "eventsCount": 3
+    },
+    "ZORROBIKE CALAMA": {
+      "totalPoints": 682,
+      "ridersCount": 9,
+      "eventsCount": 5
+    },
+    "CONDORES B&T": {
+      "totalPoints": 12,
+      "ridersCount": 3,
+      "eventsCount": 3
+    },
+    "INSERPRO COPIAPO": {
+      "totalPoints": 9,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "LOS INSOPORTABLES": {
+      "totalPoints": 359,
+      "ridersCount": 5,
+      "eventsCount": 5
+    },
+    "CARRERA&CAMPBELL": {
+      "totalPoints": 3,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM TARAPACA BIKE": {
+      "totalPoints": 8,
+      "ridersCount": 2,
+      "eventsCount": 1
+    },
+    "LOBOS MTB": {
+      "totalPoints": 186,
+      "ridersCount": 4,
+      "eventsCount": 2
+    },
+    "OLD RIDER'S": {
+      "totalPoints": 60,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "CLUB CENTER BIKE": {
+      "totalPoints": 40,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM420MTB": {
+      "totalPoints": 100,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM CORACEROS": {
+      "totalPoints": 470,
+      "ridersCount": 2,
+      "eventsCount": 5
+    },
+    "ARREBATADAS": {
+      "totalPoints": 40,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM DESERT RIDER": {
+      "totalPoints": 810,
+      "ridersCount": 7,
+      "eventsCount": 5
+    },
+    "TEAM MISTAG": {
+      "totalPoints": 72,
+      "ridersCount": 3,
+      "eventsCount": 2
+    },
+    "LOS TARROS BIKE": {
+      "totalPoints": 562,
+      "ridersCount": 5,
+      "eventsCount": 5
+    },
+    "PIRATA SOLITARIO": {
+      "totalPoints": 40,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "EVOLUTION TRI TEAM": {
+      "totalPoints": 160,
+      "ridersCount": 2,
+      "eventsCount": 2
+    },
+    "RMC": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "CLUB CAMANCHACA + EVOLUTION TRI TEAM": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "ENDURO MTB IQUIQUE": {
+      "totalPoints": 480,
+      "ridersCount": 2,
+      "eventsCount": 4
+    },
+    "CLUB TRS ARICA": {
+      "totalPoints": 326,
+      "ridersCount": 6,
+      "eventsCount": 3
+    },
+    "CLEANBIKE ANTOFAGASTA": {
+      "totalPoints": 60,
+      "ridersCount": 1,
+      "eventsCount": 2
+    },
+    "MTB ENDURO IQUIQUE": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "LOA RIDERS MTB": {
+      "totalPoints": 51,
+      "ridersCount": 2,
+      "eventsCount": 1
+    },
+    "XC SAN PEDRO DE ATACAMA": {
+      "totalPoints": 100,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "LA NAYA BIKE": {
+      "totalPoints": 140,
+      "ridersCount": 4,
+      "eventsCount": 1
+    },
+    "ARCA DE NOE": {
+      "totalPoints": 70,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TRI EVOLUTION": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "ABM ARICA BIKE MOUNT": {
+      "totalPoints": 90,
+      "ridersCount": 3,
+      "eventsCount": 2
+    },
+    "LOS MULAS": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM K2": {
+      "totalPoints": 99,
+      "ridersCount": 2,
+      "eventsCount": 2
+    },
+    "ABM": {
+      "totalPoints": 138,
+      "ridersCount": 2,
+      "eventsCount": 2
+    },
+    "TEAM MARRAQUETA": {
+      "totalPoints": 0,
+      "ridersCount": 2,
+      "eventsCount": 1
+    },
+    "PURIRIY - CALAMA": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "CICLO AVENTURA": {
+      "totalPoints": 180,
+      "ridersCount": 1,
+      "eventsCount": 2
+    },
+    "CHUSCA NORTE": {
+      "totalPoints": 11,
+      "ridersCount": 1,
+      "eventsCount": 2
+    },
+    "TEAM CCR": {
+      "totalPoints": 96,
+      "ridersCount": 2,
+      "eventsCount": 1
+    },
+    "TONKA EVENTOS MTB": {
+      "totalPoints": 80,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "DRAGON MTB TARAPACA": {
+      "totalPoints": 0,
+      "ridersCount": 1,
+      "eventsCount": 1
+    },
+    "TEAM DESERT RIDER CALAMA": {
+      "totalPoints": 160,
+      "ridersCount": 1,
+      "eventsCount": 2
+    }
+  },
+  "currentTop15": [
+    [
+      "CYCLES FRANKLIN",
+      3464
+    ],
+    [
+      "CLUB TMT",
+      2059
+    ],
+    [
+      "JALLALLA BIKE",
+      1891
+    ],
+    [
+      "CAMANCHACA",
+      1410
+    ],
+    [
+      "CHASKI RIDERS",
+      1366
+    ],
+    [
+      "IQUIQUE BIKE",
+      954
+    ],
+    [
+      "DESERT RIDER",
+      810
+    ],
+    [
+      "COBRALINCH MTB",
+      732
+    ],
+    [
+      "ZORROBIKE CALAMA",
+      682
+    ],
+    [
+      "LOS TARROS BIKE",
+      562
+    ],
+    [
+      "DRAGONES DEL DESIERTO",
+      510
+    ],
+    [
+      "ENDURO MTB IQUIQUE",
+      480
+    ],
+    [
+      "CORACEROS",
+      470
+    ],
+    [
+      "LOS INSOPORTABLES",
+      359
+    ],
+    [
+      "TRS ARICA",
+      326
+    ]
+  ],
+  "simulatedTop15": [
+    [
+      "CYCLES FRANKLIN",
+      3464
+    ],
+    [
+      "CLUB TMT",
+      2059
+    ],
+    [
+      "JALLALLA BIKE",
+      1891
+    ],
+    [
+      "CAMANCHACA",
+      1410
+    ],
+    [
+      "CHASKI RIDERS",
+      1366
+    ],
+    [
+      "IQUIQUE BIKE",
+      954
+    ],
+    [
+      "DESERT RIDER",
+      810
+    ],
+    [
+      "COBRALINCH MTB",
+      732
+    ],
+    [
+      "ZORROBIKE CALAMA",
+      682
+    ],
+    [
+      "LOS TARROS BIKE",
+      562
+    ],
+    [
+      "DRAGONES DEL DESIERTO",
+      510
+    ],
+    [
+      "ENDURO MTB IQUIQUE",
+      480
+    ],
+    [
+      "CORACEROS",
+      470
+    ],
+    [
+      "LOS INSOPORTABLES",
+      359
+    ],
+    [
+      "TRS ARICA",
+      326
+    ]
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "c1_counts": {
+    "riders": 0,
+    "eventRiders": 5
+  },
+  "c2_counts": {
+    "riders": 1,
+    "eventRiders": 2
+  },
+  "overlapCount": 1,
+  "overlapNames": [
+    "RODRIGO CHAVEZ CHAVEZ PAREDES"
+  ],
+  "c2_ebike_events": 2,
+  "c2_events": [
+    "e1c70c32-505b-4f75-909b-75f7e5591e34",
+    "a85d1a53-114a-4616-a54e-c5cc765ec39c"
+  ],
+  "c1_events": [
+    "08927adb-29eb-41bc-9376-478ad41a40bc",
+    "2649e7c5-3479-4362-a35a-33aa060976cc",
+    "2649e7c5-3479-4362-a35a-33aa060976cc",
+    "08927adb-29eb-41bc-9376-478ad41a40bc",
+    "e1c70c32-505b-4f75-909b-75f7e5591e34"
+  ],
+  "franklin_check": {
+    "riders_old": 0,
+    "riders_new": 20,
+    "er_old": 0
+  },
+  "fecha5_status": "completed"
+}

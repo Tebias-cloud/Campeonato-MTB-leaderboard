@@ -40,7 +40,8 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
     bank_account_type: '',
     bank_account_number: '',
     terms_conditions: '',
-    payment_contact: ''
+    payment_contact: '',
+    registration_open: false
   });
 
   const [loading, setLoading] = useState(!isNew);
@@ -79,7 +80,8 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
             bank_account_type: bankParts[0] || '',
             bank_account_number: bankParts[1] || '',
             terms_conditions: data.terms_conditions || '',
-            payment_contact: paymentContact
+            payment_contact: paymentContact,
+            registration_open: data.registration_open || false
           });
         }
         setLoading(false);
@@ -189,6 +191,21 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                             <input type="hidden" name="status" value={formData.status} />
                           </div>
                         </div>
+                      </div>
+
+                      <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left mt-4 flex items-center justify-between">
+                        <div>
+                          <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Inscripciones abiertas</label>
+                          <p className="text-xs text-slate-500">Permite a los corredores inscribirse públicamente</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, registration_open: !prev.registration_open }))}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.registration_open ? 'bg-green-500' : 'bg-slate-600'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.registration_open ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        <input type="hidden" name="registration_open" value={formData.registration_open.toString()} />
                       </div>
                   </div>
               </div>

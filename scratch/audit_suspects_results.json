@@ -1,0 +1,207 @@
+{
+  "%VICTOR%VENEGAS%": [
+    {
+      "rider": {
+        "id": "e3ffce11-e842-4f11-a7e1-c04db89061d5",
+        "created_at": "2026-04-26T23:06:58.344432+00:00",
+        "full_name": "VICTOR HUGO VENEGAS SOTO",
+        "ciudad": "IQUIQUE",
+        "birth_date": "1984-08-10",
+        "category": "Novicios Varones",
+        "club": "CHASKI RIDERS",
+        "instagram": null,
+        "rut": "15934478-9",
+        "email": "vyvvenegas@gmail.com",
+        "phone": "+56 9 3297 0038"
+      },
+      "results": [
+        {
+          "id": "c31b1bbe-a912-4e49-927d-a8f8aaa7a643",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "e3ffce11-e842-4f11-a7e1-c04db89061d5",
+          "category_played": "Novicios Varones",
+          "position": 17,
+          "points": 3,
+          "created_at": "2026-05-06T07:05:51.454937+00:00",
+          "race_time": "1:28:28",
+          "avg_speed": null
+        }
+      ],
+      "event_riders": [
+        {
+          "id": "ec790bf2-0b1f-45f6-a01b-c6c9aa92a42a",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "e3ffce11-e842-4f11-a7e1-c04db89061d5",
+          "dorsal": 48,
+          "category_at_event": "Novicios Varones",
+          "club_at_event": "CHASKI RIDERS",
+          "created_at": "2026-04-26T23:06:58.502895+00:00"
+        }
+      ]
+    }
+  ],
+  "%EMILY%KEITH%": [
+    {
+      "rider": {
+        "id": "e3c24de3-ed1d-47b7-8842-2ffd13d954e2",
+        "created_at": "2026-04-26T21:08:23.326693+00:00",
+        "full_name": "EMILY KEITH",
+        "ciudad": "IQUIQUE",
+        "birth_date": "1990-08-10",
+        "category": "Novicias Damas",
+        "club": "CHASKI RIDERS",
+        "instagram": "Emiily_keith",
+        "rut": "17557015-2",
+        "email": "pamelikeith@outlook.com",
+        "phone": "+56 9 7926 9623"
+      },
+      "results": [
+        {
+          "id": "4e0b384c-c563-4452-b7f1-d3f01b331d0a",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "e3c24de3-ed1d-47b7-8842-2ffd13d954e2",
+          "category_played": "Novicias Damas",
+          "position": 4,
+          "points": 70,
+          "created_at": "2026-05-06T07:06:02.667489+00:00",
+          "race_time": "1:28:31",
+          "avg_speed": null
+        }
+      ],
+      "event_riders": [
+        {
+          "id": "8033fb1e-0a37-43e8-8cf4-c99dd0906be9",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "e3c24de3-ed1d-47b7-8842-2ffd13d954e2",
+          "dorsal": 52,
+          "category_at_event": "Novicias Damas",
+          "club_at_event": "CHASKI RIDERS",
+          "created_at": "2026-04-26T21:08:23.473052+00:00"
+        }
+      ]
+    }
+  ],
+  "%DIEGO%BISKUPOVIC%": [
+    {
+      "rider": {
+        "id": "5ff4b044-ea7a-4f25-b0a1-55b7c06f6e9e",
+        "created_at": "2026-04-26T20:58:28.905125+00:00",
+        "full_name": "DIEGO BISKUPOVIC",
+        "ciudad": "ANTOFAGASTA",
+        "birth_date": "1990-09-10",
+        "category": "Elite",
+        "club": "CLEANBIKE ANTOFAGASTA",
+        "instagram": null,
+        "rut": "17488026-3",
+        "email": "diego_ejercitodechile@hotmail.com",
+        "phone": "+56 9 5699 5988"
+      },
+      "results": [
+        {
+          "id": "a3173572-2e6c-4900-b4b5-7f2ab243831c",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "5ff4b044-ea7a-4f25-b0a1-55b7c06f6e9e",
+          "category_played": "Master A",
+          "position": 5,
+          "points": 60,
+          "created_at": "2026-05-06T07:05:16.513625+00:00",
+          "race_time": "1:12:54",
+          "avg_speed": null
+        }
+      ],
+      "event_riders": [
+        {
+          "id": "6f8a3eb9-2438-4eb1-bad5-5976782edfe2",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "5ff4b044-ea7a-4f25-b0a1-55b7c06f6e9e",
+          "dorsal": 4,
+          "category_at_event": "Master A",
+          "club_at_event": "CLEANBIKE ANTOFAGASTA",
+          "created_at": "2026-04-26T20:58:29.034115+00:00"
+        }
+      ]
+    }
+  ],
+  "%GEOVANNY%PIZARRO%": [
+    {
+      "rider": {
+        "id": "7ddea4b6-09d9-497f-931d-af622f3259d9",
+        "created_at": "2026-04-02T18:13:26.174088+00:00",
+        "full_name": "GEOVANNY STEFANO PIZARRO CASTILLO",
+        "ciudad": "IQUIQUE",
+        "birth_date": "1986-04-18",
+        "category": "Master A",
+        "club": "CHASKI RIDERS",
+        "instagram": "Geovanny.stefano",
+        "rut": "16081997-9",
+        "email": "geovanny.pizarro@gmail.com",
+        "phone": "+56 9 7666 6098"
+      },
+      "results": [
+        {
+          "id": "0016cc37-c1d0-4283-b103-9cafaca2c1de",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "7ddea4b6-09d9-497f-931d-af622f3259d9",
+          "category_played": "Master A",
+          "position": 5,
+          "points": 60,
+          "created_at": "2026-05-05T21:43:51.359528+00:00",
+          "race_time": "59:27",
+          "avg_speed": null
+        }
+      ],
+      "event_riders": [
+        {
+          "id": "1c1c0cac-e5ce-4be8-ae67-c89245085667",
+          "event_id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+          "rider_id": "7ddea4b6-09d9-497f-931d-af622f3259d9",
+          "dorsal": 74,
+          "category_at_event": "Master A",
+          "club_at_event": "CHASKI RIDERS",
+          "created_at": "2026-04-26T22:45:40.421273+00:00"
+        }
+      ]
+    }
+  ],
+  "%LETY%LOVERA%": [
+    {
+      "rider": {
+        "id": "0fbcca51-b21b-4e55-89a3-06f0576693d6",
+        "created_at": "2026-04-02T01:18:53.332145+00:00",
+        "full_name": "LETY LOVERA MENACHO",
+        "ciudad": "IQUIQUE",
+        "birth_date": "1981-10-31",
+        "category": "Novicias Damas",
+        "club": "IQUIQUE BIKE",
+        "instagram": "Lety.zambrano.18",
+        "rut": "27451522-8",
+        "email": "lucialoveramenacho@gmail.com",
+        "phone": "+56 9 8639 6461"
+      },
+      "results": [
+        {
+          "id": "061b421e-5529-412b-ab26-6a79a59b47c6",
+          "event_id": "2649e7c5-3479-4362-a35a-33aa060976cc",
+          "rider_id": "0fbcca51-b21b-4e55-89a3-06f0576693d6",
+          "category_played": "Novicias Damas",
+          "position": 2,
+          "points": 90,
+          "created_at": "2026-06-07T02:01:37.837614+00:00",
+          "race_time": "1:16:45",
+          "avg_speed": null
+        }
+      ],
+      "event_riders": [
+        {
+          "id": "2eb93ea1-5a9f-46da-a571-9c1b64573be5",
+          "event_id": "2649e7c5-3479-4362-a35a-33aa060976cc",
+          "rider_id": "0fbcca51-b21b-4e55-89a3-06f0576693d6",
+          "dorsal": 30,
+          "category_at_event": "Novicias Damas",
+          "club_at_event": "INDEPENDIENTE / LIBRE",
+          "created_at": "2026-06-04T18:39:13.049043+00:00"
+        }
+      ]
+    }
+  ]
+}

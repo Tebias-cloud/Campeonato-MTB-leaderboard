@@ -1,0 +1,79 @@
+{
+  "discrepancies": {
+    "fecha1.pdf": {
+      "parsedCount": 0,
+      "dbCount": 96,
+      "issuesCount": 0,
+      "issues": []
+    },
+    "fecha2.pdf": {
+      "parsedCount": 0,
+      "dbCount": 119,
+      "issuesCount": 0,
+      "issues": []
+    },
+    "fecha3.pdf": {
+      "parsedCount": 0,
+      "dbCount": 96,
+      "issuesCount": 0,
+      "issues": []
+    },
+    "fecha4 (xls)": {
+      "parsedCount": 141,
+      "dbCount": 141,
+      "issuesCount": 126,
+      "issues": [
+        "Position mismatch for MARIANO JUNCO: parsed=4, db=1",
+        "Position mismatch for JUAN IGNACIO ABRAHAM LEIVA GARCÍA: parsed=5, db=1",
+        "Position mismatch for RODRIGO CHAVEZ: parsed=6, db=4",
+        "Position mismatch for HANS SILVA: parsed=7, db=2",
+        "Position mismatch for ALEJANDRO VERGARA CARVAJAL: parsed=8, db=3",
+        "Position mismatch for MARCO ANTONIO LIMARÍ PALMA: parsed=9, db=1",
+        "Position mismatch for ALBERT JAVIER CAROCA ROBLES: parsed=10, db=2",
+        "Position mismatch for ARIEL LILLO VALDIVIA: parsed=11, db=1",
+        "Position mismatch for DANIELA CARRERA ALVARADO: parsed=12, db=4",
+        "Position mismatch for CHRISTIAN MENESES: parsed=13, db=5",
+        "Position mismatch for JOSE MANUEL CASILLA MUÑOZ: parsed=14, db=2",
+        "Position mismatch for VICTOR SEPULVEDA: parsed=15, db=1",
+        "Position mismatch for PATRICIO ADELMO CELTI TAMBLAY: parsed=16, db=3",
+        "Position mismatch for ALEJANDRO MANUEL ROJAS: parsed=17, db=4",
+        "Position mismatch for GONZALO JOSÉ SÁEZ CALLEJAS: parsed=18, db=5",
+        "Position mismatch for ALEJANDRO OLIVARES: parsed=19, db=6",
+        "Position mismatch for KIEFER PAEZ ARRIAZA: parsed=20, db=3",
+        "Position mismatch for JUAN SEBASTIÁN SCHAFER URZUA: parsed=21, db=7",
+        "Position mismatch for LUIS ALEJANDRO ROJAS CARVAJAL: parsed=22, db=4",
+        "Position mismatch for RAFAEL CORTEZ: parsed=23, db=5",
+        "Position mismatch for ALVARO CORTES: parsed=24, db=1",
+        "Position mismatch for FRANCISCO LACOSTE LOPEZ: parsed=25, db=2",
+        "Position mismatch for ANGEL PATRICIO HINOJOSA URRUTIA: parsed=26, db=8",
+        "Position mismatch for RODRIGO MARCHESSI: parsed=27, db=3",
+        "Position mismatch for JURGEN RENE ESPADA: parsed=28, db=6",
+        "Position mismatch for CONSTANZA PAREDES MARTÍNEZ: parsed=29, db=1",
+        "Position mismatch for MAURICIO GUTIÉRREZ: parsed=30, db=9",
+        "Position mismatch for CRISTIAN GONZÁLEZ: parsed=31, db=6",
+        "Position mismatch for JUAN AINOL MANSILLA: parsed=32, db=1",
+        "Position mismatch for JAIRO MORENO: parsed=33, db=1",
+        "Position mismatch for TEO RAMIREZ LAY: parsed=34, db=10",
+        "Position mismatch for MAURICIO ANDRES FLORES BAHAMONDES: parsed=35, db=11",
+        "Position mismatch for EDGAR ARAVENA VARGAS: parsed=36, db=12",
+        "Position mismatch for VICTOR VERGARA CARVAJAL: parsed=37, db=13",
+        "Position mismatch for ALEX RUBILAR HERRERA: parsed=38, db=14",
+        "Position mismatch for MARIO GONZÁLEZ REYES: parsed=39, db=7",
+        "Position mismatch for HUGO VIVANCO: parsed=40, db=15",
+        "Position mismatch for LEANDRO CIFUENTES RIFFO: parsed=41, db=16",
+        "Position mismatch for LUCIANO HIDALGO: parsed=42, db=8",
+        "Position mismatch for JORGE CHAMORRO: parsed=43, db=17",
+        "Position mismatch for JOSE JAVIER BETANZO FAUNDEZ: parsed=44, db=18",
+        "Position mismatch for RODRIGO MOREY ZEPEDA: parsed=45, db=19",
+        "Position mismatch for JAVIER BARCINA ARGANDOÑA: parsed=46, db=4",
+        "Position mismatch for FRANCISCO ANDRES ITURRA PALMA: parsed=47, db=9",
+        "Position mismatch for JOSE CABELLO ALVAREZ: parsed=48, db=20",
+        "Position mismatch for JORGE RAMIREZ: parsed=49, db=2",
+        "Position mismatch for PERCY ROJAS ROJAS: parsed=50, db=21",
+        "Position mismatch for ENRIQUE GALLEGUILLOS: parsed=51, db=22",
+        "Position mismatch for MARCELO SUAZO: parsed=52, db=23",
+        "Position mismatch for ANDREA RAMIREZ: parsed=53, db=2"
+      ]
+    }
+  }
+}

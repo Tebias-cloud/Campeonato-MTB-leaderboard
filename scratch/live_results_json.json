@@ -1,0 +1,1448 @@
+[
+  {
+    "id": "04772623-90d4-4bc7-b98f-6f4f79386330",
+    "name": "1ª Fecha - Team Franklin",
+    "live_results_json": []
+  },
+  {
+    "id": "a85d1a53-114a-4616-a54e-c5cc765ec39c",
+    "name": "5ª Fecha - Los Cóndores",
+    "live_results_json": [
+      {
+        "id": "a7ef41c1-3609-48dc-b92a-338d27c113a8-17886807092680.25577070237271793",
+        "club": "CLUB CAMANCHACA + EVOLUTION TRI TEAM",
+        "dorsal": 144,
+        "position": 1,
+        "rider_id": "a7ef41c1-3609-48dc-b92a-338d27c113a8",
+        "race_time": "2:16:57.96",
+        "rider_name": "MICHEL REBELLADO URZUA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "36833472-0225-4667-985b-9739e6b7ef5e-17886807092680.43164566331474696",
+        "club": "TEAM K2",
+        "dorsal": 134,
+        "position": 2,
+        "rider_id": "36833472-0225-4667-985b-9739e6b7ef5e",
+        "race_time": "2:35:59.12",
+        "rider_name": "EDDY VARGAS",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "f32537a6-9175-4dbf-bb84-f6ef58f26bdd-17886807092690.01576559475924222",
+        "club": "CLUB TMT",
+        "dorsal": 150,
+        "position": 3,
+        "rider_id": "f32537a6-9175-4dbf-bb84-f6ef58f26bdd",
+        "race_time": "2:43:09.32",
+        "rider_name": "SANTIAGO MARTÍNEZ",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "fc9f469c-bfe3-4be3-a38b-ee51eeef04ce-17886807092690.3250898566908791",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 142,
+        "position": 4,
+        "rider_id": "fc9f469c-bfe3-4be3-a38b-ee51eeef04ce",
+        "race_time": "2:45:16.24",
+        "rider_name": "LEONARDO ANTONIO MARTINEZ GONZÁLEZ",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "cc03e2fa-7c14-4a57-b720-70fb2c8de2f4-17886807092690.5771763272772713",
+        "club": "COBRALINCH MTB",
+        "dorsal": 132,
+        "position": 5,
+        "rider_id": "cc03e2fa-7c14-4a57-b720-70fb2c8de2f4",
+        "race_time": "2:47:21.73",
+        "rider_name": "CRISTOPHER ALEXANDER LETELIER OLIVARES",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "ef15aeb6-f345-4d2d-a84a-115f78422736-17886807092700.12757937795810081",
+        "club": "LOS INSOPORTABLES",
+        "dorsal": 136,
+        "position": 6,
+        "rider_id": "ef15aeb6-f345-4d2d-a84a-115f78422736",
+        "race_time": "2:51:48.65",
+        "rider_name": "FABIÁN ANDRÉS LÓPEZ COLOMA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "b1216231-d7b9-406d-9a9e-7846a1628902-17886807092710.5849340753558812",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 138,
+        "position": 7,
+        "rider_id": "b1216231-d7b9-406d-9a9e-7846a1628902",
+        "race_time": "2:54:10.54",
+        "rider_name": "JOAQUIN IGNACIO MONSÁLVEZ RONDAN",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "0ec5a461-4d12-4200-9bac-c1b900a111e9-17886807092720.06684342872204818",
+        "club": "CLUB TMT",
+        "dorsal": 148,
+        "position": 8,
+        "rider_id": "0ec5a461-4d12-4200-9bac-c1b900a111e9",
+        "race_time": "2:58:24.55",
+        "rider_name": "RODRIGO ANTONIO CAYO BUSTAMANTE",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "af40e9f1-5340-45d3-9f36-b5787b1ae4c9-17886807092720.8959136324445532",
+        "club": "TEAM DELFIN",
+        "dorsal": 145,
+        "position": 9,
+        "rider_id": "af40e9f1-5340-45d3-9f36-b5787b1ae4c9",
+        "race_time": "3:03:34.65",
+        "rider_name": "ORLANDO SANDOVAL",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "36c2bc25-5984-4fc8-a54e-fbe2ee4be9e3-17886807092720.2432612076584042",
+        "club": "LOS INSOPORTABLES",
+        "dorsal": 140,
+        "position": 10,
+        "rider_id": "36c2bc25-5984-4fc8-a54e-fbe2ee4be9e3",
+        "race_time": "3:04:34.02",
+        "rider_name": "JUAN DAVID LAURA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "5bf0c670-a770-44a9-8acf-23027a8e6882-17886807092720.5844484182550094",
+        "club": "LOS INSOPORTABLES",
+        "dorsal": 139,
+        "position": 11,
+        "rider_id": "5bf0c670-a770-44a9-8acf-23027a8e6882",
+        "race_time": "3:13:33.49",
+        "rider_name": "JUAN ANTONIO DUQUE DUQUE",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "d4a204ee-bab1-49b6-8221-d20ba9c14859-17886807092730.23798940457493312",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 151,
+        "position": 12,
+        "rider_id": "d4a204ee-bab1-49b6-8221-d20ba9c14859",
+        "race_time": "3:15:27.95",
+        "rider_name": "VÍCTOR MANUEL RIVERA NARANJO",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "66269fe3-0075-4740-9b06-73832b63b55e-17886807092730.4555719914010473",
+        "club": "IQUIQUE BIKE",
+        "dorsal": 122,
+        "position": 13,
+        "rider_id": "66269fe3-0075-4740-9b06-73832b63b55e",
+        "race_time": "3:18:27.40",
+        "rider_name": "CLAUDIA VEGA MANNS",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "549bd074-4482-463d-9934-0e1ecd3b8da1-17886807092740.054607106150579066",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 125,
+        "position": 14,
+        "rider_id": "549bd074-4482-463d-9934-0e1ecd3b8da1",
+        "race_time": "3:26:07.74",
+        "rider_name": "KATTY ALEJANDRA MENESES BASAEZ",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "d4eab9de-d9cd-4876-8864-41c3009f700a-17886807092740.7006870725128471",
+        "club": "CONDORES B&T",
+        "dorsal": 131,
+        "position": 15,
+        "rider_id": "d4eab9de-d9cd-4876-8864-41c3009f700a",
+        "race_time": "3:27:24.41",
+        "rider_name": "CRISTIAN MARCELO ZAMBRA WELLS",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "a746d2f1-eb2e-4d86-ab66-5ef01c7f270b-17886807092740.5034145983641244",
+        "club": "CLUB TMT",
+        "dorsal": 152,
+        "position": 16,
+        "rider_id": "a746d2f1-eb2e-4d86-ab66-5ef01c7f270b",
+        "race_time": "3:38:27.26",
+        "rider_name": "WILLIAM IGNACIO VALDEBENITO BARRA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "fa99f25b-871b-4768-9471-03b1178548ad-17886807092750.4869020272349095",
+        "club": "CONDORES B&T",
+        "dorsal": 129,
+        "position": 17,
+        "rider_id": "fa99f25b-871b-4768-9471-03b1178548ad",
+        "race_time": "3:38:40.36",
+        "rider_name": "CARLOS R CABELLO REYES",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "a5f1fbd8-87bb-4b1e-a295-c16a7829fc1b-17886807092750.242443118722237",
+        "club": "IQUIQUE BIKE",
+        "dorsal": 149,
+        "position": 18,
+        "rider_id": "a5f1fbd8-87bb-4b1e-a295-c16a7829fc1b",
+        "race_time": "3:41:02.58",
+        "rider_name": "RODRIGO DIAZ MOYA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "593b49fe-6135-4fd2-9890-df24a0616186-17886807092750.014175896886392314",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 135,
+        "position": 19,
+        "rider_id": "593b49fe-6135-4fd2-9890-df24a0616186",
+        "race_time": "3:48:18.75",
+        "rider_name": "ELVIS QUECHUYANTE",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "0fbcca51-b21b-4e55-89a3-06f0576693d6-17886807092750.547969119606037",
+        "club": "IQUIQUE BIKE",
+        "dorsal": 126,
+        "position": 20,
+        "rider_id": "0fbcca51-b21b-4e55-89a3-06f0576693d6",
+        "race_time": "3:54:13.90",
+        "rider_name": "LETY LOVERA",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "8d9ce126-b898-4991-bbd6-5f1e86038a8c-17886807092760.5774698853466841",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 123,
+        "position": 21,
+        "rider_id": "8d9ce126-b898-4991-bbd6-5f1e86038a8c",
+        "race_time": "4:03:20.57",
+        "rider_name": "IVANNA MARGARUCCI",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "96f11aa4-86ce-41c5-b2b5-8a23817e9524-17886807092760.6702699216913791",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 128,
+        "position": 22,
+        "rider_id": "96f11aa4-86ce-41c5-b2b5-8a23817e9524",
+        "race_time": "4:12:04.07",
+        "rider_name": "ROXANA SALAS",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "5a6416a1-3334-4d16-aca4-b74e0e14389a-17886807092760.5927824103995177",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 143,
+        "position": 23,
+        "rider_id": "5a6416a1-3334-4d16-aca4-b74e0e14389a",
+        "race_time": "4:17:12.54",
+        "rider_name": "MATIAS VICENTELO",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "05c45b91-46bd-4c27-94a3-761e25070b0e-17886807092760.5511250126445347",
+        "club": "DRAGONES DEL DESIERTO",
+        "dorsal": 137,
+        "position": 24,
+        "rider_id": "05c45b91-46bd-4c27-94a3-761e25070b0e",
+        "race_time": "4:25:19.00",
+        "rider_name": "JAROD GUILLERMO ALIAGA CONTRERA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "aeb9f5e0-add6-4f06-ac4f-896b5a1622ae-17886807092760.4687238213862639",
+        "club": "TEAM AURIC",
+        "dorsal": 124,
+        "position": 25,
+        "rider_id": "aeb9f5e0-add6-4f06-ac4f-896b5a1622ae",
+        "race_time": "4:25:50.33",
+        "rider_name": "KAREN ANDREA",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "9d717b02-c4dc-4e0a-856b-59c9caf5f876-17886807092770.22752708159605595",
+        "club": "LOBOS MTB",
+        "dorsal": 146,
+        "position": 26,
+        "rider_id": "9d717b02-c4dc-4e0a-856b-59c9caf5f876",
+        "race_time": "4:39:05.11",
+        "rider_name": "PATRICIO HERRERA SEPÚLVEDA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "a4552acd-c794-4598-8907-134fa822a5ef-17886807092770.40783402214454034",
+        "club": "COBRALINCH MTB",
+        "dorsal": 147,
+        "position": 27,
+        "rider_id": "a4552acd-c794-4598-8907-134fa822a5ef",
+        "race_time": "5:19:07.82",
+        "rider_name": "RICARDO ANTONIO LETELIER VIVES",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "400f4ec7-2354-429c-b7a4-effbfa7e47b9-17886807092780.6223809553206501",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 127,
+        "position": 28,
+        "rider_id": "400f4ec7-2354-429c-b7a4-effbfa7e47b9",
+        "race_time": "5:27:49.59",
+        "rider_name": "MARIA JOSÉ ROBLERO GONZALEZ",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "8ba6e33d-fc77-4cb7-903d-d92b65353cdc-17886807092780.48323653546142875",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 121,
+        "position": 29,
+        "rider_id": "8ba6e33d-fc77-4cb7-903d-d92b65353cdc",
+        "race_time": "5:27:53.64",
+        "rider_name": "ALESSANDRA SEPÚLVEDA",
+        "category_played": "Novicias Damas"
+      },
+      {
+        "id": "265607b7-3052-454c-aa06-049b581ad486-17886807092780.03517457521282197",
+        "club": "TEAM CICLES IQUIQUE",
+        "dorsal": 110,
+        "position": 1,
+        "rider_id": "265607b7-3052-454c-aa06-049b581ad486",
+        "race_time": "1:26:12.31",
+        "rider_name": "CRISTIAN GUZMAN",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "90cdce94-11ab-4b71-a20a-f42e8f888477-17886807092780.6222089869296892",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 113,
+        "position": 2,
+        "rider_id": "90cdce94-11ab-4b71-a20a-f42e8f888477",
+        "race_time": "1:59:32.30",
+        "rider_name": "RODRIGO MORALES",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "e762ebc9-878e-4a44-bb4c-23337a237b59-17886807092790.8715751923288989",
+        "club": "MTB ENDURO IQUIQUE",
+        "dorsal": 109,
+        "position": 3,
+        "rider_id": "e762ebc9-878e-4a44-bb4c-23337a237b59",
+        "race_time": "1:59:45.34",
+        "rider_name": "ALEX LEIVA",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "78f416ac-022e-4e6a-aae4-44dccde59343-17886807092790.721767684413217",
+        "club": "TEAM EPIC BIKES",
+        "dorsal": 20,
+        "position": 4,
+        "rider_id": "78f416ac-022e-4e6a-aae4-44dccde59343",
+        "race_time": "2:00:54.91",
+        "rider_name": "MARIANO JUNCO",
+        "category_played": "Master A"
+      },
+      {
+        "id": "61e4485a-c59e-435e-b694-bd266cba8ace-17886807092790.46929098069712816",
+        "club": "XC SAN PEDRO DE ATACAMA",
+        "dorsal": 7,
+        "position": 5,
+        "rider_id": "61e4485a-c59e-435e-b694-bd266cba8ace",
+        "race_time": "2:02:49.00",
+        "rider_name": "JUAN IGNACIO ABRAHAM LEIVA GARCÍA",
+        "category_played": "Elite"
+      },
+      {
+        "id": "4b406985-20e8-4f3c-b331-b9efe6914566-17886807092790.9503204245746802",
+        "club": "ENDURO MTB IQUIQUE",
+        "dorsal": 112,
+        "position": 6,
+        "rider_id": "4b406985-20e8-4f3c-b331-b9efe6914566",
+        "race_time": "2:04:09.46",
+        "rider_name": "RODRIGO CHAVEZ",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "7303f2f8-73c9-4a86-9610-3432f3a0ee2b-17886807092790.6340505969711531",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 6,
+        "position": 7,
+        "rider_id": "7303f2f8-73c9-4a86-9610-3432f3a0ee2b",
+        "race_time": "2:04:10.11",
+        "rider_name": "HANS SILVA",
+        "category_played": "Elite"
+      },
+      {
+        "id": "e13dba59-5765-4f3d-a774-be1500bced9d-17886807092790.4185254356499969",
+        "club": "TEAM DESERT RIDER",
+        "dorsal": 2,
+        "position": 8,
+        "rider_id": "e13dba59-5765-4f3d-a774-be1500bced9d",
+        "race_time": "2:05:47.25",
+        "rider_name": "ALEJANDRO VERGARA CARVAJAL",
+        "category_played": "Elite"
+      },
+      {
+        "id": "bad5c5b6-8716-4e20-ac26-3c4747a9fad7-17886807092800.8196325180516977",
+        "club": "JALLALLA BIKE",
+        "dorsal": 57,
+        "position": 9,
+        "rider_id": "bad5c5b6-8716-4e20-ac26-3c4747a9fad7",
+        "race_time": "2:09:50.11",
+        "rider_name": "MARCO ANTONIO LIMARÍ PALMA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "4dc81830-6b6a-4b15-bd91-bf571daf2f76-17886807092800.47368241882731266",
+        "club": "JALLALLA BIKE",
+        "dorsal": 9,
+        "position": 10,
+        "rider_id": "4dc81830-6b6a-4b15-bd91-bf571daf2f76",
+        "race_time": "2:11:15.45",
+        "rider_name": "ALBERT JAVIER CAROCA ROBLES",
+        "category_played": "Master A"
+      },
+      {
+        "id": "190d5f93-aade-4a6f-9b18-bbe8ee5ec7c7-17886807092800.834203321825378",
+        "club": "TEAM CORACEROS",
+        "dorsal": 68,
+        "position": 11,
+        "rider_id": "190d5f93-aade-4a6f-9b18-bbe8ee5ec7c7",
+        "race_time": "2:12:45.85",
+        "rider_name": "ARIEL LILLO VALDIVIA",
+        "category_played": "Master C"
+      },
+      {
+        "id": "834a958f-831a-4ee9-978f-94ae814a20bb-17886807092800.4864467518501929",
+        "club": "JALLALLA BIKE",
+        "dorsal": 1,
+        "position": 12,
+        "rider_id": "834a958f-831a-4ee9-978f-94ae814a20bb",
+        "race_time": "2:14:14.97",
+        "rider_name": "DANIELA CARRERA ALVARADO",
+        "category_played": "Elite"
+      },
+      {
+        "id": "317e27cd-5796-475a-8032-9e4291984f5f-17886807092800.8093077790626467",
+        "club": "CHASKI RIDERS",
+        "dorsal": 4,
+        "position": 13,
+        "rider_id": "317e27cd-5796-475a-8032-9e4291984f5f",
+        "race_time": "2:15:28.04",
+        "rider_name": "CHRISTIAN MENESES",
+        "category_played": "Elite"
+      },
+      {
+        "id": "a0a25334-49bc-44f6-bd6e-a6af22c7f5fd-17886807092810.468022113402892",
+        "club": "ABM ARICA BIKE MOUNT",
+        "dorsal": 50,
+        "position": 14,
+        "rider_id": "a0a25334-49bc-44f6-bd6e-a6af22c7f5fd",
+        "race_time": "2:16:53.02",
+        "rider_name": "JOSE MANUEL CASILLA MUÑOZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "9baf0c7d-8477-474d-abf8-36935d91fffa-17886807092810.010799236028754655",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 153,
+        "position": 15,
+        "rider_id": "9baf0c7d-8477-474d-abf8-36935d91fffa",
+        "race_time": "2:21:36.13",
+        "rider_name": "VICTOR SEPULVEDA",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "eb64088e-a3b6-4105-9b11-47614973ecac-17886807092810.46637176713347384",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 61,
+        "position": 16,
+        "rider_id": "eb64088e-a3b6-4105-9b11-47614973ecac",
+        "race_time": "2:21:44.82",
+        "rider_name": "PATRICIO ADELMO CELTI TAMBLAY",
+        "category_played": "Master B"
+      },
+      {
+        "id": "b2ce6b10-2b4e-4423-ae3e-5a0e156c98c1-17886807092820.014286516745052658",
+        "club": "ABM ARICA BIKE MOUNT",
+        "dorsal": 26,
+        "position": 17,
+        "rider_id": "b2ce6b10-2b4e-4423-ae3e-5a0e156c98c1",
+        "race_time": "2:21:45.30",
+        "rider_name": "ALEJANDRO MANUEL ROJAS",
+        "category_played": "Master B"
+      },
+      {
+        "id": "76d5aadd-b166-46ce-8620-0d2e92272d8a-17886807092820.608482245146953",
+        "club": "CLUB TRS ARICA",
+        "dorsal": 40,
+        "position": 18,
+        "rider_id": "76d5aadd-b166-46ce-8620-0d2e92272d8a",
+        "race_time": "2:21:45.31",
+        "rider_name": "GONZALO JOSÉ SÁEZ CALLEJAS",
+        "category_played": "Master B"
+      },
+      {
+        "id": "edb06c39-799a-4b70-bb8b-d12c5fa462f9-17886807092820.5750426921699109",
+        "club": "LOA RIDERS MTB",
+        "dorsal": 27,
+        "position": 19,
+        "rider_id": "edb06c39-799a-4b70-bb8b-d12c5fa462f9",
+        "race_time": "2:21:47.90",
+        "rider_name": "ALEJANDRO OLIVARES",
+        "category_played": "Master B"
+      },
+      {
+        "id": "577c595d-81e5-48d5-88a3-ab946312b846-17886807092830.9722224912968297",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 17,
+        "position": 20,
+        "rider_id": "577c595d-81e5-48d5-88a3-ab946312b846",
+        "race_time": "2:22:11.80",
+        "rider_name": "KIEFER PAEZ ARRIAZA",
+        "category_played": "Master A"
+      },
+      {
+        "id": "c91adff7-4e5f-4582-a432-2b04293c4329-17886807092830.6828499835385116",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 51,
+        "position": 21,
+        "rider_id": "c91adff7-4e5f-4582-a432-2b04293c4329",
+        "race_time": "2:23:46.24",
+        "rider_name": "JUAN SEBASTIÁN SCHAFER URZUA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "540802d0-8aa0-4108-9c68-b346675c6de8-17886807092830.9653758529783604",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 19,
+        "position": 22,
+        "rider_id": "540802d0-8aa0-4108-9c68-b346675c6de8",
+        "race_time": "2:24:11.59",
+        "rider_name": "LUIS ALEJANDRO ROJAS CARVAJAL",
+        "category_played": "Master A"
+      },
+      {
+        "id": "53ba4aed-0bae-4fa3-95b5-4a4bbf864669-17886807092840.44537265033037",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 23,
+        "position": 23,
+        "rider_id": "53ba4aed-0bae-4fa3-95b5-4a4bbf864669",
+        "race_time": "2:24:28.43",
+        "rider_name": "RAFAEL CORTEZ",
+        "category_played": "Master A"
+      },
+      {
+        "id": "d70909eb-7dd0-42e8-9ecd-70a2802ee64f-17886807092840.8332433776014185",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 106,
+        "position": 24,
+        "rider_id": "d70909eb-7dd0-42e8-9ecd-70a2802ee64f",
+        "race_time": "2:24:50.82",
+        "rider_name": "ALVARO CORTES",
+        "category_played": "Enduro Mixto"
+      },
+      {
+        "id": "01984893-cd06-4b21-9c47-cfe16f57a101-17886807092840.058917082623955896",
+        "club": "ABM ARICA BIKE MOUNT",
+        "dorsal": 76,
+        "position": 25,
+        "rider_id": "01984893-cd06-4b21-9c47-cfe16f57a101",
+        "race_time": "2:25:23.00",
+        "rider_name": "FRANCISCO LACOSTE LOPEZ",
+        "category_played": "Master C"
+      },
+      {
+        "id": "8a7e0546-4eda-4c38-877b-c4c5f95bc5c5-17886807092840.034816487458350864",
+        "club": "LA NAYA BIKE",
+        "dorsal": 29,
+        "position": 26,
+        "rider_id": "8a7e0546-4eda-4c38-877b-c4c5f95bc5c5",
+        "race_time": "2:26:44.28",
+        "rider_name": "ANGEL PATRICIO HINOJOSA URRUTIA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "f067ff58-0d27-4930-b56b-3a3eea452b2f-17886807092850.6576348521141611",
+        "club": "TRI EVOLUTION",
+        "dorsal": 83,
+        "position": 27,
+        "rider_id": "f067ff58-0d27-4930-b56b-3a3eea452b2f",
+        "race_time": "2:27:20.52",
+        "rider_name": "RODRIGO MARCHESSI",
+        "category_played": "Master C"
+      },
+      {
+        "id": "temp-17886807092850.5817964954385172",
+        "club": "",
+        "dorsal": 8,
+        "position": 28,
+        "rider_id": null,
+        "race_time": "2:27:44.75",
+        "rider_name": "JURGEN RENE ESPADA",
+        "category_played": "Sin Categoría"
+      },
+      {
+        "id": "3523d45c-fe67-49d3-90fe-e20da2ebd3de-17886807092850.9017785209164668",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 86,
+        "position": 29,
+        "rider_id": "3523d45c-fe67-49d3-90fe-e20da2ebd3de",
+        "race_time": "2:29:25.98",
+        "rider_name": "CONSTANZA PAREDES MARTÍNEZ",
+        "category_played": "Damas Master A"
+      },
+      {
+        "id": "73e40047-5e3f-4c28-8f45-66a1d4c6b1e9-17886807092850.1463272023067934",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 59,
+        "position": 30,
+        "rider_id": "73e40047-5e3f-4c28-8f45-66a1d4c6b1e9",
+        "race_time": "2:30:53.38",
+        "rider_name": "MAURICIO GUTIÉRREZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "0353c013-0c87-44a8-b3c0-e7cc9a11235c-17886807092850.7295533102872163",
+        "club": "CLUB TMT",
+        "dorsal": 10,
+        "position": 31,
+        "rider_id": "0353c013-0c87-44a8-b3c0-e7cc9a11235c",
+        "race_time": "2:32:00.78",
+        "rider_name": "CRISTIAN GONZÁLEZ",
+        "category_played": "Master A"
+      },
+      {
+        "id": "535d6459-0bc0-474a-afac-fca365d5e7c3-17886807092850.06066930308366281",
+        "club": "NORTH SPORT",
+        "dorsal": 117,
+        "position": 32,
+        "rider_id": "535d6459-0bc0-474a-afac-fca365d5e7c3",
+        "race_time": "2:32:33.09",
+        "rider_name": "JUAN AINOL MANSILLA",
+        "category_played": "Master D"
+      },
+      {
+        "id": "31c94531-504a-4265-9b30-4276d261244a-17886807092860.09650225751655273",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 102,
+        "position": 33,
+        "rider_id": "31c94531-504a-4265-9b30-4276d261244a",
+        "race_time": "2:32:57.00",
+        "rider_name": "JAIRO MORENO",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "f2b09326-60c8-49ac-abc5-0e458e455600-17886807092860.03706614416154297",
+        "club": "CLUB TMT",
+        "dorsal": 66,
+        "position": 34,
+        "rider_id": "f2b09326-60c8-49ac-abc5-0e458e455600",
+        "race_time": "2:34:40.18",
+        "rider_name": "TEO RAMIREZ LAY",
+        "category_played": "Master B"
+      },
+      {
+        "id": "5ce6183e-4f89-4b9b-980d-cbd237bc02cd-17886807092860.33123688672000007",
+        "club": "CLUB TRS ARICA",
+        "dorsal": 58,
+        "position": 35,
+        "rider_id": "5ce6183e-4f89-4b9b-980d-cbd237bc02cd",
+        "race_time": "2:34:44.11",
+        "rider_name": "MAURICIO ANDRES FLORES BAHAMONDES",
+        "category_played": "Master B"
+      },
+      {
+        "id": "182c6a2b-fe78-4732-986d-af720952decb-17886807092860.41375302167016303",
+        "club": "ABM",
+        "dorsal": 35,
+        "position": 36,
+        "rider_id": "182c6a2b-fe78-4732-986d-af720952decb",
+        "race_time": "2:34:47.08",
+        "rider_name": "EDGAR ARAVENA VARGAS",
+        "category_played": "Master B"
+      },
+      {
+        "id": "503542cb-132c-4aba-b1ff-2a9992daacf7-17886807092860.9965729104548038",
+        "club": "NORTH SPORT",
+        "dorsal": 67,
+        "position": 37,
+        "rider_id": "503542cb-132c-4aba-b1ff-2a9992daacf7",
+        "race_time": "2:35:22.14",
+        "rider_name": "VICTOR VERGARA CARVAJAL",
+        "category_played": "Master B"
+      },
+      {
+        "id": "97a00a24-4189-4648-9e58-5ed75003de5d-17886807092860.6828070541878288",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 28,
+        "position": 38,
+        "rider_id": "97a00a24-4189-4648-9e58-5ed75003de5d",
+        "race_time": "2:35:31.56",
+        "rider_name": "ALEX RUBILAR HERRERA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "0aead47c-6142-43c0-84cc-c26abe065b47-17886807092870.17551766633033583",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 21,
+        "position": 39,
+        "rider_id": "0aead47c-6142-43c0-84cc-c26abe065b47",
+        "race_time": "2:37:34.37",
+        "rider_name": "MARIO GONZÁLEZ REYES",
+        "category_played": "Master A"
+      },
+      {
+        "id": "fd86beea-5c09-4bc1-b0a9-b32a917636b2-17886807092870.28330656342641014",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 42,
+        "position": 40,
+        "rider_id": "fd86beea-5c09-4bc1-b0a9-b32a917636b2",
+        "race_time": "2:37:42.59",
+        "rider_name": "HUGO VIVANCO",
+        "category_played": "Master B"
+      },
+      {
+        "id": "bdbc6dcb-2b52-4d95-a315-bfff4c5fc3ac-17886807092870.6482650808765749",
+        "club": "CLUB TMT",
+        "dorsal": 53,
+        "position": 41,
+        "rider_id": "bdbc6dcb-2b52-4d95-a315-bfff4c5fc3ac",
+        "race_time": "2:39:00.41",
+        "rider_name": "LEANDRO CIFUENTES RIFFO",
+        "category_played": "Master B"
+      },
+      {
+        "id": "a9d7096f-3b7c-46cc-9d99-a1a37a409535-17886807092870.12929550746222707",
+        "club": "TEAM DELFIN",
+        "dorsal": 18,
+        "position": 42,
+        "rider_id": "a9d7096f-3b7c-46cc-9d99-a1a37a409535",
+        "race_time": "2:39:45.25",
+        "rider_name": "LUCIANO HIDALGO",
+        "category_played": "Master A"
+      },
+      {
+        "id": "0f8b3724-e810-4d59-87e5-94c68a753263-17886807092870.34529746521876004",
+        "club": "CARRERA&CAMPBELL",
+        "dorsal": 46,
+        "position": 43,
+        "rider_id": "0f8b3724-e810-4d59-87e5-94c68a753263",
+        "race_time": "2:40:03.65",
+        "rider_name": "JORGE CHAMORRO",
+        "category_played": "Master B"
+      },
+      {
+        "id": "e2e5c3e5-56da-4407-860e-b1e31ba1fec0-17886807092870.32593892199381136",
+        "club": "IQUIQUE BIKE",
+        "dorsal": 49,
+        "position": 44,
+        "rider_id": "e2e5c3e5-56da-4407-860e-b1e31ba1fec0",
+        "race_time": "2:40:57.89",
+        "rider_name": "JOSE JAVIER BETANZO FAUNDEZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "2587cf86-d59a-480c-9f60-91d8c2b762dd-17886807092880.8722331030882517",
+        "club": "JALLALLA BIKE",
+        "dorsal": 64,
+        "position": 45,
+        "rider_id": "2587cf86-d59a-480c-9f60-91d8c2b762dd",
+        "race_time": "2:41:06.90",
+        "rider_name": "RODRIGO MOREY ZEPEDA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "ccab9225-8951-4df7-bc4b-08eaf1c6a41c-17886807092880.9583206597140453",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 78,
+        "position": 46,
+        "rider_id": "ccab9225-8951-4df7-bc4b-08eaf1c6a41c",
+        "race_time": "2:42:16.32",
+        "rider_name": "JAVIER BARCINA ARGANDOÑA",
+        "category_played": "Master C"
+      },
+      {
+        "id": "4182e332-489d-44c6-8580-f0277ae52d43-17886807092880.6578747317340025",
+        "club": "CLUB TRS ARICA",
+        "dorsal": 14,
+        "position": 47,
+        "rider_id": "4182e332-489d-44c6-8580-f0277ae52d43",
+        "race_time": "2:42:41.70",
+        "rider_name": "FRANCISCO ANDRES ITURRA PALMA",
+        "category_played": "Master A"
+      },
+      {
+        "id": "9dd1309b-1141-42da-aba6-5df9cdbfa416-17886807092890.40819274929556437",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 48,
+        "position": 48,
+        "rider_id": "9dd1309b-1141-42da-aba6-5df9cdbfa416",
+        "race_time": "2:42:42.57",
+        "rider_name": "JOSE CABELLO ALVAREZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "0b6cb70a-bea5-48dc-8c0c-4db050052332-17886807092890.012845296944265061",
+        "club": "TEAM DESERT RIDER",
+        "dorsal": 116,
+        "position": 49,
+        "rider_id": "0b6cb70a-bea5-48dc-8c0c-4db050052332",
+        "race_time": "2:43:45.00",
+        "rider_name": "JORGE RAMIREZ",
+        "category_played": "Master D"
+      },
+      {
+        "id": "705222d3-f81e-4175-9d7c-aa791d1b9934-17886807092890.6304185950736659",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 154,
+        "position": 50,
+        "rider_id": "705222d3-f81e-4175-9d7c-aa791d1b9934",
+        "race_time": "2:45:03.00",
+        "rider_name": "PERCY ROJAS ROJAS",
+        "category_played": "Master B"
+      },
+      {
+        "id": "91360e45-2d23-4c92-b9cd-893ec7abf8c6-17886807092890.71553312207027",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 36,
+        "position": 51,
+        "rider_id": "91360e45-2d23-4c92-b9cd-893ec7abf8c6",
+        "race_time": "2:47:21.03",
+        "rider_name": "ENRIQUE GALLEGUILLOS",
+        "category_played": "Master B"
+      },
+      {
+        "id": "4979a473-bbb2-4fdf-91f3-2d92fe96d5dd-17886807092890.5551030323206873",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 56,
+        "position": 52,
+        "rider_id": "4979a473-bbb2-4fdf-91f3-2d92fe96d5dd",
+        "race_time": "2:47:27.59",
+        "rider_name": "MARCELO SUAZO",
+        "category_played": "Master B"
+      },
+      {
+        "id": "23d19f7b-a518-404a-94ba-cd85c2aeb51d-17886807092890.7194591959104454",
+        "club": "TEAM DESERT RIDER",
+        "dorsal": 100,
+        "position": 53,
+        "rider_id": "23d19f7b-a518-404a-94ba-cd85c2aeb51d",
+        "race_time": "2:47:28.95",
+        "rider_name": "ANDREA RAMIREZ",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "faf8a157-7d8b-4599-9abc-b8d1fefeba86-17886807092890.9255142858864622",
+        "club": "NORTH SPORT",
+        "dorsal": 69,
+        "position": 54,
+        "rider_id": "faf8a157-7d8b-4599-9abc-b8d1fefeba86",
+        "race_time": "2:48:52.06",
+        "rider_name": "CLAUDIO LOPEZ CERECEDA",
+        "category_played": "Master C"
+      },
+      {
+        "id": "c825dc87-ba31-4353-bd27-d1e745e9b863-17886807092890.8744662442780966",
+        "club": "CLUB TMT",
+        "dorsal": 5,
+        "position": 55,
+        "rider_id": "c825dc87-ba31-4353-bd27-d1e745e9b863",
+        "race_time": "2:49:16.86",
+        "rider_name": "CRISTIAN PÉREZ",
+        "category_played": "Elite"
+      },
+      {
+        "id": "366dbdf4-1c21-496a-81b5-6e12f0e69576-17886807092900.15621782242720106",
+        "club": "CLUB TMT",
+        "dorsal": 30,
+        "position": 56,
+        "rider_id": "366dbdf4-1c21-496a-81b5-6e12f0e69576",
+        "race_time": "2:49:31.81",
+        "rider_name": "CARLOS OVANDO VEGA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "d82d0f0c-432f-4adc-95a1-320f9ded54a1-17886807092900.9367734629072957",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 101,
+        "position": 57,
+        "rider_id": "d82d0f0c-432f-4adc-95a1-320f9ded54a1",
+        "race_time": "2:49:58.98",
+        "rider_name": "FELIPE IGNACIO CELTI CRUZ",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "8f0d4ede-a834-464d-b66d-d9ad1c9b65d9-17886807092900.332069912784131",
+        "club": "CHASKI RIDERS",
+        "dorsal": 107,
+        "position": 58,
+        "rider_id": "8f0d4ede-a834-464d-b66d-d9ad1c9b65d9",
+        "race_time": "2:50:14.23",
+        "rider_name": "DIEGO ALVAREZ SCIARAFFIA",
+        "category_played": "Enduro Mixto"
+      },
+      {
+        "id": "a40b82b6-40bc-47cd-81f9-85d8641d2397-17886807092900.8817928114623551",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 13,
+        "position": 59,
+        "rider_id": "a40b82b6-40bc-47cd-81f9-85d8641d2397",
+        "race_time": "2:50:23.89",
+        "rider_name": "FERNANDO CARRASCO",
+        "category_played": "Master A"
+      },
+      {
+        "id": "b2d5bc78-bfc7-4b64-a2f3-fc2299ac302c-17886807092900.9889870883972095",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 60,
+        "position": 60,
+        "rider_id": "b2d5bc78-bfc7-4b64-a2f3-fc2299ac302c",
+        "race_time": "2:50:59.95",
+        "rider_name": "PABLO PARRA YAÑEZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "67b593a3-4e95-4b63-90a5-7ea9af253188-17886807092900.8320132846440129",
+        "club": "JALLALLA BIKE",
+        "dorsal": 89,
+        "position": 61,
+        "rider_id": "67b593a3-4e95-4b63-90a5-7ea9af253188",
+        "race_time": "2:51:50.36",
+        "rider_name": "CAROLINA ELIZABETH VÁSQUEZ CÁRDENAS",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "31533f2f-ca0f-4e29-9b03-849b5ade8875-17886807092910.8407764219037674",
+        "club": "DRAGONES DEL DESIERTO",
+        "dorsal": 71,
+        "position": 62,
+        "rider_id": "31533f2f-ca0f-4e29-9b03-849b5ade8875",
+        "race_time": "2:51:58.79",
+        "rider_name": "CRISTIAN URBINA ÁVILA",
+        "category_played": "Master C"
+      },
+      {
+        "id": "9971a1bb-90d4-45a4-bfdf-2e4288b2cc74-17886807092910.46075001378430336",
+        "club": "TEAM K2",
+        "dorsal": 16,
+        "position": 63,
+        "rider_id": "9971a1bb-90d4-45a4-bfdf-2e4288b2cc74",
+        "race_time": "2:52:20.31",
+        "rider_name": "JUNIOR AGRADA",
+        "category_played": "Master A"
+      },
+      {
+        "id": "66f5b842-75d8-49e4-948c-fdbb9b304f2d-17886807092910.8162568861120197",
+        "club": "TEAM CICLES IQUIQUE",
+        "dorsal": 111,
+        "position": 64,
+        "rider_id": "66f5b842-75d8-49e4-948c-fdbb9b304f2d",
+        "race_time": "2:52:21.09",
+        "rider_name": "ESTER AHUMADA",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "27fb610d-299a-488a-a1e1-cc409923eaec-17886807092910.603451163139481",
+        "club": "JALLALLA BIKE",
+        "dorsal": 105,
+        "position": 65,
+        "rider_id": "27fb610d-299a-488a-a1e1-cc409923eaec",
+        "race_time": "2:52:48.22",
+        "rider_name": "SEBASTIÁN ALONSO ÁVILA FERNÁNDEZ",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "db3ba0f6-171a-416d-8e0b-dde8fcc6e1b4-17886807092910.863401792215871",
+        "club": "IKIKE TRI TEAM",
+        "dorsal": 74,
+        "position": 66,
+        "rider_id": "db3ba0f6-171a-416d-8e0b-dde8fcc6e1b4",
+        "race_time": "2:54:52.29",
+        "rider_name": "FELIPE ROJAS",
+        "category_played": "Master C"
+      },
+      {
+        "id": "99720105-7b36-479a-8812-dcf1cde361e9-17886807092910.5132843682123484",
+        "club": "CLUB TMT",
+        "dorsal": 104,
+        "position": 67,
+        "rider_id": "99720105-7b36-479a-8812-dcf1cde361e9",
+        "race_time": "2:56:05.46",
+        "rider_name": "PEDRO LÓPEZ CISTERNA",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "51987964-d01d-41ae-b699-96fa1e7a74cb-17886807092920.5153612291301664",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 155,
+        "position": 68,
+        "rider_id": "51987964-d01d-41ae-b699-96fa1e7a74cb",
+        "race_time": "2:56:06.14",
+        "rider_name": "HIBALDO LA FUENTE",
+        "category_played": "Novicios Varones"
+      },
+      {
+        "id": "45246179-5878-4f35-913d-6664aae34004-17886807092920.6798491393791951",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 3,
+        "position": 69,
+        "rider_id": "45246179-5878-4f35-913d-6664aae34004",
+        "race_time": "2:56:19.97",
+        "rider_name": "ALEXIS GONZÁLEZ PARANCAN",
+        "category_played": "Elite"
+      },
+      {
+        "id": "91809a64-ed07-42af-a20e-fa948ea6dc31-17886807092930.8669578360388419",
+        "club": "CLUB TRS ARICA",
+        "dorsal": 47,
+        "position": 70,
+        "rider_id": "91809a64-ed07-42af-a20e-fa948ea6dc31",
+        "race_time": "2:56:20.95",
+        "rider_name": "JOSE ANTONIO ARAVENA MENDOZA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "14fb912a-d7f6-4b3b-b867-4054ff76dae5-17886807092930.11810603787929175",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 115,
+        "position": 71,
+        "rider_id": "14fb912a-d7f6-4b3b-b867-4054ff76dae5",
+        "race_time": "2:56:21.26",
+        "rider_name": "FRANKLIN TRONCOSO",
+        "category_played": "Master D"
+      },
+      {
+        "id": "1e7e8b59-c663-495a-a787-5d35ff8bb94e-17886807092930.7007626057815537",
+        "club": "JALLALLA BIKE",
+        "dorsal": 103,
+        "position": 72,
+        "rider_id": "1e7e8b59-c663-495a-a787-5d35ff8bb94e",
+        "race_time": "2:56:35.28",
+        "rider_name": "JORGE IGNACIO ANGULO PINTO",
+        "category_played": "Pre Master Mixto"
+      },
+      {
+        "id": "7c0f3f33-ae88-438c-b5e4-f8741eba6ce8-17886807092930.8368496211908752",
+        "club": "CLUB TMT",
+        "dorsal": 33,
+        "position": 73,
+        "rider_id": "7c0f3f33-ae88-438c-b5e4-f8741eba6ce8",
+        "race_time": "2:57:00.24",
+        "rider_name": "DAVID ALEJANDRO ABURTO HENRIQUEZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "7ddea4b6-09d9-497f-931d-af622f3259d9-17886807092930.4444028119832868",
+        "club": "CHASKI RIDERS",
+        "dorsal": 15,
+        "position": 74,
+        "rider_id": "7ddea4b6-09d9-497f-931d-af622f3259d9",
+        "race_time": "2:57:18.57",
+        "rider_name": "GEOVANNY STEFANO PIZARRO CASTILLO",
+        "category_played": "Master A"
+      },
+      {
+        "id": "5e34e931-376f-470c-9e87-c1c3f934929c-17886807092940.9438664786664221",
+        "club": "TEAM DELFIN",
+        "dorsal": 55,
+        "position": 75,
+        "rider_id": "5e34e931-376f-470c-9e87-c1c3f934929c",
+        "race_time": "2:59:30.32",
+        "rider_name": "LUIS OLIVARES",
+        "category_played": "Master B"
+      },
+      {
+        "id": "temp-17886807092940.3896667534006656",
+        "club": "",
+        "dorsal": 44,
+        "position": 76,
+        "rider_id": null,
+        "race_time": "3:00:51.48",
+        "rider_name": "JAIME ANDRÉS",
+        "category_played": "Sin Categoría"
+      },
+      {
+        "id": "9dec8eed-d474-4111-9a66-27a9644f8c02-17886807092940.3625035281963672",
+        "club": "LA NAYA BIKE",
+        "dorsal": 84,
+        "position": 77,
+        "rider_id": "9dec8eed-d474-4111-9a66-27a9644f8c02",
+        "race_time": "3:01:42.20",
+        "rider_name": "RODRIGO NAVARRETE",
+        "category_played": "Master C"
+      },
+      {
+        "id": "c34a36b9-547c-4c32-9eb2-ddacfd713b76-17886807092940.07063351591269817",
+        "club": "CHASKI RIDERS",
+        "dorsal": 94,
+        "position": 78,
+        "rider_id": "c34a36b9-547c-4c32-9eb2-ddacfd713b76",
+        "race_time": "3:01:43.54",
+        "rider_name": "SOLEDAD GALLARDO",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "6b3ec40d-30c9-49eb-a64a-a06fc724d1af-17886807092950.7126040668431202",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 43,
+        "position": 79,
+        "rider_id": "6b3ec40d-30c9-49eb-a64a-a06fc724d1af",
+        "race_time": "3:01:44.08",
+        "rider_name": "IVER GARCÍA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "2a4ee5b3-a765-486e-9e08-68532513ebd0-17886807092950.2803265778780544",
+        "club": "IQUIQUE BIKE",
+        "dorsal": 37,
+        "position": 80,
+        "rider_id": "2a4ee5b3-a765-486e-9e08-68532513ebd0",
+        "race_time": "3:03:59.42",
+        "rider_name": "ERNESTO MENESES",
+        "category_played": "Master B"
+      },
+      {
+        "id": "fd7f3844-8e83-4328-9a96-b5bafac53826-17886807092950.4326688556976974",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 24,
+        "position": 81,
+        "rider_id": "fd7f3844-8e83-4328-9a96-b5bafac53826",
+        "race_time": "3:04:06.91",
+        "rider_name": "RICARDO GARRIDO GONZÁLEZ",
+        "category_played": "Master A"
+      },
+      {
+        "id": "fa580d96-ca16-4be8-8f31-0bf4abde810c-17886807092950.4276068925169956",
+        "club": "ZORROBIKE CALAMA",
+        "dorsal": 72,
+        "position": 82,
+        "rider_id": "fa580d96-ca16-4be8-8f31-0bf4abde810c",
+        "race_time": "3:07:47.49",
+        "rider_name": "DANIEL BARRAZA CASRRO",
+        "category_played": "Master C"
+      },
+      {
+        "id": "4eff0b3d-2148-4c23-97cf-5c7629407943-17886807092950.42297678936024785",
+        "club": "CLUB TRS ARICA",
+        "dorsal": 22,
+        "position": 83,
+        "rider_id": "4eff0b3d-2148-4c23-97cf-5c7629407943",
+        "race_time": "3:07:58.82",
+        "rider_name": "MIGUEL ANGEL CIFUENTES CASAPIA",
+        "category_played": "Master A"
+      },
+      {
+        "id": "cb27bd40-9372-4b77-bd11-4e66f1b8f6b7-17886807092960.11469288620950724",
+        "club": "CLUB TMT",
+        "dorsal": 31,
+        "position": 84,
+        "rider_id": "cb27bd40-9372-4b77-bd11-4e66f1b8f6b7",
+        "race_time": "3:09:41.57",
+        "rider_name": "CLAUDIO OLIVARES SANTELICES",
+        "category_played": "Master B"
+      },
+      {
+        "id": "a40b82b6-40bc-47cd-81f9-85d8641d2397-17886807092960.17078807742310032",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 118,
+        "position": 85,
+        "rider_id": "a40b82b6-40bc-47cd-81f9-85d8641d2397",
+        "race_time": "3:13:28.23",
+        "rider_name": "JUAN FERNANDO CARRASCO GALDAMES",
+        "category_played": "Master A"
+      },
+      {
+        "id": "10840479-b020-4d88-9190-703071959896-17886807092960.456076692249608",
+        "club": "CLUB TMT",
+        "dorsal": 65,
+        "position": 86,
+        "rider_id": "10840479-b020-4d88-9190-703071959896",
+        "race_time": "3:15:27.57",
+        "rider_name": "RONY RAMÍREZ OSSA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "temp-17886807092960.052772711309673204",
+        "club": "",
+        "dorsal": 120,
+        "position": 87,
+        "rider_id": null,
+        "race_time": "3:16:59.21",
+        "rider_name": "JOSE VARGAS NICOLAS",
+        "category_played": "Sin Categoría"
+      },
+      {
+        "id": "426117ad-ff02-454a-8bca-703b1cbdc79f-17886807092960.8707258036678374",
+        "club": "LOS TARROS BIKE",
+        "dorsal": 63,
+        "position": 88,
+        "rider_id": "426117ad-ff02-454a-8bca-703b1cbdc79f",
+        "race_time": "3:17:22.05",
+        "rider_name": "RADAMEZ ALFREDO NUÑEZ SHARKEY",
+        "category_played": "Master B"
+      },
+      {
+        "id": "742a5d96-1434-4720-8655-33261ca6af07-17886807092960.4725996186227748",
+        "club": "DRAGONES DEL DESIERTO",
+        "dorsal": 32,
+        "position": 89,
+        "rider_id": "742a5d96-1434-4720-8655-33261ca6af07",
+        "race_time": "3:18:22.40",
+        "rider_name": "CLAUDIO VALDIVIA SCHETTINI",
+        "category_played": "Master B"
+      },
+      {
+        "id": "6c9f7c86-9182-42b9-a2f0-70d50ffc8c89-17886807092970.20628145449597535",
+        "club": "TEAM DESERT RIDER",
+        "dorsal": 52,
+        "position": 90,
+        "rider_id": "6c9f7c86-9182-42b9-a2f0-70d50ffc8c89",
+        "race_time": "3:19:35.30",
+        "rider_name": "KARO ASTORGA",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "1e323245-5887-497b-a421-00df6279fd9d-17886807092970.666469590426784",
+        "club": "JALLALLA BIKE",
+        "dorsal": 11,
+        "position": 91,
+        "rider_id": "1e323245-5887-497b-a421-00df6279fd9d",
+        "race_time": "3:20:05.68",
+        "rider_name": "DIEGO BALTAZAR AVILA FERNÁNDEZ",
+        "category_played": "EBike Mixto"
+      },
+      {
+        "id": "f7e9d5c4-3225-498b-bdeb-37a6c0c19366-17886807092970.7203512295861367",
+        "club": "CLUB CAMANCHACA",
+        "dorsal": 93,
+        "position": 92,
+        "rider_id": "f7e9d5c4-3225-498b-bdeb-37a6c0c19366",
+        "race_time": "3:21:07.48",
+        "rider_name": "PAULA GONZÁLEZ",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "ca417f0a-faca-4a18-82fe-b2b57ba1f34c-17886807092970.9813063295231533",
+        "club": "TEAM MISTAG",
+        "dorsal": 41,
+        "position": 93,
+        "rider_id": "ca417f0a-faca-4a18-82fe-b2b57ba1f34c",
+        "race_time": "3:21:08.81",
+        "rider_name": "HÉCTOR MILLAR",
+        "category_played": "Master B"
+      },
+      {
+        "id": "ccafd51b-ffb4-4059-bd35-36612eefc7c3-17886807092970.09820725833466715",
+        "club": "TEAM CYCLES FRANKLIN",
+        "dorsal": 97,
+        "position": 94,
+        "rider_id": "ccafd51b-ffb4-4059-bd35-36612eefc7c3",
+        "race_time": "3:22:17.31",
+        "rider_name": "MARIA TERESA VALENCIA PALACIOS",
+        "category_played": "Damas Master C"
+      },
+      {
+        "id": "37494220-5223-4a51-80b8-07c8b7e2b428-17886807092970.24366081440436504",
+        "club": "LOBOS MTB",
+        "dorsal": 114,
+        "position": 95,
+        "rider_id": "37494220-5223-4a51-80b8-07c8b7e2b428",
+        "race_time": "3:34:14.48",
+        "rider_name": "CELSO LIRA DONAIRE",
+        "category_played": "Master D"
+      },
+      {
+        "id": "0c269083-18cf-426f-bfb6-18b82792c66b-17886807092970.971073673264968",
+        "club": "CLUB TMT",
+        "dorsal": 79,
+        "position": 96,
+        "rider_id": "0c269083-18cf-426f-bfb6-18b82792c66b",
+        "race_time": "3:38:37.93",
+        "rider_name": "LUIS LARA SÁNCHEZ",
+        "category_played": "Master C"
+      },
+      {
+        "id": "695f2082-41aa-4a8a-81f2-ac8e904832ee-17886807092980.737062748722476",
+        "club": "INDEPENDIENTE / LIBRE",
+        "dorsal": 91,
+        "position": 97,
+        "rider_id": "695f2082-41aa-4a8a-81f2-ac8e904832ee",
+        "race_time": "3:39:06.62",
+        "rider_name": "GENOVEVA MUÑOZ TABOADA",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "804abbda-4694-43fd-b3f7-b6754bc25a53-17886807092980.3842948068027625",
+        "club": "COBRALINCH MTB",
+        "dorsal": 73,
+        "position": 98,
+        "rider_id": "804abbda-4694-43fd-b3f7-b6754bc25a53",
+        "race_time": "3:39:23.10",
+        "rider_name": "DANIEL PACHECO",
+        "category_played": "Master C"
+      },
+      {
+        "id": "3e47fef7-272d-4ad1-98f3-403a56e54b66-17886807092980.1288863435290376",
+        "club": "COBRALINCH MTB",
+        "dorsal": 88,
+        "position": 99,
+        "rider_id": "3e47fef7-272d-4ad1-98f3-403a56e54b66",
+        "race_time": "3:39:24.16",
+        "rider_name": "KARLA RODRIGUEZ FRANCO",
+        "category_played": "Damas Master A"
+      },
+      {
+        "id": "266b33fa-ef1f-4a15-be71-11fe33edebf2-17886807092980.2538550306405021",
+        "club": "LOS TARROS BIKE",
+        "dorsal": 95,
+        "position": 100,
+        "rider_id": "266b33fa-ef1f-4a15-be71-11fe33edebf2",
+        "race_time": "3:41:16.46",
+        "rider_name": "ERNA SOLEDAD ARAYA CHAMORRO",
+        "category_played": "Damas Master C"
+      },
+      {
+        "id": "temp-17886807092980.12030290801401322",
+        "club": "",
+        "dorsal": 75,
+        "position": 101,
+        "rider_id": null,
+        "race_time": "3:47:58.97",
+        "rider_name": "FRANCISCO JAVIER",
+        "category_played": "Sin Categoría"
+      },
+      {
+        "id": "83a9a19e-d376-4511-92a5-e59c8584adca-17886807092990.300351102285635",
+        "club": "LOS INSOPORTABLES",
+        "dorsal": 45,
+        "position": 102,
+        "rider_id": "83a9a19e-d376-4511-92a5-e59c8584adca",
+        "race_time": "3:51:23.76",
+        "rider_name": "JOHELY HENRIQUES MORINI",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "temp-17886807092990.11906850476936015",
+        "club": "",
+        "dorsal": 87,
+        "position": 103,
+        "rider_id": null,
+        "race_time": "3:51:24.57",
+        "rider_name": "GINA RIOS",
+        "category_played": "Sin Categoría"
+      },
+      {
+        "id": "f66ceeec-3c78-4773-9ef8-af15a3bc2611-17886807092990.11241198634348515",
+        "club": "PIRATA SOLITARIO",
+        "dorsal": 119,
+        "position": 104,
+        "rider_id": "f66ceeec-3c78-4773-9ef8-af15a3bc2611",
+        "race_time": "4:01:26.00",
+        "rider_name": "NELSON CUEVAS FLORES",
+        "category_played": "Master D"
+      },
+      {
+        "id": "d1b5e506-4233-4ceb-aa0b-ae4f671b4d43-17886807093000.012690370978180376",
+        "club": "CLUB TMT",
+        "dorsal": 85,
+        "position": 105,
+        "rider_id": "d1b5e506-4233-4ceb-aa0b-ae4f671b4d43",
+        "race_time": "4:03:22.01",
+        "rider_name": "VICENCIO ANTEZANA PARDO",
+        "category_played": "Master C"
+      },
+      {
+        "id": "786c7475-e55f-471c-b9f2-ea89330dc1fd-17886807093000.8044990258657906",
+        "club": "LOS TARROS BIKE",
+        "dorsal": 38,
+        "position": 106,
+        "rider_id": "786c7475-e55f-471c-b9f2-ea89330dc1fd",
+        "race_time": "4:03:40.95",
+        "rider_name": "ESTEBAN SILVA",
+        "category_played": "Master B"
+      },
+      {
+        "id": "598d88ea-2d58-45b5-894d-f2392b786395-17886807093000.36959134447278896",
+        "club": "CLUB TMT",
+        "dorsal": 92,
+        "position": 107,
+        "rider_id": "598d88ea-2d58-45b5-894d-f2392b786395",
+        "race_time": "4:07:19.89",
+        "rider_name": "LORENA SARZOZA",
+        "category_played": "Damas Master B"
+      },
+      {
+        "id": "328dc1ea-e7bd-4c20-bec9-92596fb63040-17886807093000.6036765707025236",
+        "club": "LOS TARROS BIKE",
+        "dorsal": 80,
+        "position": 108,
+        "rider_id": "328dc1ea-e7bd-4c20-bec9-92596fb63040",
+        "race_time": "4:12:05.86",
+        "rider_name": "LUIS MAURICIO PEIME CORTES",
+        "category_played": "Master C"
+      },
+      {
+        "id": "d3209632-50bf-4655-a64c-e3c740f22829-17886807093000.1409879808044937",
+        "club": "LA NAYA BIKE",
+        "dorsal": 99,
+        "position": 109,
+        "rider_id": "d3209632-50bf-4655-a64c-e3c740f22829",
+        "race_time": "4:12:21.13",
+        "rider_name": "VERONICA RAMIREZ",
+        "category_played": "Damas Master C"
+      },
+      {
+        "id": "876b3e09-4601-4ce3-876e-c9417a48edad-17886807093000.20815208946464414",
+        "club": "ARCA DE NOE",
+        "dorsal": 96,
+        "position": 110,
+        "rider_id": "876b3e09-4601-4ce3-876e-c9417a48edad",
+        "race_time": "4:12:24.42",
+        "rider_name": "MARCELA GARRIDO CONTRERAS",
+        "category_played": "Damas Master C"
+      },
+      {
+        "id": "f16033d3-f6bc-4d1c-b294-f1fe564a5c17-17886807093010.28310840333923337",
+        "club": "LOA RIDERS MTB",
+        "dorsal": 39,
+        "position": 111,
+        "rider_id": "f16033d3-f6bc-4d1c-b294-f1fe564a5c17",
+        "race_time": "4:30:14.59",
+        "rider_name": "FERNANDO GONZÁLEZ GONZÁLEZ",
+        "category_played": "Master B"
+      },
+      {
+        "id": "76dbaff8-2bb2-44a7-8fe3-d485aa20aa54-17886807093010.23335625432231477",
+        "club": "LOBOS MTB",
+        "dorsal": 77,
+        "position": 112,
+        "rider_id": "76dbaff8-2bb2-44a7-8fe3-d485aa20aa54",
+        "race_time": "4:39:05.49",
+        "rider_name": "GONZALO JERIA TAPIA",
+        "category_played": "Master C"
+      }
+    ]
+  },
+  {
+    "id": "2649e7c5-3479-4362-a35a-33aa060976cc",
+    "name": "3ª Fecha - Club TMT",
+    "live_results_json": []
+  },
+  {
+    "id": "e75e3c86-c3c8-41bc-826b-3e92c56995d6",
+    "name": "6ª Fecha - Iquique Bike",
+    "live_results_json": []
+  },
+  {
+    "id": "0eff6dc6-a9ad-47c5-9f78-c5050d2da695",
+    "name": "7ª Fecha - Camanchaca",
+    "live_results_json": []
+  },
+  {
+    "id": "08927adb-29eb-41bc-9376-478ad41a40bc",
+    "name": "2ª Fecha - Club Chaski",
+    "live_results_json": []
+  },
+  {
+    "id": "e1c70c32-505b-4f75-909b-75f7e5591e34",
+    "name": "4ª Fecha - Club Cobra",
+    "live_results_json": []
+  }
+]

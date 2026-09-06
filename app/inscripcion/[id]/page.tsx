@@ -49,15 +49,12 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     const fetchData = async () => {
-      const hoy = new Date().toISOString().split('T')[0];
-
-      // Búsqueda inteligente: Por ID de URL o por el próximo evento pendiente
       let eventQuery = supabase.from('events').select('*');
       
       if (eventIdFromUrl) {
         eventQuery = eventQuery.eq('id', eventIdFromUrl);
       } else {
-        eventQuery = eventQuery.eq('status', 'pending').order('date', { ascending: true }).limit(1);
+        eventQuery = eventQuery.eq('registration_open', true).order('date', { ascending: true }).limit(1);
       }
 
       const [evtData, clubsData, ridersData] = await Promise.all([
@@ -153,7 +150,25 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
   };
 
   if (loading) return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-400 font-heading text-3xl animate-pulse tracking-widest">Cargando...</div>;
-  if (!event) return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-500 font-heading text-4xl text-center px-4">NO HAY EVENTOS ABIERTOS</div>;
+  
+  if (!event || !event.registration_open) {
+    return (
+      <div className={`min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 ${montserrat.variable} ${teko.variable} font-sans`}>
+        <div className="bg-white p-10 md:p-14 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] max-w-lg w-full text-center border border-slate-100">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-heading font-bold uppercase mb-4 text-slate-900">Inscripciones Cerradas</h2>
+          <p className="text-slate-500 font-medium mb-10 text-base leading-relaxed">
+            Las inscripciones para este evento no están disponibles actualmente.
+          </p>
+          <Link href="/" className="inline-block w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg uppercase tracking-widest py-4 rounded-xl transition-colors">
+            Volver al inicio
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (state.success) {
     return (
@@ -306,18 +321,21 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                                 placeholder="Escribe para buscar tu club..." 
                                 autoComplete="off"
                             />
-                            {showSuggestions && formValues.club.length > 0 && (
+                            {showSuggestions && (
                                 <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-slate-100 max-h-48 overflow-y-auto z-50">
-                                    {getClubSuggestions(formValues.club, clubsList).map(c => (
+                                    {(formValues.club.length === 0 
+                                      ? ['INDEPENDIENTE / LIBRE', ...clubsList.filter(c => c !== 'INDEPENDIENTE / LIBRE').slice(0, 6)] 
+                                      : getClubSuggestions(formValues.club, clubsList)
+                                    ).map(c => (
                                         <div 
                                             key={c} 
-                                            onClick={() => { setFormValues(p => ({...p, club: c})); setShowSuggestions(false); }}
+                                            onMouseDown={() => { setFormValues(p => ({...p, club: c})); setShowSuggestions(false); }}
                                             className="p-3 border-b border-slate-50 hover:bg-orange-50 cursor-pointer text-sm font-bold text-slate-700 transition-colors"
                                         >
                                             {c}
                                         </div>
                                     ))}
-                                    {getClubSuggestions(formValues.club, clubsList).length === 0 && (
+                                    {formValues.club.length > 0 && getClubSuggestions(formValues.club, clubsList).length === 0 && (
                                         <div className="p-3 text-xs text-slate-400 italic">No se encontró en la lista. Se registrará como club nuevo.</div>
                                     )}
                                 </div>

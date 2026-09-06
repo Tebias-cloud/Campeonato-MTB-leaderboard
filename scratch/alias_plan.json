@@ -1,0 +1,170 @@
+{
+  "tierBA": {
+    "calamaRiders": 1,
+    "baseRiders": 6,
+    "overlap": 0,
+    "decision": "NO CONFIRMADO"
+  },
+  "tierBB": {
+    "calamaRiders": 2,
+    "baseRiders": 2,
+    "overlap": 1,
+    "decision": "MISMO CLUB CONFIRMADO"
+  },
+  "changes": [
+    {
+      "actual": "CYCLES FRANKLIN",
+      "canonical": "TEAM CYCLES FRANKLIN",
+      "ridersAfectados": 0,
+      "eventRidersAfectados": 4
+    },
+    {
+      "actual": "DELFIN MTB",
+      "canonical": "TEAM DELFIN",
+      "ridersAfectados": 0,
+      "eventRidersAfectados": 2
+    },
+    {
+      "actual": "COBRA LINCH MTB",
+      "canonical": "COBRALINCH MTB",
+      "ridersAfectados": 0,
+      "eventRidersAfectados": 1
+    },
+    {
+      "actual": "DESERT RIDER",
+      "canonical": "TEAM DESERT RIDER",
+      "ridersAfectados": 0,
+      "eventRidersAfectados": 3
+    },
+    {
+      "actual": "RIDER DESERT CALAMA",
+      "canonical": "RIDER DESERT",
+      "ridersAfectados": 2,
+      "eventRidersAfectados": 3
+    }
+  ],
+  "rankingAntes": [
+    [
+      "CYCLES FRANKLIN",
+      3464
+    ],
+    [
+      "CLUB TMT",
+      2059
+    ],
+    [
+      "JALLALLA BIKE",
+      1891
+    ],
+    [
+      "CAMANCHACA",
+      1410
+    ],
+    [
+      "CHASKI RIDERS",
+      1366
+    ],
+    [
+      "IQUIQUE BIKE",
+      954
+    ],
+    [
+      "COBRALINCH MTB",
+      731
+    ],
+    [
+      "ZORROBIKE CALAMA",
+      682
+    ],
+    [
+      "DESERT RIDER",
+      640
+    ],
+    [
+      "LOS TARROS BIKE",
+      562
+    ],
+    [
+      "DRAGONES DEL DESIERTO",
+      510
+    ],
+    [
+      "CORACEROS",
+      470
+    ],
+    [
+      "ENDURO MTB IQUIQUE",
+      410
+    ],
+    [
+      "LOS INSOPORTABLES",
+      359
+    ],
+    [
+      "TRS ARICA",
+      326
+    ]
+  ],
+  "rankingDespues": [
+    [
+      "CYCLES FRANKLIN",
+      3464
+    ],
+    [
+      "CLUB TMT",
+      2059
+    ],
+    [
+      "JALLALLA BIKE",
+      1891
+    ],
+    [
+      "CAMANCHACA",
+      1410
+    ],
+    [
+      "CHASKI RIDERS",
+      1366
+    ],
+    [
+      "IQUIQUE BIKE",
+      954
+    ],
+    [
+      "COBRALINCH MTB",
+      732
+    ],
+    [
+      "ZORROBIKE CALAMA",
+      682
+    ],
+    [
+      "DESERT RIDER",
+      640
+    ],
+    [
+      "LOS TARROS BIKE",
+      562
+    ],
+    [
+      "DRAGONES DEL DESIERTO",
+      510
+    ],
+    [
+      "CORACEROS",
+      470
+    ],
+    [
+      "ENDURO MTB IQUIQUE",
+      410
+    ],
+    [
+      "LOS INSOPORTABLES",
+      359
+    ],
+    [
+      "TRS ARICA",
+      326
+    ]
+  ]
+}
