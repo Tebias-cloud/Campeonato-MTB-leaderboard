@@ -50,6 +50,7 @@ export default function Home() {
   const [liveEvent, setLiveEvent] = useState<Event | null>(null);
   const [inscriptionEvent, setInscriptionEvent] = useState<Event | null>(null);
   const [showLiveResults, setShowLiveResults] = useState(false);
+  const [hasLiveResults, setHasLiveResults] = useState(false);
   
   // ESTADOS DINÁMICOS
   const [categorias, setCategorias] = useState<string[]>(['General']);
@@ -91,7 +92,11 @@ export default function Home() {
         targetLiveEvent = pendingEvent;
       }
 
-      if (targetLiveEvent) setLiveEvent(targetLiveEvent as Event);
+      if (targetLiveEvent) {
+        setLiveEvent(targetLiveEvent as Event);
+        const lrj = (targetLiveEvent as any).live_results_json;
+        setHasLiveResults(Array.isArray(lrj) && lrj.length > 0);
+      }
 
       // Buscar evento con inscripción abierta
       const { data: openEvent } = await supabase
@@ -126,6 +131,23 @@ export default function Home() {
     }
     loadInitialData();
   }, []);
+
+  // Realtime: mostrar/ocultar botón En Vivo cuando el admin carga o limpia resultados
+  useEffect(() => {
+    if (!liveEvent) return;
+    const channel = supabase
+      .channel(`home-live-${liveEvent.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${liveEvent.id}` },
+        (payload) => {
+          const lrj = payload.new.live_results_json;
+          setHasLiveResults(Array.isArray(lrj) && lrj.length > 0);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [liveEvent]);
 
   // 2. CARGAR RANKING SEGÚN CATEGORÍA
   useEffect(() => {
@@ -240,7 +262,7 @@ export default function Home() {
                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
             </Link>
             
-          {liveEvent && (
+          {liveEvent && hasLiveResults && (
             <button
               onClick={() => setShowLiveResults(true)}
               className="group relative px-6 py-3 rounded-xl bg-[#1A1816] hover:bg-[#C64928] overflow-hidden transition-all duration-300"
