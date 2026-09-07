@@ -192,21 +192,6 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                           </div>
                         </div>
                       </div>
-
-                      <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-left mt-4 flex items-center justify-between">
-                        <div>
-                          <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Inscripciones abiertas</label>
-                          <p className="text-xs text-slate-500">Permite a los corredores inscribirse públicamente</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, registration_open: !prev.registration_open }))}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.registration_open ? 'bg-green-500' : 'bg-slate-600'}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.registration_open ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        <input type="hidden" name="registration_open" value={formData.registration_open.toString()} />
-                      </div>
                   </div>
               </div>
 

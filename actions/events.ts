@@ -26,7 +26,7 @@ export async function saveEvent(prevState: EventSaveState, formData: FormData): 
   const bank_account = formData.get('bank_account') as string;
   const terms_conditions = formData.get('terms_conditions') as string;
   const form_config_str = formData.get('form_config') as string;
-  const registration_open = formData.get('registration_open') === 'true';
+  const registration_open = status === 'pending';
 
   let form_config;
   try {
