@@ -36,6 +36,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [accepted, setAccepted] = useState(false);
   const [clubsList, setClubsList] = useState<string[]>([]);
+  const [clubCounts, setClubCounts] = useState<Record<string, number>>({});
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [event, setEvent] = useState<CustomEvent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,6 +82,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
       const sorted = uniqueClubs.sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
 
       setClubsList(sorted);
+      setClubCounts(counts);
       setLoading(false);
     };
     fetchData();
@@ -324,7 +326,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                             {showSuggestions && (
                                 <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-slate-100 max-h-48 overflow-y-auto z-50">
                                     {(formValues.club.length === 0 
-                                      ? getInitialClubList(clubsList, 8)
+                                      ? getInitialClubList(clubsList, clubCounts, 10)
                                       : getClubSuggestions(formValues.club, clubsList)
                                     ).map(c => (
                                         <div 

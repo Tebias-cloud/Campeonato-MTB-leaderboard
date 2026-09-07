@@ -157,25 +157,34 @@ export function getClubSuggestions(input: string, existingClubs: string[]): stri
   return scored.slice(0, 3).map(c => c.club);
 }
 
-export function getInitialClubList(existingClubs: string[], maxOptions: number = 8): string[] {
+export function getInitialClubList(
+  existingClubs: string[], 
+  riderCounts?: Record<string, number>, 
+  maxTotal: number = 10
+): string[] {
   const result: string[] = ['INDEPENDIENTE / LIBRE'];
 
-  // 1. Prioritise organizer clubs
-  for (const org of ORGANIZER_CLUBS) {
-    const found = existingClubs.find(c => c.toUpperCase() === org.toUpperCase());
-    if (found && !result.includes(found)) {
-      result.push(found);
-      if (result.length >= maxOptions) return result;
-    }
-  }
+  // Filtrar clubes con 2 o más corredores (excluyendo Independiente)
+  const eligible = existingClubs.filter(c => {
+    if (c === 'INDEPENDIENTE / LIBRE') return false;
+    const count = riderCounts ? (riderCounts[c] || 0) : 0;
+    return count >= 2;
+  });
 
-  // 2. Complete with most used clubs
-  for (const c of existingClubs) {
-    if (c !== 'INDEPENDIENTE / LIBRE' && !result.includes(c)) {
+  // Ordenar por cantidad de corredores descendente. En caso de empate, alfabéticamente.
+  eligible.sort((a, b) => {
+    const countA = riderCounts ? (riderCounts[a] || 0) : 0;
+    const countB = riderCounts ? (riderCounts[b] || 0) : 0;
+    if (countB !== countA) return countB - countA;
+    return a.localeCompare(b);
+  });
+
+  for (const c of eligible) {
+    if (!result.includes(c)) {
       result.push(c);
-      if (result.length >= maxOptions) break;
+      if (result.length >= maxTotal) break;
     }
   }
 
-  return result.slice(0, maxOptions);
+  return result;
 }
