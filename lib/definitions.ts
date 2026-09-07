@@ -27,7 +27,6 @@ export type Event = {
     fields: FormField[];
     categories: string[];
   };
-  registration_open: boolean;
 };
 
 export type Rider = {

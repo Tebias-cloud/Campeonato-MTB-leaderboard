@@ -40,8 +40,7 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
     bank_account_type: '',
     bank_account_number: '',
     terms_conditions: '',
-    payment_contact: '',
-    registration_open: false
+    payment_contact: ''
   });
 
   const [loading, setLoading] = useState(!isNew);
@@ -80,8 +79,7 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
             bank_account_type: bankParts[0] || '',
             bank_account_number: bankParts[1] || '',
             terms_conditions: data.terms_conditions || '',
-            payment_contact: paymentContact,
-            registration_open: data.registration_open || false
+            payment_contact: paymentContact
           });
         }
         setLoading(false);
@@ -174,18 +172,21 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
                           <label className={labelClass.replace('text-slate-500', 'text-slate-400')}>Estado</label>
                           <div className="grid grid-cols-3 gap-2 mt-1">
                             {[
-                              { id: 'pending', label: 'Abierta', color: 'bg-green-500' },
-                              { id: 'scheduled', label: 'Programada', color: 'bg-yellow-500' },
-                              { id: 'completed', label: 'Finalizada', color: 'bg-slate-500' }
+                              { id: 'pending', label: 'Abierta', color: 'bg-green-500', desc: 'Los corredores pueden inscribirse desde la página.' },
+                              { id: 'scheduled', label: 'Programada', color: 'bg-yellow-500', desc: 'La fecha está publicada, pero las inscripciones están cerradas.' },
+                              { id: 'completed', label: 'Finalizada', color: 'bg-slate-500', desc: 'La fecha ya terminó.' }
                             ].map(st => (
                               <button 
                                 key={st.id} 
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, status: st.id }))}
-                                className={`flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${formData.status === st.id ? 'border-white bg-white/10' : 'border-transparent bg-white/5 opacity-50'}`}
+                                className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all text-center h-full ${formData.status === st.id ? 'border-white bg-white/10' : 'border-transparent bg-white/5 opacity-50'}`}
                               >
-                                <span className={`w-2 h-2 rounded-full ${st.color} mb-1`}></span>
-                                <span className="text-[8px] font-black uppercase text-white tracking-tighter">{st.label}</span>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className={`w-2 h-2 rounded-full ${st.color}`}></span>
+                                  <span className="text-[10px] font-black uppercase text-white tracking-tighter">{st.label}</span>
+                                </div>
+                                <span className="text-[9px] text-slate-400 leading-tight">{st.desc}</span>
                               </button>
                             ))}
                             <input type="hidden" name="status" value={formData.status} />
@@ -276,9 +277,20 @@ export default function EventEditorPage({ params }: { params: Promise<{ id: stri
               </div>
 
               {/* SAVE BUTTON */}
-              <div className="sticky bottom-6 z-40">
+              <div className="sticky bottom-6 z-40 space-y-3">
+                {state?.error && (
+                  <div className="bg-red-500/90 backdrop-blur-sm border border-red-400 text-white px-4 py-3 rounded-2xl font-bold text-center text-sm shadow-xl">
+                    No se pudieron guardar los cambios: {state.error}
+                  </div>
+                )}
+                {state?.success && (
+                  <div className="bg-green-500/90 backdrop-blur-sm border border-green-400 text-white px-4 py-3 rounded-2xl font-bold text-center text-sm shadow-xl flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Cambios guardados
+                  </div>
+                )}
                 <button type="submit" disabled={isPending} className="w-full bg-[#1A1816] hover:bg-[#C64928] text-white font-heading text-4xl py-6 rounded-3xl shadow-2xl transition-all italic border-b-[8px] border-black hover:border-orange-950 active:translate-y-1 active:border-b-0">
-                    {isPending ? 'GUARDANDO CAMBIOS...' : 'PUBLICAR CAMBIOS'}
+                    {isPending ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
                 </button>
               </div>
           </form>

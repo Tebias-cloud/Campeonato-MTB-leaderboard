@@ -26,7 +26,6 @@ export async function saveEvent(prevState: EventSaveState, formData: FormData): 
   const bank_account = formData.get('bank_account') as string;
   const terms_conditions = formData.get('terms_conditions') as string;
   const form_config_str = formData.get('form_config') as string;
-  const registration_open = status === 'pending';
 
   let form_config;
   try {
@@ -38,20 +37,22 @@ export async function saveEvent(prevState: EventSaveState, formData: FormData): 
   const payload = {
     name, date, status, subtitle, description, price, 
     bank_owner, bank_rut, bank_name, bank_account, 
-    terms_conditions, form_config, registration_open
+    terms_conditions, form_config
   };
 
   if (isNew) {
     const { error } = await supabase.from('events').insert(payload);
     if (error) return { error: `Error al crear: ${error.message}` };
+    revalidatePath('/admin/events');
+    revalidatePath('/');
+    redirect('/admin/events');
   } else {
     const { error } = await supabase.from('events').update(payload).eq('id', id);
     if (error) return { error: `Error al actualizar: ${error.message}` };
+    revalidatePath('/admin/events');
+    revalidatePath('/');
+    return { success: true };
   }
-
-  revalidatePath('/admin/events');
-  revalidatePath('/');
-  redirect('/admin/events');
 }
 
 // ✅ NUEVA FUNCIÓN PARA BORRAR EVENTOS

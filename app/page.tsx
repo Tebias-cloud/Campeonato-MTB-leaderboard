@@ -97,7 +97,7 @@ export default function Home() {
       const { data: openEvent } = await supabase
         .from('events')
         .select('*')
-        .eq('registration_open', true)
+        .eq('status', 'pending')
         .order('date', { ascending: true })
         .limit(1)
         .maybeSingle();

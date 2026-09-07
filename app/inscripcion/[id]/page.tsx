@@ -151,7 +151,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
 
   if (loading) return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-slate-400 font-heading text-3xl animate-pulse tracking-widest">Cargando...</div>;
   
-  if (!event || !event.registration_open) {
+  if (!event || event.status !== 'pending') {
     return (
       <div className={`min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 ${montserrat.variable} ${teko.variable} font-sans`}>
         <div className="bg-white p-10 md:p-14 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] max-w-lg w-full text-center border border-slate-100">
