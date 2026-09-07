@@ -83,7 +83,7 @@ export default function Home() {
         const { data: pendingEvent } = await supabase
           .from('events')
           .select('*')
-          .eq('status', 'pending')
+          .in('status', ['pending', 'scheduled'])
           .gte('date', todaySantiago)
           .order('date', { ascending: true })
           .limit(1)
