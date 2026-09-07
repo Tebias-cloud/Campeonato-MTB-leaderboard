@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Event } from '@/lib/definitions';
 import Link from 'next/link';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
-import { getClubSuggestions } from '@/lib/clubs';
+import { getClubSuggestions, getInitialClubList } from '@/lib/clubs';
 
 const teko = Teko({ subsets: ["latin"], weight: ["400", "600"], variable: '--font-teko' });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: '--font-montserrat' });
@@ -54,7 +54,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
       if (eventIdFromUrl) {
         eventQuery = eventQuery.eq('id', eventIdFromUrl);
       } else {
-        eventQuery = eventQuery.eq('registration_open', true).order('date', { ascending: true }).limit(1);
+        eventQuery = eventQuery.eq('status', 'pending').order('date', { ascending: true }).limit(1);
       }
 
       const [evtData, clubsData, ridersData] = await Promise.all([
@@ -324,7 +324,7 @@ export default function InscripcionPage({ params }: { params: Promise<{ id: stri
                             {showSuggestions && (
                                 <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-slate-100 max-h-48 overflow-y-auto z-50">
                                     {(formValues.club.length === 0 
-                                      ? ['INDEPENDIENTE / LIBRE', ...clubsList.filter(c => c !== 'INDEPENDIENTE / LIBRE').slice(0, 6)] 
+                                      ? getInitialClubList(clubsList, 8)
                                       : getClubSuggestions(formValues.club, clubsList)
                                     ).map(c => (
                                         <div 
