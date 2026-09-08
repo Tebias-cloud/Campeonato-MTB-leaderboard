@@ -19,15 +19,13 @@ export default function LiveDashboardButton({ eventId, eventName }: { eventId: s
         Resultados En Vivo
       </button>
 
-      {show && (
-        <LiveResultsModal 
-          eventId={eventId} 
-          eventName={eventName}
-          isOpen={true}
-          onClose={() => setShow(false)} 
-          isAdmin={true}
-        />
-      )}
+      <LiveResultsModal 
+        eventId={eventId} 
+        eventName={eventName}
+        isOpen={show}
+        onClose={() => setShow(false)} 
+        isAdmin={true}
+      />
     </>
   );
 }

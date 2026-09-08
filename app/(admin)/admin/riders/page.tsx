@@ -261,11 +261,10 @@ export default async function RidersListPage({
                         <div className="flex flex-wrap gap-1">
                           {getEventsDisplay(rider.id, participations || []).map((name: string, i: number) => {
                              const match = name.match(/^(\d+)/);
-                             const num = match ? parseInt(match[1]) : i + 1;
-                             const circled = String.fromCodePoint(0x2460 + num - 1);
+                             const num = match ? match[1] : `${i + 1}`;
                              return (
                                <span key={i} className="relative group/ev cursor-default">
-                                 <span className="text-slate-500 text-sm font-bold hover:text-[#C64928] transition-colors">{circled}</span>
+                                 <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-1.5 py-0.5 rounded border border-slate-200 hover:bg-[#C64928] hover:text-white hover:border-[#C64928] transition-colors">{num}°</span>
                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 bg-[#1A1816] text-white text-[9px] font-bold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover/ev:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">{name}</span>
                                </span>
                              );
