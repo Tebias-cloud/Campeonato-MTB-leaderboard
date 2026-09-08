@@ -214,7 +214,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
       return cat === "Desconocida";
     });
 
-    const isSafeToInfer = unknownRiders.length > 0 && targetEventRiders.length > 0;
+    const isSafeToInfer = unknownRiders.length > 0;
 
     // Cuarto paso: Aplicar inferencias Nivel 1 y Nivel 2 usando SOLO el evento detectado
     const matchMap = new Map<number, string>(); // index -> category
@@ -227,7 +227,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
         // Nivel 1: Fuerte (mismo dorsal + nombre compatible)
         if (item.dorsal) {
-          const matchL1 = targetEventRiders.find(er => er.dorsal === item.dorsal);
+          const matchL1 = targetEventRiders.find(er => er.dorsal?.toString() === item.dorsal?.toString());
           if (matchL1 && matchL1.riders) {
             const dbRiderName = normalize(matchL1.riders.full_name);
             const dbParts = dbRiderName.split(' ').filter(p => p.length > 2);
@@ -267,6 +267,16 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
 
         if (matchedCategory) {
           matchMap.set(index, matchedCategory);
+        } else if (fileParts.length >= 2) {
+          // Sin categoría: respaldo por nombre único entre los corredores de la página.
+          const globalCandidates = allRiders.filter(ar => {
+            const arParts = normalize(ar.full_name).split(" ").filter(p => p.length > 2);
+            return fileParts.every(part => arParts.includes(part));
+          });
+          if (globalCandidates.length === 1) {
+            const category = normalizeCategory(globalCandidates[0].category);
+            if (category !== "Desconocida") matchMap.set(index, category);
+          }
         }
       }
     }
@@ -319,7 +329,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
     }
 
     return finalMatches;
-  }, [accumulatedRawRiders, allEventRiders, allRiders]);
+  }, [accumulatedRawRiders, allEventRiders, allRiders, eventId]);
 
   useEffect(() => {
     if (isAdmin && eventId && hasUserModified) {
@@ -424,7 +434,7 @@ export default function LiveResultsModal({ eventId, eventName, isOpen, onClose, 
             <div className="space-y-8">
               {hasInferredCategories && (
                 <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] sm:text-xs font-semibold text-center border border-blue-100">
-                  Algunas categorías fueron completadas usando los inscritos de esta fecha.
+                  Algunas categorías fueron completadas usando los registros de la página.
                 </div>
               )}
               {Object.keys(grouped).sort().map(cat => (
