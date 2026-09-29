@@ -13,20 +13,34 @@ export const ORGANIZER_CLUBS = [
 
 export function normalizeClubName(name: string): string {
   if (!name) return 'INDEPENDIENTE / LIBRE';
-  let cleaned = name.toUpperCase().trim();
-  
-  // Remove accents
-  cleaned = cleaned.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  
-  // Clean special characters
-  cleaned = cleaned.replace(/[^A-Z0-9 ]/g, ' ');
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  
-  if (cleaned === '' || cleaned === 'INDEPENDIENTE' || cleaned === 'SIN CLUB' || cleaned === 'NINGUNO') {
+  const trimmed = name.trim();
+  if (!trimmed) return 'INDEPENDIENTE / LIBRE';
+
+  const upper = trimmed.toUpperCase().replace(/\s+/g, ' ');
+
+  // Detección tolerante de alias independientes sin alterar nombres reales
+  const cleanedAlpha = upper
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    cleanedAlpha === '' ||
+    cleanedAlpha === 'INDEPENDIENTE' ||
+    cleanedAlpha === 'LIBRE' ||
+    cleanedAlpha === 'INDEPENDIENTE LIBRE' ||
+    cleanedAlpha === 'SIN CLUB' ||
+    cleanedAlpha === 'SIN TEAM' ||
+    cleanedAlpha === 'NINGUNO' ||
+    cleanedAlpha === 'NINGUNA' ||
+    cleanedAlpha === 'PARTICULAR'
+  ) {
     return 'INDEPENDIENTE / LIBRE';
   }
-  
-  return cleaned;
+
+  // Preserva caracteres especiales (&, ', -, /) y tildes de clubes reales
+  return upper;
 }
 
 // Damerau-Levenshtein distance (handles insertions, deletions, substitutions, and transpositions)
