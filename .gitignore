@@ -33,3 +33,6 @@ yarn-error.log*
 # --- Sistema Operativo ---
 .DS_Store
 Thumbs.db
+
+# --- Scripts y pruebas locales descartables ---
+scratch/
