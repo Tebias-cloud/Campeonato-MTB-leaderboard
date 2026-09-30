@@ -7,6 +7,7 @@ import { Event } from '@/lib/definitions';
 import { useEffect, useState } from 'react';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
 import LiveResultsModal from '@/components/LiveResultsModal';
+import { calculateClubRanking } from '@/lib/clubs';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
@@ -153,35 +154,13 @@ export default function Home() {
   useEffect(() => {
     async function loadRanking() {
       if (categoriaActual === 'Clubes') {
-          const { data: allResults } = await supabase.from('results').select('rider_id, event_id, points');
-          const { data: allEventRiders } = await supabase.from('event_riders').select('rider_id, event_id, club_at_event');
+          const [{ data: allResults }, { data: allEventRiders }] = await Promise.all([
+            supabase.from('results').select('rider_id, event_id, points'),
+            supabase.from('event_riders').select('rider_id, event_id, club_at_event')
+          ]);
 
-          const erMap = new Map<string, string | null>();
-          allEventRiders?.forEach(er => {
-            erMap.set(`${er.event_id}-${er.rider_id}`, er.club_at_event);
-          });
-
-          const clubScores: Record<string, { points: number; riders: Set<string> }> = {};
-          
-          allResults?.forEach(result => {
-              let clubName = erMap.get(`${result.event_id}-${result.rider_id}`);
-              if (clubName) {
-                  clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
-                  if (clubName === 'TMT') clubName = 'CLUB TMT';
-                  if (clubName === 'COBRA') clubName = 'CLUB COBRA';
-                  
-                  if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
-                      if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
-                      clubScores[clubName].points += result.points || 0;
-                      clubScores[clubName].riders.add(result.rider_id);
-                  }
-              }
-          });
-          
-          const topClubs = Object.entries(clubScores)
-              .map(([clubName, stats]) => ({ clubName, points: stats.points }))
-              .sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName))
-              .slice(0, 3);
+          const rankedClubs = calculateClubRanking(allResults || [], allEventRiders || []);
+          const topClubs = rankedClubs.slice(0, 3);
           
           setRiders(topClubs.map((c, i) => ({
               rider_id: `club-${i}`,

@@ -5,6 +5,7 @@ import { Teko, Montserrat } from "next/font/google";
 import { Event } from '@/lib/definitions';
 import { normalizeCategory } from '@/lib/utils';
 import { OFFICIAL_CATEGORIES } from '@/lib/categories';
+import { calculateClubRanking } from '@/lib/clubs';
 
 // --- FUENTES ---
 const teko = Teko({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: '--font-teko' });
@@ -138,36 +139,12 @@ export default async function RankingFull(props: Props) {
     });
 
     if (categoryFilter === 'Clubes') {
-      const { data: allResults } = await supabase.from('results').select('rider_id, event_id, points');
-      const { data: allEventRiders } = await supabase.from('event_riders').select('rider_id, event_id, club_at_event');
+      const [{ data: allResults }, { data: allEventRiders }] = await Promise.all([
+        supabase.from('results').select('rider_id, event_id, points'),
+        supabase.from('event_riders').select('rider_id, event_id, club_at_event')
+      ]);
 
-      const erMap = new Map();
-      allEventRiders?.forEach(er => {
-        erMap.set(`${er.event_id}-${er.rider_id}`, er.club_at_event);
-      });
-
-      const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
-      
-      allResults?.forEach(result => {
-          let clubName = erMap.get(`${result.event_id}-${result.rider_id}`);
-          if (clubName) {
-              clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
-              if (clubName === 'TMT') clubName = 'CLUB TMT';
-              if (clubName === 'COBRA') clubName = 'CLUB COBRA';
-              
-              if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
-                  if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
-                  clubScores[clubName].points += result.points || 0;
-                  clubScores[clubName].riders.add(result.rider_id);
-              }
-          }
-      });
-      
-      const clubRankingList = Object.entries(clubScores).map(([clubName, stats]) => ({
-          clubName,
-          points: stats.points,
-          ridersCount: stats.riders.size
-      })).sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName));
+      const clubRankingList = calculateClubRanking(allResults || [], allEventRiders || []);
 
       rankingData = clubRankingList.map(item => ({
         rider_id: `club-${item.clubName}`,
@@ -237,30 +214,7 @@ export default async function RankingFull(props: Props) {
 
     if (categoryFilter === 'Clubes') {
       const { data: eventRidersData } = await supabase.from('event_riders').select('rider_id, club_at_event').eq('event_id', eventIdFilter);
-      const erMap = new Map();
-      eventRidersData?.forEach(er => erMap.set(er.rider_id, er.club_at_event));
-
-      const clubScores: Record<string, { points: number, riders: Set<string> }> = {};
-      typedData?.forEach(item => {
-          let clubName = erMap.get(item.rider_id);
-          if (clubName) {
-              clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
-              if (clubName === 'TMT') clubName = 'CLUB TMT';
-              if (clubName === 'COBRA') clubName = 'CLUB COBRA';
-
-              if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
-                  if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
-                  clubScores[clubName].points += item.points || 0;
-                  clubScores[clubName].riders.add(item.rider_id);
-              }
-          }
-      });
-      
-      const clubRankingList = Object.entries(clubScores).map(([clubName, stats]) => ({
-          clubName,
-          points: stats.points,
-          ridersCount: stats.riders.size
-      })).sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName));
+      const clubRankingList = calculateClubRanking(typedData || [], eventRidersData || []);
 
       rankingData = clubRankingList.map(item => ({
         rider_id: `club-${item.clubName}`,

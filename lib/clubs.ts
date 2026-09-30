@@ -202,3 +202,52 @@ export function getInitialClubList(
 
   return result;
 }
+
+export interface ClubScoreStats {
+  clubName: string;
+  points: number;
+  ridersCount: number;
+}
+
+/**
+ * Calcula el ranking de clubes agregando puntos históricos de resultados
+ * basándose en event_riders.club_at_event.
+ */
+export function calculateClubRanking(
+  results: { rider_id: string; event_id?: string; points?: number | null }[],
+  eventRiders: { rider_id: string; event_id?: string; club_at_event: string | null }[]
+): ClubScoreStats[] {
+  const erMap = new Map<string, string | null>();
+  eventRiders.forEach(er => {
+    if (er.event_id) {
+      erMap.set(`${er.event_id}-${er.rider_id}`, er.club_at_event);
+    } else {
+      erMap.set(er.rider_id, er.club_at_event);
+    }
+  });
+
+  const clubScores: Record<string, { points: number; riders: Set<string> }> = {};
+
+  results.forEach(result => {
+    let clubName = (result.event_id ? erMap.get(`${result.event_id}-${result.rider_id}`) : null) || erMap.get(result.rider_id);
+    if (clubName) {
+      clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
+      if (clubName === 'TMT') clubName = 'CLUB TMT';
+      if (clubName === 'COBRA') clubName = 'CLUB COBRA';
+
+      if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
+        if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
+        clubScores[clubName].points += result.points || 0;
+        clubScores[clubName].riders.add(result.rider_id);
+      }
+    }
+  });
+
+  return Object.entries(clubScores)
+    .map(([clubName, stats]) => ({
+      clubName,
+      points: stats.points,
+      ridersCount: stats.riders.size
+    }))
+    .sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName));
+}
