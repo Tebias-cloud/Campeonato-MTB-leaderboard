@@ -1,44 +1,46 @@
-# 🚀 Guía Rápida: Administrador MTB
+# Guía Rápida: Administración de Eventos MTB
 
-Esta es la guía esencial para gestionar una fecha en 4 pasos simples.
-
----
-
-### 1️⃣ Configurar la Carrera (Antes de abrir)
-*   Ve a **Eventos** > **Ajustes**.
-*   **Configuración:** Pon el nombre, precio y los datos de tu cuenta bancaria.
-*   **Estado:** Cambia a **"Abierta"** para que la gente pueda inscribirse.
-*   **Vista Previa:** Mira la pestaña de al lado para asegurar que todo se vea bien.
-*   **¡Importante!:** Haz clic en **"PUBLICAR CAMBIOS"** al terminar.
+Guía operativa para gestionar una fecha del campeonato en 4 pasos.
 
 ---
 
-### 2️⃣ Asignar Números (Dorsales)
-*   Ve a **Riders**.
-*   **Filtro:** Arriba a la derecha, selecciona tu **Evento** (obligatorio).
-*   **Asignar:** Haz clic en **"Asignación en Bloque"**.
-*   Elige categoría y número inicial (ej: 100). El sistema hará el resto (100, 101, 102...).
+### 1. Configurar la Carrera (Antes de abrir inscripciones)
+* Ve a **Eventos** (`/admin/events`) y haz clic en el botón **Ajustes** de la carrera correspondiente (o en **+ NUEVA CARRERA** para crear una).
+* **Configuración:** Completa el nombre, slogan, fecha oficial, precio e información de transferencia bancaria.
+* **Estado:** Selecciona **"Abierta"** para habilitar el formulario público de inscripción.
+* **Vista Previa:** Usa la pestaña **"Vista Previa"** para verificar cómo verán los corredores el formulario en dispositivos móviles y de escritorio.
+* **Confirmar:** Haz clic en **"GUARDAR CAMBIOS"** al final del formulario.
 
 ---
 
-### 3️⃣ Exportar para Cronometraje
-*   En la misma lista de **Riders** (con el evento seleccionado).
-*   Haz clic en el botón azul **"PARA RACETIME"**.
-*   Descarga el archivo y **no lo abras**. Pásalo directo al juez de la carrera.
+### 2. Asignar Números (Dorsales)
+* Ve a **Riders** (`/admin/riders`).
+* **Filtro:** En la barra de filtros, selecciona la **Fecha** específica (este filtro es obligatorio para habilitar la gestión de dorsales del evento).
+* **Asignación masiva:** Haz clic en el botón **"Asignación en Bloque"**.
+* Selecciona la categoría y define el número inicial (ej: 100). El sistema verificará los dorsales ocupados y asignará correlativos saltando colisiones.
+* **Asignación manual:** También puedes editar el número directamente en la columna **DORSAL** de cada corredor en la tabla.
 
 ---
 
-### 4️⃣ Cargar Resultados (Al terminar)
-*   Ve a **Juez**.
-*   Selecciona el **Evento** y la **Categoría**.
-*   Haz clic en **"⚡ IMPORTAR RACETIME"**.
-*   Sube el PDF de resultados o pega el texto (Dorsal y Tiempo).
-*   Haz clic en **"Verificar Datos"** (busca que todo esté en verde).
-*   Haz clic en **"Guardar Resultados"**. ¡Y listo! El ranking se actualiza solo.
+### 3. Exportar para Cronometraje
+* En la sección **Riders**, asegurándote de tener la fecha seleccionada en los filtros.
+* Haz clic en el botón **"PARA RACETIME"**.
+* El sistema descargará un archivo CSV en formato estándar UTF-8 con las columnas `BIB`, `NAME`, `CATEGORY`, `TEAM` y `BIRTHDATE`, listo para importar en el software de cronometraje.
 
 ---
 
-### 💡 Tips Pro
-*   **¿No ves los cambios?** Presiona `Ctrl + F5` en tu teclado.
-*   **¿Alguien se inscribió mal?** Busca al corredor en **Riders** y usa el botón **"Editar"**.
-*   **¿Corredor de último minuto?** Créalo en **"+ Nuevo Rider"** antes de asignarle número.
+### 4. Cargar Resultados (Al finalizar la carrera)
+* Ve a **Juez** (`/admin/results`).
+* Selecciona el **Evento** y la **Categoría**.
+* Haz clic en el botón **"IMPORTAR"**.
+* En el asistente, sube el archivo de cronometraje en formato PDF, Excel (`.xls` / `.xlsx`) o CSV.
+* El sistema identificará dorsales y tiempos automáticamente:
+  - Los corredores validados aparecerán marcados como listos.
+  - Si existen números sospechosos o no vinculados, aparecerán en la sección de revisión para asignar o corregir el corredor correspondiente.
+* Haz clic en el botón **"Guardar Resultados"** (que indica la cantidad de registros validados). Las posiciones, marcas y el ranking global se calcularán de inmediato.
+
+---
+
+### Consejos Operativos
+* **Edición de datos de corredor:** En la tabla de **Riders**, usa el botón **EDITAR** de cada fila para actualizar información personal o club.
+* **Inscripciones tardías:** Para registrar un corredor fuera de plazo, usa **+ NUEVO RIDER** antes de asignar su dorsal para la fecha.
