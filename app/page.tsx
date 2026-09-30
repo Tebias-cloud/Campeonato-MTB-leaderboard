@@ -153,29 +153,45 @@ export default function Home() {
   useEffect(() => {
     async function loadRanking() {
       if (categoriaActual === 'Clubes') {
-          const { data } = await supabase.from('ranking_global').select('*');
-          if (data) {
-              const clubScores: Record<string, number> = {};
-              data.forEach(item => {
-                  if (item.club && item.club !== 'INDEPENDIENTE / LIBRE') {
-                      clubScores[item.club] = (clubScores[item.club] || 0) + item.total_points;
+          const { data: allResults } = await supabase.from('results').select('rider_id, event_id, points');
+          const { data: allEventRiders } = await supabase.from('event_riders').select('rider_id, event_id, club_at_event');
+
+          const erMap = new Map<string, string | null>();
+          allEventRiders?.forEach(er => {
+            erMap.set(`${er.event_id}-${er.rider_id}`, er.club_at_event);
+          });
+
+          const clubScores: Record<string, { points: number; riders: Set<string> }> = {};
+          
+          allResults?.forEach(result => {
+              let clubName = erMap.get(`${result.event_id}-${result.rider_id}`);
+              if (clubName) {
+                  clubName = clubName.trim().toUpperCase().replace(/^(CLUB\s+|TEAM\s+)/, '').trim();
+                  if (clubName === 'TMT') clubName = 'CLUB TMT';
+                  if (clubName === 'COBRA') clubName = 'CLUB COBRA';
+                  
+                  if (clubName !== 'INDEPENDIENTE / LIBRE' && clubName !== 'INDEPENDIENTE' && clubName !== 'LIBRE') {
+                      if (!clubScores[clubName]) clubScores[clubName] = { points: 0, riders: new Set() };
+                      clubScores[clubName].points += result.points || 0;
+                      clubScores[clubName].riders.add(result.rider_id);
                   }
-              });
-              const topClubs = Object.entries(clubScores)
-                  .map(([clubName, points]) => ({ clubName, points }))
-                  .sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName))
-                  .slice(0, 3);
-              
-              setRiders(topClubs.map((c, i) => ({
-                  rider_id: `club-${i}`,
-                  full_name: c.clubName,
-                  category: 'EQUIPO',
-                  club: null,
-                  club_logo: getClubLogo(c.clubName),
-                  instagram: null,
-                  total_points: c.points
-              })));
-          }
+              }
+          });
+          
+          const topClubs = Object.entries(clubScores)
+              .map(([clubName, stats]) => ({ clubName, points: stats.points }))
+              .sort((a, b) => b.points !== a.points ? b.points - a.points : a.clubName.localeCompare(b.clubName))
+              .slice(0, 3);
+          
+          setRiders(topClubs.map((c, i) => ({
+              rider_id: `club-${i}`,
+              full_name: c.clubName,
+              category: 'EQUIPO',
+              club: null,
+              club_logo: getClubLogo(c.clubName),
+              instagram: null,
+              total_points: c.points
+          })));
       } else {
           let query = supabase.from('ranking_global').select('*').order('total_points', { ascending: false }).limit(3);
           if (categoriaActual !== 'General') query = query.ilike('category', categoriaActual);
